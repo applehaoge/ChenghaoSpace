@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
+import * as backendService from '@/api/backendService';
+
+const USE_BACKEND = import.meta.env.VITE_USE_BACKEND === 'true';
 
 // 项目卡片组件
 function ProjectCard({ title, imageUrl, bgColor, projectId }) {
@@ -77,27 +80,25 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText }) {
       toast.warning('请输入您的需求');
       return;
     }
-    
+
     try {
-      // 显示加载状态
       const loadingToast = toast.loading(`正在生成${activeTab}内容，请稍候...`);
-      
-      // 调用AI服务API
-      const response = await aiService.sendAIRequest(activeTab, inputText);
-      
-      // 关闭加载状态
+
+      let response;
+      if (USE_BACKEND) {
+        response = await backendService.chat(inputText, 3);
+      } else {
+        response = await aiService.sendAIRequest(activeTab, inputText);
+      }
+
       toast.dismiss(loadingToast);
-      
-      if (response.success && response.result) {
-        // 显示成功消息
-        toast.success(`内容生成成功，耗时${response.processingTime}ms`);
-        
-        // 这里可以根据需要处理生成的结果，比如显示在页面上
-        console.log('AI生成结果:', response.result);
-        console.log('使用Token数:', response.tokensUsed);
-        
-        // 例如，可以更新输入框为生成的结果，或者在新区域显示结果
-        // setInputText(response.result);
+
+      if (response && (response.answer || response.result)) {
+        const resultText = response.answer || response.result;
+        toast.success('内容生成成功');
+        console.log('生成结果:', resultText);
+        console.log('来源:', response.sources);
+        // TODO: 在 UI 中显示结果区域
       } else {
         toast.error(response.error || '内容生成失败');
       }

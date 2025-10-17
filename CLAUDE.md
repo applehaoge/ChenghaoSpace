@@ -1,6 +1,7 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+每做完一步要更新进度"D:\AI_agent_project1\chenghaoSpace\PROGRESS.md"
 
 说明（中文）：
 - 本文档用于指导未来的 Claude Code 实例在本仓库内的常见操作与快速定位关键代码路径。请以阅读项目文件为前提，修改代码前必须先阅读相关实现并理解上下文与依赖关系。
