@@ -201,11 +201,43 @@ if (response.success) {
 # 安装依赖
 pnpm install
 
-# 启动开发服务器
-pnpm dev
+# 后端（server）运行说明：
+# 在 server/ 下创建 .env（可复制 server/.env.example），并设置 OPENAI_API_KEY
+# 可选：设置 OPENAI_API_BASE 指向自建的上游代理（如果直接访问 api.openai.com 被限制）
+# 示例：
+#   OPENAI_API_KEY=sk-xxxx
+#   OPENAI_API_BASE=https://api.openai.com
 
-# 构建项目
-pnpm build
+# 构建并运行 server（TypeScript -> dist）
+pnpm --filter ./server build
+node ./server/dist/index.js
+
+# 或直接运行（若本地已安装 ts-node-dev 或使用 dev 脚本）
+# 若已在 server/.env 中持久化了 PORT 与代理（HTTP_PROXY/HTTPS_PROXY/ALL_PROXY），可以直接运行以下命令而无需每次手动设置环境变量：
+pnpm --filter ./server dev
+
+# 手动设置（仅在不使用 server/.env 时需要）
+# PowerShell（当前会话）：
+#   $env:HTTP_PROXY = 'http://127.0.0.1:33210'
+#   $env:HTTPS_PROXY = 'http://127.0.0.1:33210'
+#   $env:ALL_PROXY = 'socks5://127.0.0.1:33211'
+#   pnpm --filter ./server dev
+
+# CMD（当前窗口）：
+#   set HTTP_PROXY=http://127.0.0.1:33210
+#   set HTTPS_PROXY=http://127.0.0.1:33210
+#   set ALL_PROXY=socks5://127.0.0.1:33211
+#   pnpm --filter ./server dev
+
+# Git Bash / WSL：
+#   export HTTP_PROXY='http://127.0.0.1:33210' HTTPS_PROXY='http://127.0.0.1:33210' ALL_PROXY='socks5://127.0.0.1:33211'
+#   pnpm --filter ./server dev
+
+# 启动前端开发服务器
+pnpm dev:client
+
+# 构建前端
+pnpm build:client
 ```
 
 ## 平台特色

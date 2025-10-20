@@ -9,12 +9,17 @@
     "build": "tsc"
   },
   "dependencies": {
+    "dotenv": "^16.0.0",
     "fastify": "^4.22.0",
     "fastify-cors": "6.1.0",
-    "dotenv": "^16.0.0",
-    "node-fetch": "3.3.2"
+    "https-proxy-agent": "^7.0.6",
+    "langchain": "^0.3.36",
+    "node-fetch": "3.3.2",
+    "openai": "^6.4.0"
   },
   "devDependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@types/node-fetch": "^2.6.13",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.0"
   }
