@@ -1,0 +1,49 @@
+{
+  "name": "chenghaospace-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "pnpm run build && node dist/index.js",
+    "start": "node dist/index.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@fastify/ajv-compiler": "^4.0.5",
+    "@fastify/error": "^4.2.0",
+    "@fastify/fast-json-stringify-compiler": "^5.0.3",
+    "abstract-logging": "^2.0.1",
+    "agent-base": "^7.1.4",
+    "avvio": "^9.1.0",
+    "data-uri-to-buffer": "^6.0.2",
+    "debug": "^4.4.3",
+    "dotenv": "^16.0.0",
+    "fast-content-type-parse": "^3.0.0",
+    "fast-json-stringify": "^6.1.1",
+    "fastify": "^4.22.0",
+    "fastify-cors": "6.1.0",
+    "fetch-blob": "^3.2.0",
+    "find-my-way": "^9.3.0",
+    "formdata-polyfill": "^4.0.10",
+    "https-proxy-agent": "^7.0.6",
+    "langchain": "^0.3.36",
+    "node-fetch": "3.3.2",
+    "openai": "^6.4.0",
+    "pino": "^10.1.0",
+    "process-warning": "^5.0.0",
+    "proxy-addr": "^2.0.7",
+    "rfdc": "^1.4.1",
+    "secure-json-parse": "^4.1.0",
+    "semver": "^7.7.3",
+    "toad-cache": "^3.7.0"
+  },
+  "devDependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@types/node": "^24.9.1",
+    "@types/node-fetch": "^2.6.13",
+    "@types/pino": "^7.0.5",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.0"
+  },
+  "packageManager": "pnpm@10.18.2+sha512.9fb969fa749b3ade6035e0f109f0b8a60b5d08a1a87fdf72e337da90dcc93336e2280ca4e44f2358a649b83c17959e9993e777c2080879f3801e6f0d999ad3dd"
+}

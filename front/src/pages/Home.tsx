@@ -1,0 +1,893 @@
+import { useState, useEffect, useRef, useCallback } from 'react';
+import type { KeyboardEvent } from 'react';
+import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { toast } from 'sonner';
+import { aiService } from '@/api/aiService';
+
+type ChatBubble = {
+  id: string;
+  content: string;
+  sender: 'user' | 'ai';
+  timestamp: Date;
+  provider?: string;
+  sources?: Array<{ id: string; text: string; score?: number }>;
+  error?: string;
+  isStreaming?: boolean;
+};
+
+
+type MainContentProps = {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  inputText: string;
+  setInputText: (value: string) => void;
+  onSendMessage?: (message: string) => void;
+};
+
+const markdownComponents: Components = {
+  h1: ({ children, ...props }) => (
+    <h1 className="text-lg font-semibold mb-2" {...props}>
+      {children}
+    </h1>
+  ),
+  h2: ({ children, ...props }) => (
+    <h2 className="text-base font-semibold mb-2" {...props}>
+      {children}
+    </h2>
+  ),
+  h3: ({ children, ...props }) => (
+    <h3 className="text-sm font-semibold mb-2" {...props}>
+      {children}
+    </h3>
+  ),
+  p: ({ children, ...props }) => (
+    <p className="mb-2 leading-relaxed" {...props}>
+      {children}
+    </p>
+  ),
+  ul: ({ children, ...props }) => (
+    <ul className="mb-2 list-disc pl-5 space-y-1" {...props}>
+      {children}
+    </ul>
+  ),
+  ol: ({ children, ...props }) => (
+    <ol className="mb-2 list-decimal pl-5 space-y-1" {...props}>
+      {children}
+    </ol>
+  ),
+  li: ({ children, ...props }) => (
+    <li className="leading-relaxed" {...props}>
+      {children}
+    </li>
+  ),
+  strong: ({ children, ...props }) => (
+    <strong className="font-semibold" {...props}>
+      {children}
+    </strong>
+  ),
+  code: ({ inline, className, children, ...props }) =>
+    inline ? (
+      <code className="px-1 py-0.5 bg-gray-100 rounded text-sm" {...props}>
+        {children}
+      </code>
+    ) : (
+      <pre className="mb-2 rounded-lg bg-gray-900 text-gray-100 p-3 overflow-auto text-sm" {...props}>
+        <code>{children}</code>
+      </pre>
+    ),
+};
+
+// 项目卡片组件
+function ProjectCard({ title, imageUrl, bgColor, projectId }) {
+  const handleClick = async () => {
+    try {
+      // 显示加载状态
+      const loadingToast = toast.loading(`正在加载${title}项目详情...`);
+      
+      // 调用API获取项目详情
+      const response = await aiService.getProjectDetails(projectId);
+      
+      // 关闭加载状态
+      toast.dismiss(loadingToast);
+      
+      if (response.success && response.project) {
+        toast.success(`成功加载${title}项目详情`);
+        // 这里可以添加跳转到项目详情页的逻辑
+        console.log('项目详情:', response.project);
+      } else {
+        toast.error(response.error || '加载项目详情失败');
+      }
+    } catch (error) {
+      console.error('项目卡片点击错误:', error);
+      toast.error('加载项目详情时发生错误');
+    }
+  };
+
+  return (
+    <div 
+      className="h-[180px] rounded-lg overflow-hidden relative border border-gray-200 shadow-sm bg-gray-100 group cursor-pointer transition-all duration-300 hover:shadow-md"
+      onClick={handleClick}
+    >
+      <div 
+        className="h-full flex items-center justify-center" 
+        style={{ backgroundColor: bgColor }}
+      >
+        <img 
+          src={imageUrl} 
+          alt={title} 
+          className="max-w-[90%] max-h-[90%] object-contain transition-transform duration-300 group-hover:scale-105" 
+        />
+      </div>
+      <h4 className="absolute bottom-4 left-4 right-4 m-0 p-2 bg-black/60 text-white text-sm rounded">
+        {title}
+      </h4>
+    </div>
+  );
+}
+
+// 聊天界面组件
+function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onBack: () => void }) {
+  const [messages, setMessages] = useState<ChatBubble[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const handledInitialRef = useRef<string | null>(null);
+  const streamingTimersRef = useRef<Record<string, number>>({});
+
+  const scrollToBottom = useCallback(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const buildPrompt = useCallback((conversation: ChatBubble[]) => {
+    return conversation
+      .map(msg => `${msg.sender === 'user' ? '用户' : '助手'}：${msg.content}`)
+      .join('\n');
+  }, []);
+
+  const clearStreamingTimer = useCallback((id?: string) => {
+    if (id) {
+      const timer = streamingTimersRef.current[id];
+      if (timer) {
+        window.clearInterval(timer);
+        delete streamingTimersRef.current[id];
+      }
+      return;
+    }
+    Object.values(streamingTimersRef.current).forEach(timer => window.clearInterval(timer));
+    streamingTimersRef.current = {};
+  }, []);
+
+  const startStreaming = useCallback((fullText: string, messageId: string) => {
+    clearStreamingTimer(messageId);
+
+    if (!fullText) {
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === messageId ? { ...msg, content: '', isStreaming: false } : msg
+        )
+      );
+      return;
+    }
+
+    const totalLength = fullText.length;
+    const chunkSize = Math.max(1, Math.floor(totalLength / 80));
+    let index = 0;
+
+    const pushUpdate = () => {
+      index = Math.min(index + chunkSize, totalLength);
+      const nextContent = fullText.slice(0, index);
+      const finished = index >= totalLength;
+
+      setMessages(prev =>
+        prev.map(msg =>
+          msg.id === messageId ? { ...msg, content: nextContent, isStreaming: !finished } : msg
+        )
+      );
+
+      if (finished) {
+        clearStreamingTimer(messageId);
+      }
+    };
+
+    pushUpdate();
+
+    if (index < totalLength) {
+      const timer = window.setInterval(pushUpdate, 30);
+      streamingTimersRef.current[messageId] = timer;
+    }
+  }, [clearStreamingTimer]);
+
+  const fetchAssistantReply = useCallback(async (conversation: ChatBubble[]) => {
+    setIsLoading(true);
+    try {
+      const prompt = buildPrompt(conversation);
+      const response = await aiService.sendAIRequest('聊天', prompt);
+      const text = response.answer || response.result || '';
+
+      const assistantMessage: ChatBubble = {
+        id: `msg_${Date.now()}_ai`,
+        content: '',
+        sender: 'ai',
+        timestamp: new Date(),
+        provider: response.provider,
+        sources: response.sources,
+        error: response.success ? undefined : response.error,
+        isStreaming: true
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+
+      if (!response.success || !text) {
+        clearStreamingTimer(assistantMessage.id);
+        setMessages(prev =>
+          prev.map(msg =>
+            msg.id === assistantMessage.id
+              ? {
+                  ...msg,
+                  content: response.error || '抱歉，本次未获取到回复，请稍后重试。',
+                  isStreaming: false
+                }
+              : msg
+          )
+        );
+        toast.error(response.error || '内容生成失败，请稍后重试');
+        return;
+      }
+
+      startStreaming(text, assistantMessage.id);
+    } catch (error) {
+      clearStreamingTimer();
+      console.error('调用聊天接口失败:', error);
+      setMessages(prev => [
+        ...prev,
+        {
+          id: `msg_${Date.now()}_ai_error`,
+          content: '抱歉，生成过程中出现错误，请稍后重试。',
+          sender: 'ai',
+          timestamp: new Date(),
+          error: (error as Error)?.message
+        }
+      ]);
+      toast.error('调用后端接口失败');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [buildPrompt, startStreaming, clearStreamingTimer]);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
+  useEffect(() => {
+    return () => {
+      clearStreamingTimer();
+    };
+  }, [clearStreamingTimer]);
+
+  useEffect(() => {
+    const trimmed = initialMessage.trim();
+    if (!trimmed) {
+      clearStreamingTimer();
+      setMessages([]);
+      setNewMessage('');
+      handledInitialRef.current = null;
+      return;
+    }
+
+    if (handledInitialRef.current === trimmed) {
+      return;
+    }
+    handledInitialRef.current = trimmed;
+
+    const first: ChatBubble = {
+      id: `msg_${Date.now()}_user`,
+      content: trimmed,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    clearStreamingTimer();
+    setMessages([first]);
+    setNewMessage('');
+    void fetchAssistantReply([first]);
+  }, [initialMessage, fetchAssistantReply, clearStreamingTimer]);
+
+  const handleSendMessage = async () => {
+    const trimmed = newMessage.trim();
+    if (!trimmed || isLoading) return;
+
+    const userBubble: ChatBubble = {
+      id: `msg_${Date.now()}_user`,
+      content: trimmed,
+      sender: 'user',
+      timestamp: new Date()
+    };
+    const nextConversation = [...messages, userBubble];
+    setMessages(nextConversation);
+    setNewMessage('');
+    await fetchAssistantReply(nextConversation);
+  };
+
+  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      void handleSendMessage();
+    }
+  };
+
+  const handleFileUpload = () => {
+    toast.info('文件上传功能即将上线');
+  };
+
+  return (
+    <main className="flex-1 w-[calc(100%-260px)] bg-white border-l border-gray-100 flex flex-col min-h-0">
+      {/* 聊天头部 - 固定在顶部 */}
+      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-gray-100 bg-white">
+        <div className="flex items-center gap-3">
+          <button
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            onClick={onBack}
+          >
+            <i className="fas fa-arrow-left text-gray-500"></i>
+          </button>
+          <h2 className="text-lg font-medium text-gray-800">AI对话机器人</h2>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <i className="fas fa-clock-rotate-left text-gray-500"></i>
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <i className="fas fa-share-nodes text-gray-500"></i>
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <i className="fas fa-file-export text-gray-500"></i>
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <i className="fas fa-ellipsis text-gray-500"></i>
+          </button>
+        </div>
+      </div>
+
+      {/* 聊天内容区域 */}
+      <div className="flex-1 overflow-y-auto p-5 bg-gray-50 chat-window min-h-0">
+        {messages.map(message => (
+          <div
+            key={message.id}
+            className={`flex mb-6 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            {message.sender === 'ai' && (
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+                <i className="fas fa-robot text-blue-500"></i>
+              </div>
+            )}
+            <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'}`}
+            >
+              <div
+                className={`p-4 rounded-lg ${
+                  message.sender === 'user'
+                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                    : 'bg-white border border-gray-200 text-gray-800'
+                }`}
+              >
+                {message.sender === 'ai' ? (
+                  <div className="text-sm leading-relaxed space-y-2">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                      {message.content}
+                    </ReactMarkdown>
+                    {message.isStreaming && (
+                      <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
+                    )}
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap leading-relaxed text-sm">
+                    {message.content}
+                  </div>
+                )}
+              </div>
+            </div>
+            {message.sender === 'user' && (
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 flex-shrink-0 order-3">
+                <i className="fas fa-user text-gray-600"></i>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {/* 加载状态 */}
+        {isLoading && (
+          <div className="flex justify-start mb-6">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+              <i className="fas fa-robot text-blue-500"></i>
+            </div>
+            <div className="bg-white border border-gray-200 text-gray-800 p-4 rounded-lg">
+              <div className="flex space-x-1">
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0.4s' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* 输入区域 */}
+      <div className="p-5 border-t border-gray-100">
+        <div className="flex gap-2.5 mb-3">
+          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <i className="fas fa-microphone text-gray-500"></i>
+          </button>
+          <button
+            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            onClick={handleFileUpload}
+          >
+            <i className="fas fa-paperclip text-gray-500"></i>
+          </button>
+          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+            <i className="fas fa-smile text-gray-500"></i>
+          </button>
+        </div>
+        <div className="flex gap-2.5">
+          <textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={handleKeyPress}
+            className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+            placeholder="我指的是……"
+            rows={2}
+          />
+          <button
+            className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50"
+            onClick={handleSendMessage}
+            disabled={!newMessage.trim() || isLoading}
+          >
+            <i className="fas fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </main>
+  );
+}
+// 主内容区组件
+function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendMessage }: MainContentProps) {
+  const tabs = ['写作', 'PPT', '设计', 'Excel', '网页', '播客'];
+  const [inspiration, setInspiration] = useState('创新思维，高效创作');
+  
+  // 获取今日灵感
+  useEffect(() => {
+    const fetchInspiration = async () => {
+      try {
+        const response = await aiService.getInspiration();
+        if (response.success && response.inspiration) {
+          setInspiration(response.inspiration);
+        }
+      } catch (error) {
+        console.error('获取灵感失败:', error);
+      }
+    };
+    
+    fetchInspiration();
+  }, []);
+  
+  // 处理发送按钮点击
+  const handleSend = () => {
+    const trimmed = inputText.trim();
+    if (!trimmed) {
+      toast.warning('请输入您的需求');
+      return;
+    }
+
+    onSendMessage?.(trimmed);
+    setInputText('');
+  };
+
+  // 处理一键优化按钮点击
+  const handleOptimize = async () => {
+    if (!inputText.trim()) {
+      toast.warning('请输入需要优化的内容');
+      return;
+    }
+    
+    try {
+      // 显示加载状态
+      const loadingToast = toast.loading('正在优化内容...');
+      
+      // 调用优化API
+      const response = await aiService.optimizeContent(inputText);
+      
+      // 关闭加载状态
+      toast.dismiss(loadingToast);
+      
+      if (response.success && response.optimizedContent) {
+        // 更新输入框内容为优化后的内容
+        setInputText(response.optimizedContent);
+        
+        // 显示优化建议
+        if (response.suggestions && response.suggestions.length > 0) {
+          const suggestionsText = response.suggestions.join('\n- ');
+          toast.success(`内容优化成功\n- ${suggestionsText}`);
+        } else {
+          toast.success('内容优化成功');
+        }
+      } else {
+        toast.error(response.error || '内容优化失败');
+      }
+    } catch (error) {
+      console.error('优化内容失败:', error);
+      toast.error('内容优化时发生错误');
+    }
+  };
+  
+  // 处理文件上传按钮点击
+  const handleFileUpload = () => {
+    toast.info('文件上传功能即将上线');
+  };
+  
+  // 处理格式设置按钮点击
+  const handleFormatSettings = () => {
+    toast.info('格式设置功能即将上线');
+  };
+  
+  // 处理实践分类按钮点击
+  const handlePracticeCategory = (category) => {
+    toast.info(`已切换到${category}分类`);
+  };
+
+  return (
+      <main className="flex-1 w-[calc(100%-260px)] bg-white border-l border-gray-100 overflow-y-auto">
+      <div className="flex items-center justify-between pt-8 pb-6 px-8 relative">
+        <h1 className="text-2xl font-bold text-gray-800">
+          <span className="text-blue-500">智能助手</span>，一键生成
+        </h1>
+        <div className="hidden md:block">
+          <div className="bg-blue-50 px-4 py-2 rounded-full text-sm text-blue-700 flex items-center">
+            <i className="fas fa-lightbulb mr-1"></i>
+            <span>今日灵感: {inspiration}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex justify-center gap-3 mb-8 flex-wrap">
+        {tabs.map((tab) => (
+          <button
+            key={tab}
+            className={`px-4 py-2 rounded-full text-sm transition-colors ${
+              activeTab === tab
+                ? 'bg-gradient-to-r from-blue-400 to-indigo-400 text-white border-blue-400 shadow-sm'
+                : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50'
+            } border transition-all duration-300`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab === '写作' && <i className="fas fa-pen-to-square mr-1"></i>}
+            {tab === 'PPT' && <i className="fas fa-file-powerpoint mr-1"></i>}
+            {tab === '设计' && <i className="fas fa-paint-brush mr-1"></i>}
+            {tab === 'Excel' && <i className="fas fa-file-excel mr-1"></i>}
+            {tab === '网页' && <i className="fas fa-globe mr-1"></i>}
+            {tab === '播客' && <i className="fas fa-podcast mr-1"></i>}
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="max-w-[800px] mx-auto p-6 bg-white rounded-xl border border-gray-100 mb-10 shadow-sm">
+        <div className="flex items-center mb-4 gap-2.5">
+          <span className="px-2 py-1 bg-blue-50 text-blue-500 rounded-full text-xs font-medium">
+            {activeTab}
+          </span>
+          <input
+            type="text"
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
+            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-800"
+             placeholder="请告诉我您的需求，我会为您提供专业的AI帮助..."
+          />
+        </div>
+        <div className="flex items-center justify-between gap-2.5">
+          <div className="flex gap-2.5">
+            <button 
+              className="p-1.5 bg-transparent border-none cursor-pointer hover:bg-gray-200 rounded transition-colors"
+              onClick={handleFileUpload}
+            >
+              <i className="fas fa-paperclip text-gray-500"></i>
+            </button>
+            <button 
+              className="p-1.5 bg-transparent border-none cursor-pointer hover:bg-gray-200 rounded transition-colors"
+              onClick={handleFormatSettings}
+            >
+              <i className="fas fa-font text-gray-500"></i>
+            </button>
+          </div>
+          <div className="flex gap-2.5">
+            <button 
+              className="px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-600 text-xs hover:bg-gray-50 transition-colors"
+              onClick={handleOptimize}
+            >
+              一键优化
+            </button>
+            <button 
+              className="w-11 h-11 rounded-lg border-none bg-gradient-to-r from-blue-400 to-indigo-400 text-white cursor-pointer hover:shadow-lg transition-all flex items-center justify-center"
+              onClick={handleSend}
+            >
+               <i className="fas fa-paper-plane"></i>
+             </button>
+          </div>
+        </div>
+      </div>
+
+       <div className="max-w-[800px] mx-auto px-5 pb-10">
+        <div className="flex justify-between items-center mb-5 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg">
+          <h3 className="text-lg font-bold text-gray-800 m-0">
+            最佳实践
+          </h3>
+          <div className="flex">
+            <button 
+              className="px-3 py-1 bg-transparent border-none text-gray-700 text-sm hover:text-blue-600 transition-colors"
+              onClick={() => handlePracticeCategory('网页宣发')}
+            >
+              网页宣发
+            </button>
+            <button 
+              className="px-3 py-1 bg-transparent border-none text-gray-700 text-sm hover:text-blue-600 transition-colors"
+              onClick={() => handlePracticeCategory('教育工具')}
+            >
+              教育工具
+            </button>
+            <button 
+              className="px-3 py-1 bg-transparent border-none text-gray-700 text-sm hover:text-blue-600 transition-colors"
+              onClick={() => handlePracticeCategory('趣味游戏')}
+            >
+              趣味游戏
+            </button>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-4">
+           <ProjectCard 
+             title="AI智能写作助手" 
+             imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"
+             bgColor="#eff6ff"
+             projectId="project_ai_writing"
+           />
+           <ProjectCard 
+             title="智能数据分析工具" 
+             imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=Data%20visualization%20dashboard%2C%20modern%20design%2C%20blue%20and%20indigo%20colors&sign=ed4909d7a10fe86967a5aa6a0afaa434"
+             bgColor="#e0e7ff"
+             projectId="project_data_analysis"
+           />
+           <ProjectCard 
+             title="个性化学习平台" 
+             imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20learning%20platform%20concept%2C%20interactive%20interface%2C%20blue%20colors&sign=0eba131c9b66799399b3e86f510476a7"
+             bgColor="#dbeafe"
+             projectId="project_learning_platform"
+           />
+        </div>
+      </div>
+    </main>
+  );
+}
+
+// 左侧导航栏组件
+interface SidebarProps {
+  onCreateNewTask: () => Promise<void>;
+  tasks: Array<{
+    id: string;
+    name: string;
+    icon: string;
+    color: string;
+    isBrand?: boolean;
+  }>;
+  setTasks: React.Dispatch<React.SetStateAction<Array<{
+    id: string;
+    name: string;
+    icon: string;
+    color: string;
+    isBrand?: boolean;
+  }>>>;
+}
+
+function Sidebar({ onCreateNewTask, tasks, setTasks }: SidebarProps) {
+  // 处理创建新任务按钮点击
+  const handleCreateNewTask = onCreateNewTask;
+  
+   // 处理侧边栏菜单项点击
+  const handleMenuItemClick = (itemName: string) => {
+    toast.info(`已切换到${itemName}`);
+    console.log(`切换到${itemName}`);
+  };
+  
+  // 处理通知按钮点击
+  const handleNotificationClick = () => {
+    toast.info('您有新的通知');
+  };
+
+  return (
+      <aside className="w-[260px] h-full bg-white border-r border-gray-100 shadow-sm overflow-hidden">
+       <div className="flex justify-between items-center p-[15px_20px] bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-blue-500 font-bold text-lg">
+            橙
+          </div>
+          <span className="text-xl font-bold">橙浩空间</span>
+          <span className="text-xs bg-white/30 px-1.5 py-0.5 rounded">BETA</span>
+        </div>
+        <div className="relative">
+          <div 
+            className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-blue-500 cursor-pointer"
+            onClick={handleNotificationClick}
+          >
+            <i className="fas fa-paper-plane"></i>
+          </div>
+          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        </div>
+      </div>
+
+      <button className="w-[calc(100%-40px)] h-11 mx-[20px] my-5 bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl border-none text-sm font-medium flex items-center justify-center gap-1 shadow-sm hover:shadow-md transition-shadow"
+        onClick={handleCreateNewTask}
+      >
+        <i className="fas fa-plus-circle"></i>
+        <span>创建新任务</span>
+        <span className="text-xs bg-white/30 px-1.5 py-0.5 rounded">Ctrl</span>
+      </button>
+
+      <ul className="p-[0_20px] mb-5 list-none">
+        <li 
+          className="flex items-center gap-2.5 p-3 mb-2 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors border-l-4 border-blue-400"
+          onClick={() => handleMenuItemClick('AI专家')}
+        >
+          <i className="fas fa-robot text-blue-400"></i>
+          <span className="text-sm text-gray-800">AI专家</span>
+        </li>
+        <li 
+          className="flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
+          onClick={() => handleMenuItemClick('DeepTrip旅行专家')}
+        >
+          <i className="fas fa-plane text-green-500"></i>
+          <span className="text-sm text-gray-800">DeepTrip旅行专家</span>
+        </li>
+        <li 
+          className="flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
+          onClick={() => handleMenuItemClick('华泰A股观察助手')}
+        >
+          <i className="fas fa-chart-line text-red-500"></i>
+          <span className="text-sm text-gray-800">华泰A股观察助手</span>
+        </li>
+        <li 
+          className="flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
+          onClick={() => handleMenuItemClick('舆情分析专家')}
+        >
+          <i className="fas fa-newspaper text-purple-500"></i>
+          <span className="text-sm text-gray-800">舆情分析专家</span>
+        </li>
+      </ul>
+
+      <div className="p-[0_20px_10px] text-xs text-gray-500">任务</div>
+      <div className="p-[0_20px] max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+        <ul className="list-none">
+          {tasks.map((task, index) => (
+            <li 
+              key={task.id}
+              className={`flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors ${index === tasks.length - 1 ? 'mb-0' : ''}`}
+              onClick={() => handleMenuItemClick(task.name)}
+            >
+              {task.isBrand ? (
+                <i className={`fab fa-${task.icon} text-${task.color}`}></i>
+              ) : (
+                <i className={`fas fa-${task.icon} text-${task.color}`}></i>
+              )}
+              <span className="text-sm text-gray-800">{task.name}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </aside>
+  );
+}
+
+// 浮动帮助按钮组件 - 仅在首页显示
+function FloatingHelpButton({ show = true }) {
+  const handleHelpClick = () => {
+    toast.info('客服团队将很快与您联系');
+  };
+
+  if (!show) return null;
+
+  return (
+      <button 
+        className="fixed bottom-7 right-7 w-[54px] h-[54px] rounded-full border-2 border-white bg-gradient-to-r from-blue-400 to-indigo-400 text-white cursor-pointer shadow-lg hover:shadow-xl transition-all flex items-center justify-center z-10"
+        onClick={handleHelpClick}
+      >
+        <i className="fas fa-headset text-lg"></i>
+      </button>
+  );
+}
+
+// AI智能体前端页面
+export default function Home() {
+   const [activeTab, setActiveTab] = useState('AI专家');
+    const [inputText, setInputText] = useState('');
+   const [showChat, setShowChat] = useState(false);
+   const [initialChatMessage, setInitialChatMessage] = useState('');
+   const [tasks, setTasks] = useState([
+     { id: 'task_1', name: '少儿编程科技风', icon: 'code', color: 'indigo-500' },
+     { id: 'task_2', name: 'QuantumLeap 2023销售业绩', icon: 'chart-bar', color: 'yellow-500' },
+     { id: 'task_3', name: 'AI Python小精灵', icon: 'python', color: 'blue-500', isBrand: true },
+     { id: 'task_4', name: '根据文稿编写网页', icon: 'file-alt', color: 'gray-500' },
+     { id: 'task_5', name: '分析文件并共创策划书', icon: 'project-diagram', color: 'green-500' }
+   ]);
+   
+   // 创建新任务的处理函数
+   const handleCreateNewTask = async () => {
+     try {
+       // 显示加载状态
+       const loadingToast = toast.loading('正在创建新任务...');
+       
+       // 调用创建任务API
+       const response = await aiService.createNewTask('general', '');
+       
+       // 关闭加载状态
+       toast.dismiss(loadingToast);
+       
+       if (response.success && response.taskId) {
+         // 生成新任务名称和随机图标
+         const icons = ['lightbulb', 'edit', 'file', 'clipboard', 'calendar', 'list-check', 'target'];
+         const colors = ['blue-500', 'green-500', 'indigo-500', 'purple-500', 'pink-500', 'red-500', 'orange-500'];
+         const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+         const randomColor = colors[Math.floor(Math.random() * colors.length)];
+         
+         // 创建新任务对象
+         const newTask = {
+           id: response.taskId,
+           name: `新任务 ${tasks.length + 1}`,
+           icon: randomIcon,
+           color: randomColor
+         };
+         
+         // 将新任务添加到任务列表的开头
+         setTasks(prevTasks => [newTask, ...prevTasks]);
+         
+         // 确保回到首页
+         setShowChat(false);
+         
+         toast.success(response.message || '新任务创建成功');
+         console.log('新任务ID:', response.taskId);
+       } else {
+         toast.error(response.message || '创建新任务失败');
+       }
+     } catch (error) {
+       console.error('创建新任务失败:', error);
+       toast.error('创建新任务时发生错误');
+     }
+   };
+   
+  // 渲染主页面
+  return (
+      <div className={`flex flex-row h-screen bg-gray-50 font-sans ${showChat ? '' : 'home-page'} overflow-hidden`}>
+      {/* 左侧导航栏 */}
+      <Sidebar onCreateNewTask={handleCreateNewTask} tasks={tasks} setTasks={setTasks} />
+      
+      {/* 内容区域 - 根据状态显示主内容或聊天界面 */}
+      {showChat ? (
+        <ChatInterface 
+          initialMessage={initialChatMessage} 
+          onBack={() => setShowChat(false)} 
+        />
+      ) : (
+        <MainContent 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab}
+          inputText={inputText}
+          setInputText={setInputText}
+          onSendMessage={(message) => {
+            setInitialChatMessage(message);
+            setShowChat(true);
+          }}
+        />
+      )}
+      
+      {/* 浮动帮助按钮 - 仅在首页显示 */}
+      <FloatingHelpButton show={!showChat} />
+     </div>
+  );
+}
