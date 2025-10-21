@@ -1,100 +1,118 @@
-# ³ÈºÆ¿Õ¼ä£¨ChenghaoSpace£©
+ï»¿# ChenghaoSpace
 
-> AI ¶Ô»°Óë¶à³¡¾°´´×÷ÖúÊÖ¡£µ±Ç°²Ö¿âÒÑ²ğ·ÖÎª `front/`£¨React + Vite Ç°¶Ë£©Óë `server/`£¨Fastify ºó¶Ë£©Á½¸ö×ÓÏîÄ¿£¬Ä¬ÈÏÍ¨¹ı¶¹°üÄ£ĞÍÌá¹©ÕæÊµ¶Ô»°ÄÜÁ¦¡£
+AI demo with a Vite/React front-end (`front/`) and a Fastify back-end (`server/`). The latest iteration adds layered conversation memory so interviewers can see short-term context, rolling summaries, and semantic recall in action.
 
 ---
 
-## ÏîÄ¿½á¹¹
+## Project Layout
 
 ```text
 .
-©À©¤©¤ front/                # React + Vite Ç°¶Ë
-©¦   ©À©¤©¤ src/              # Ò³Ãæ¡¢×é¼ş¡¢hooks¡¢API
-©¦   ©À©¤©¤ README.md         # Ç°¶Ëµ¥¶ÀÊ¹ÓÃËµÃ÷
-©¦   ©¸©¤©¤ .env.local        # Ç°¶Ë±¾µØ»·¾³±äÁ¿£¨ÒÑ±» .gitignore ºöÂÔ£©
-©À©¤©¤ server/               # Fastify ºó¶Ë£¨µ±Ç°Í¨¹ı dist/ Ö±½ÓÔËĞĞ£©
-©¦   ©À©¤©¤ dist/             # ÒÑ±àÒë JS£¬¿ÉÖ±½Ó `node dist/index.js`
-©¦   ©À©¤©¤ server/src/       # TypeScript Ô´Âë£¨±£ÁôÒÔ±ãºóĞøÎ¬»¤£©
-©¦   ©À©¤©¤ .env.example      # ºó¶Ë»·¾³±äÁ¿Ê¾Àı
-©¦   ©¸©¤©¤ package.json      # ºó¶ËÒÀÀµ¶¨Òå
-©À©¤©¤ PROCESS.md            # Ç¨ÒÆÓë¶Ô½Ó²Ù×÷¼ÇÂ¼
-©À©¤©¤ git-auto-push.bat     # Windows Ò»¼üÌá½»½Å±¾£¨ĞèÏÈ git init / ÅäÔ¶¶Ë£©
-©¸©¤©¤ .gitignore            # È«¾ÖºöÂÔ¹æÔò£¨ÅÅ³ı node_modules¡¢.env¡¢¹¹½¨²úÎïµÈ£©
+â”œâ”€â”€ front/                # React + Vite client
+â”‚   â”œâ”€â”€ src/              # Pages, components, hooks, API helpers
+â”‚   â””â”€â”€ README.md         # Client-specific notes
+â”œâ”€â”€ server/               # Fastify API server (ships with prebuilt dist/)
+â”‚   â”œâ”€â”€ dist/             # Executable JavaScript entry (node dist/index.js)
+â”‚   â”œâ”€â”€ server/src/       # TypeScript sources (memory manager, providers, etc.)
+â”‚   â””â”€â”€ .env.example      # Sample environment file
+â”œâ”€â”€ PROCESS.md            # Migration / change log
+â”œâ”€â”€ git-auto-push.bat     # Windows helper script for add/commit/push
+â””â”€â”€ .gitignore            # Ignores node_modules, .env*, build artefacts, archivesâ€¦
 ```
 
 ---
 
-## »·¾³×¼±¸
+## Conversation Memory Overview
 
-### 1. °²×°ÒÀÀµ
-```bash
-# ²Ö¿â¸ùÄ¿Â¼
-pnpm install              # Í¬²½°²×° front/ Óë server/ µÄÒÀÀµ
-```
+- **Short-term buffer**: the back-end keeps the latest turns (configurable via `MEMORY_MAX_HISTORY`).
+- **Rolling summary**: every few turns (defaults to 6) the server asks the provider to condense the dialogue, keeping long-running chats concise.
+- **Vector recall**: user statements that look factual are embedded and stored; the next request retrieves the most relevant facts before generating a reply.
+- **Session tracking**: the front-end now generates a `sessionId` per chat window so the server can tie memory to a single conversation.
+- **Config knobs** (all optional, in `server/.env`):
+  ```ini
+  MEMORY_MAX_HISTORY=8        # most recent messages injected verbatim
+  MEMORY_VECTOR_K=3           # similar facts pulled from vector store
+  MEMORY_VECTOR_LIMIT=40      # cap for stored facts per session
+  MEMORY_SUMMARY_INTERVAL=6   # how often to refresh the summary
+  MEMORY_MIN_FACT_LENGTH=16   # heuristic gate before persisting a fact
+  ```
 
-### 2. ÅäÖÃ»·¾³±äÁ¿
-- ºó¶Ë£º¸´ÖÆ `server/.env.example` Îª `server/.env`£¬²¢¸ù¾İĞèÒªÌîĞ´£º
-  ```ini
-  PROVIDER=doubao
-  DOUBAO_API_KEY=ÄãµÄ¶¹°üÃÜÔ¿
-  # ¿ÉÑ¡£º×Ô¶¨Òå¶Ë¿Ú & ´úÀí
-  PORT=8302
-  HTTP_PROXY=http://127.0.0.1:33210
-  HTTPS_PROXY=http://127.0.0.1:33210
-  ALL_PROXY=socks5://127.0.0.1:33211
-  ```
-- Ç°¶Ë£ºÔÚ `front/.env.local` ÖĞÖ¸¶¨ºó¶ËµØÖ·£¨Ä¬ÈÏ 8302£©£º
-  ```ini
-  VITE_API_BASE=http://localhost:8302
-  ```
+The memory manager lives in `server/server/src/memory/conversationMemory.ts` (with compiled JS under `server/dist/memory/`).
 
 ---
 
-## Æô¶¯·½Ê½
+## Environment Setup
 
-### ºó¶Ë
+### 1. Install dependencies
 ```bash
-pnpm --filter ./server install       # È·±£ÒÀÀµÒÑ°²×°
-pnpm --filter ./server dev           # ±àÒë²¢ÔËĞĞ dist/index.js
-# »òÕß£º
-node server/dist/index.js
+pnpm install            # installs both front/ and server/ packages
 ```
-Æô¶¯³É¹¦ºóÖÕ¶Ë»áÊä³ö `Server running at http://localhost:8302`¡£
 
-### Ç°¶Ë
+### 2. Server configuration (`server/.env`)
+```ini
+PROVIDER=doubao               # or openai/mock, depending on credentials
+DOUBAO_API_KEY=your-secret
+PORT=8302
+# optional proxy settings
+HTTP_PROXY=http://127.0.0.1:33210
+HTTPS_PROXY=http://127.0.0.1:33210
+ALL_PROXY=socks5://127.0.0.1:33211
+# optional memory tuning (see table above)
+MEMORY_MAX_HISTORY=8
+MEMORY_VECTOR_K=3
+```
+
+### 3. Front-end configuration (`front/.env.local`)
+```ini
+VITE_API_BASE=http://localhost:8302
+```
+
+---
+
+## Running the demo
+
+### Back-end
+```bash
+pnpm --filter ./server install   # ensure dependencies are present
+pnpm --filter ./server dev       # build + run (node dist/index.js)
+# or: node server/dist/index.js  # if you only need the runtime
+```
+The server logs `Server running at http://localhost:8302` when ready.
+
+### Front-end
 ```bash
 cd front
-pnpm install                         # Ê×´Î°²×°ÒÀÀµ
-pnpm dev                             # Ä¬ÈÏ¶Ë¿Ú 3000£¬Èô±»Õ¼ÓÃ»áË³ÑÓ
+pnpm install
+pnpm dev                         # default port 3000 (Vite will bump if taken)
 ```
-ä¯ÀÀÆ÷·ÃÎÊ Vite Êä³öµÄµØÖ·¼´¿ÉÌåÑéĞÂ°æÁÄÌì½çÃæ£¨º¬Á÷Ê½ Markdown äÖÈ¾£©¡£
+Open the displayed URL to try the new chat experience with streaming Markdown, copy buttons, and memory-aware responses.
 
 ---
 
-## ³£¼ûÎÊÌâËÙ²é
+## Troubleshooting Cheatsheet
 
-| ÏÖÏó | ÅÅ²é½¨Òé |
-| ---- | -------- |
-| ÁÄÌì·µ»Ø¡°Ê¾Àı´ğ°¸¡± | ËµÃ÷ÕæÊµ LLM µ÷ÓÃÊ§°Ü£¬Çë²é¿´ `server` ÖÕ¶ËÈÕÖ¾£¨³£¼ûÎª¶¹°üÃÜÔ¿»ò´úÀíÅäÖÃÎÊÌâ£© |
-| Ç°¶ËÇëÇó 404/500 | ¼ì²é `front/.env.local` ÖĞµÄ `VITE_API_BASE` ÊÇ·ñÖ¸Ïòºó¶ËÊµ¼ÊµØÖ· |
-| Git ÍÆËÍ´ø³ö `.env` | ¸ùÄ¿Â¼ `.gitignore` ÒÑºöÂÔ `.env*`£¬±ÜÃâ `git add --force` |
-| `pnpm build` ÔÚ Windows ±¨´í | ¾É½Å±¾Ê¹ÓÃ `rm`£¬¿É¸Ä³É `rimraf` »òÔÚÀà Unix »·¾³Ö´ĞĞ |
-
----
-
-## Git ²Ù×÷ÌáÊ¾
-
-- ²Ö¿âÒÑÔÚ `D:\AI_agent_project1` ³õÊ¼»¯£¬²¢¹ØÁª `https://github.com/applehaoge/ChenghaoSpace`¡£
-- `server/.env` µÈÃô¸ĞÎÄ¼şÒÑ±» `.gitignore` ÅÅ³ı£¬²»»áÌá½»µ½²Ö¿â¡£
-- ¿ÉÊ¹ÓÃ¸ùÄ¿Â¼µÄ `git-auto-push.bat` Ò»¼üÌá½»£¨½Å±¾»áÌáÊ¾ÊäÈëÌá½»ĞÅÏ¢£©¡£
-- ¾ÉÄ¿Â¼ `chenghaoSpace/` ½ö×÷Îª±¸·İ±£Áô£¬Î´ÄÉÈë git Ìá½»¡£
+| Symptom | What to check |
+| --- | --- |
+| Replies fall back to â€œç¤ºä¾‹ç­”æ¡ˆâ€ | Provider call failedâ€”inspect the Fastify console for Doubao errors, proxy issues, or missing API key. |
+| Front-end 404/500 | Confirm `VITE_API_BASE` still points at the correct server origin. |
+| Sensitive values in git status | `.gitignore` already excludes `.env*`; avoid forcing them with `git add --force`. |
+| Windows build script errors | `pnpm build` uses `rm`; run in a Unix shell or swap for `rimraf`. |
 
 ---
 
-## ºóĞø¹æ»®½¨Òé
+## Git Tips
 
-- ÈôĞèÎ¬»¤ TypeScript Ô´Âë£¬¿É½« `server/server/src` µ÷ÕûÎª `server/src` ²¢ĞŞ¸´¹¹½¨½Å±¾¡£
-- À©Õ¹ÕæÊµÒµÎñ¹¦ÄÜÊ±£¬¿ÉÔÚºó¶ËĞÂÔöÈÎÎñ/ÍÆ¼öµÈ API£¬²¢ÔÚÇ°¶Ë `aiService` ÖĞÍ³Ò»µ÷ÓÃ¡£
-- ¸ù¾İĞèÇóÔö¼Ó»á»°´æµµ¡¢±¾µØ»º´æµÈÔöÇ¿ÄÜÁ¦¡£
+- This repo is already initialised in `D:\AI_agent_project1` and pushes to `https://github.com/applehaoge/ChenghaoSpace`.
+- Secrets remain local thanks to `.gitignore` rules.
+- `git-auto-push.bat` prompts for a commit message and pushes main for you.
+- The old `chenghaoSpace/` folder stays untracked as a backup reference.
 
-»¶Ó­¼ÌĞø²¹³ä `PROCESS.md`¡¢¸üĞÂÎÄµµ»òÌá½» Issue / PR£¡??
+---
+
+## Next Steps
+
+- If you want full TypeScript builds, point `server/tsconfig.json` at `server/server/src` and wire an npm script.
+- Hook real data/task APIs into `aiService` once the demo graduates from mock content.
+- Extend the memory manager with persistence (Redis, Postgres + pgvector, etc.) or add per-user personas.
+
+Enjoy the upgraded conversation flow and feel free to extend it further! ğŸ’¬

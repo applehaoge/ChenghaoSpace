@@ -1,4 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8302';
+﻿const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8302';
 
 type ChatResult = {
   success: boolean;
@@ -9,10 +9,24 @@ type ChatResult = {
   provider?: string;
 };
 
+type ChatRequestOptions = {
+  sessionId?: string;
+  conversationId?: string;
+  userMessage?: string;
+  topK?: number;
+  taskType?: string;
+  extraContext?: Record<string, unknown>;
+};
+
 export interface AIService {
   createNewTask(taskType: string, content: string): Promise<{ success: boolean; taskId?: string; message?: string }>;
-  sendAIRequest(taskType: string, prompt: string): Promise<ChatResult>;
-  optimizeContent(content: string): Promise<{ success: boolean; optimizedContent?: string; suggestions?: string[]; error?: string }>;
+  sendAIRequest(taskType: string, prompt: string, options?: ChatRequestOptions): Promise<ChatResult>;
+  optimizeContent(content: string): Promise<{
+    success: boolean;
+    optimizedContent?: string;
+    suggestions?: string[];
+    error?: string;
+  }>;
   getProjectDetails(projectId: string): Promise<{
     success: boolean;
     project?: {
@@ -35,35 +49,44 @@ class AIServiceImpl implements AIService {
     return {
       success: true,
       taskId,
-      message: `已创建 ${taskType} 任务`
+      message: `已创建${taskType}任务`,
     };
   }
 
-  async sendAIRequest(taskType: string, prompt: string): Promise<ChatResult> {
+  async sendAIRequest(taskType: string, prompt: string, options: ChatRequestOptions = {}): Promise<ChatResult> {
+    if (taskType === '聊天') {
+      const payload: ChatRequestOptions = {
+        ...options,
+        taskType,
+        userMessage: options.userMessage ?? prompt,
+      };
+      return this.invokeChatEndpoint(prompt, payload);
+    }
+
     const query = this.buildTaskPrompt(taskType, prompt);
-    return this.invokeChatEndpoint(query);
+    return this.invokeChatEndpoint(query, { ...options, taskType });
   }
 
   async optimizeContent(content: string) {
     const instruction = [
       '请帮我优化下面的文本，要求：',
-      '1. 保持语义准确。',
-      '2. 结构清晰、精炼。',
-      '3. 列出 2 条可以参考的优化建议。',
+      '1. 保持语义准确；',
+      '2. 结构清晰、精炼；',
+      '3. 列出 2 条可以参考的优化建议；',
       '',
-      content
+      content,
     ].join('\n');
 
-    const response = await this.invokeChatEndpoint(instruction);
+    const response = await this.invokeChatEndpoint(instruction, { taskType: '内容优化' });
     if (!response.success || !response.answer) {
       return { success: false, error: response.error || '内容优化失败' };
     }
 
     const suggestions: string[] = [];
-    const suggestionMatches = response.answer.match(/(?:建议|提示)[：:]\s*(.*)/g);
+    const suggestionMatches = response.answer.match(/(?:建议|提示)[\d一二三四五六七八九十]+[:：]\s*(.*)/g);
     if (suggestionMatches) {
       suggestionMatches.forEach(item => {
-        const cleaned = item.replace(/^(?:建议|提示)[：:]\s*/, '').trim();
+        const cleaned = item.replace(/^(?:建议|提示)[\d一二三四五六七八九十]+[:：]\s*/, '').trim();
         if (cleaned) suggestions.push(cleaned);
       });
     }
@@ -71,7 +94,7 @@ class AIServiceImpl implements AIService {
     return {
       success: true,
       optimizedContent: response.answer,
-      suggestions
+      suggestions,
     };
   }
 
@@ -84,13 +107,13 @@ class AIServiceImpl implements AIService {
         imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20writing%20assistant%2C%20modern%20flat%20design%2C%20blue%20palette',
         bgColor: '#eff6ff',
         createdAt: '2025-10-01T08:30:00Z',
-        updatedAt: '2025-10-20T09:12:00Z'
-      }
+        updatedAt: '2025-10-20T09:12:00Z',
+      },
     };
 
     const project = projects[projectId];
     if (!project) {
-      return { success: false, error: '未找到对应项目' };
+      return { success: false, error: '未找到对应项目信息' };
     }
 
     return { success: true, project };
@@ -100,20 +123,31 @@ class AIServiceImpl implements AIService {
     const ideas = [
       '尝试把今天的工作拆分成三个 25 分钟的番茄钟。',
       '把手头的任务分类：必须做、应该做、可以做。',
-      '记录一次灵感闪现的瞬间，帮助未来的自己。'
+      '记录一次灵感闪现的瞬间，帮助未来的自己。',
     ];
     return {
       success: true,
-      inspiration: ideas[Math.floor(Math.random() * ideas.length)]
+      inspiration: ideas[Math.floor(Math.random() * ideas.length)],
     };
   }
 
-  private async invokeChatEndpoint(query: string): Promise<ChatResult> {
+  private async invokeChatEndpoint(query: string, extra: ChatRequestOptions = {}): Promise<ChatResult> {
     try {
+      const payload: Record<string, unknown> = {
+        query,
+        topK: extra.topK ?? 3,
+      };
+
+      if (extra.taskType) payload.taskType = extra.taskType;
+      if (extra.sessionId) payload.sessionId = extra.sessionId;
+      if (extra.conversationId) payload.conversationId = extra.conversationId;
+      if (extra.userMessage) payload.userMessage = extra.userMessage;
+      if (extra.extraContext) Object.assign(payload, extra.extraContext);
+
       const res = await fetch(`${API_BASE}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query, topK: 3 })
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -128,7 +162,7 @@ class AIServiceImpl implements AIService {
         answer,
         result: answer,
         sources: data.sources || [],
-        provider: data.provider
+        provider: data.provider,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : '调用后端接口失败';
@@ -144,7 +178,7 @@ class AIServiceImpl implements AIService {
       设计: '请提出设计思路与关键元素：',
       Excel: '请给出可在 Excel 中实现的方案与公式：',
       网页: '请给出网页规划与实现建议：',
-      播客: '请给出播客节目脚本与结构建议：'
+      播客: '请给出播客节目脚本与结构建议：',
     };
     const instruction = instructions[taskType] || '请根据以下输入提供最佳回答：';
     return `${instruction}\n\n${prompt}`;

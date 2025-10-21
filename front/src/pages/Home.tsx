@@ -135,15 +135,16 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const handledInitialRef = useRef<string | null>(null);
   const streamingTimersRef = useRef<Record<string, number>>({});
+  const sessionIdRef = useRef<string>('');
+  const resetSession = useCallback(() => {
+    sessionIdRef.current = `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  }, []);
+  if (!sessionIdRef.current) {
+    resetSession();
+  }
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, []);
-
-  const buildPrompt = useCallback((conversation: ChatBubble[]) => {
-    return conversation
-      .map(msg => `${msg.sender === 'user' ? '用户' : '助手'}：${msg.content}`)
-      .join('\n');
   }, []);
 
   const clearStreamingTimer = useCallback((id?: string) => {
@@ -199,11 +200,13 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
     }
   }, [clearStreamingTimer]);
 
-  const fetchAssistantReply = useCallback(async (conversation: ChatBubble[]) => {
+  const fetchAssistantReply = useCallback(async (userMessage: string) => {
     setIsLoading(true);
     try {
-      const prompt = buildPrompt(conversation);
-      const response = await aiService.sendAIRequest('聊天', prompt);
+      const response = await aiService.sendAIRequest('聊天', userMessage, {
+        sessionId: sessionIdRef.current,
+        userMessage,
+      });
       const text = response.answer || response.result || '';
 
       const assistantMessage: ChatBubble = {
@@ -254,7 +257,17 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
     } finally {
       setIsLoading(false);
     }
-  }, [buildPrompt, startStreaming, clearStreamingTimer]);
+  }, [startStreaming, clearStreamingTimer]);
+
+  const handleCopy = useCallback(async (content: string) => {
+    try {
+      await navigator.clipboard.writeText(content);
+      toast.success('已复制到剪贴板');
+    } catch (error) {
+      console.error('复制失败:', error);
+      toast.error('复制失败，请手动复制');
+    }
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -273,6 +286,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
       setMessages([]);
       setNewMessage('');
       handledInitialRef.current = null;
+      resetSession();
       return;
     }
 
@@ -280,6 +294,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
       return;
     }
     handledInitialRef.current = trimmed;
+    resetSession();
 
     const first: ChatBubble = {
       id: `msg_${Date.now()}_user`,
@@ -290,8 +305,8 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
     clearStreamingTimer();
     setMessages([first]);
     setNewMessage('');
-    void fetchAssistantReply([first]);
-  }, [initialMessage, fetchAssistantReply, clearStreamingTimer]);
+    void fetchAssistantReply(trimmed);
+  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession]);
 
   const handleSendMessage = async () => {
     const trimmed = newMessage.trim();
@@ -306,7 +321,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
     const nextConversation = [...messages, userBubble];
     setMessages(nextConversation);
     setNewMessage('');
-    await fetchAssistantReply(nextConversation);
+    await fetchAssistantReply(trimmed);
   };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -361,15 +376,26 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
                 <i className="fas fa-robot text-blue-500"></i>
               </div>
             )}
-            <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'}`}
-            >
+            <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'}`}>
               <div
-                className={`p-4 rounded-lg ${
+                className={`relative group rounded-lg ${
                   message.sender === 'user'
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
                     : 'bg-white border border-gray-200 text-gray-800'
-                }`}
+                } ${message.sender === 'user' ? 'p-4 pr-14' : 'p-4 pr-14'}`}
               >
+                <button
+                  type="button"
+                  className={`absolute top-3 right-3 h-8 w-8 rounded-md border text-sm flex items-center justify-center transition-all duration-150 ${
+                    message.sender === 'user'
+                      ? 'border-white/30 bg-white/10 text-white/90 hover:bg-white/20 focus-visible:bg-white/20'
+                      : 'border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700 shadow-sm'
+                  } opacity-0 group-hover:opacity-100 focus-visible:opacity-100`}
+                  onClick={() => handleCopy(message.content)}
+                  aria-label="复制该条消息"
+                >
+                  <i className="fas fa-copy text-base leading-none"></i>
+                </button>
                 {message.sender === 'ai' ? (
                   <div className="text-sm leading-relaxed space-y-2">
                     <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
