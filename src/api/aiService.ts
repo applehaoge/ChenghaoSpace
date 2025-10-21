@@ -1,35 +1,19 @@
-/**
- * AI服务API接口
- * 提供橙浩空间应用所需的各种AI功能接口
- */
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8302';
 
-// 模拟API延迟
-const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+type ChatResult = {
+  success: boolean;
+  answer?: string;
+  result?: string;
+  error?: string;
+  sources?: Array<{ id: string; text: string; score?: number }>;
+  provider?: string;
+};
 
-// AI服务接口定义
 export interface AIService {
-  // 创建新任务
-  createNewTask: (taskType: string, content: string) => Promise<{ success: boolean; taskId?: string; message?: string }>;
-  
-  // 发送AI请求
-  sendAIRequest: (taskType: string, prompt: string) => Promise<{ 
-    success: boolean; 
-    result?: string; 
-    error?: string;
-    processingTime?: number;
-    tokensUsed?: number;
-  }>;
-  
-  // 优化内容
-  optimizeContent: (content: string) => Promise<{ 
-    success: boolean; 
-    optimizedContent?: string; 
-    suggestions?: string[];
-    error?: string;
-  }>;
-  
-  // 获取项目详情
-  getProjectDetails: (projectId: string) => Promise<{
+  createNewTask(taskType: string, content: string): Promise<{ success: boolean; taskId?: string; message?: string }>;
+  sendAIRequest(taskType: string, prompt: string): Promise<ChatResult>;
+  optimizeContent(content: string): Promise<{ success: boolean; optimizedContent?: string; suggestions?: string[]; error?: string }>;
+  getProjectDetails(projectId: string): Promise<{
     success: boolean;
     project?: {
       id: string;
@@ -42,260 +26,129 @@ export interface AIService {
     };
     error?: string;
   }>;
-  
-  // 获取灵感推荐
-  getInspiration: () => Promise<{
-    success: boolean;
-    inspiration?: string;
-    error?: string;
-  }>;
+  getInspiration(): Promise<{ success: boolean; inspiration?: string; error?: string }>;
 }
 
-/**
- * AI服务实现类
- * 使用模拟数据模拟API调用
- */
 class AIServiceImpl implements AIService {
-  /**
-   * 创建新任务
-   * @param taskType 任务类型
-   * @param content 任务内容
-   */
-  async createNewTask(taskType: string, content: string): Promise<{ success: boolean; taskId?: string; message?: string }> {
-    try {
-      // 模拟API请求延迟
-      await delay(800);
-      
-      // 生成唯一任务ID
-      const taskId = `task_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // 模拟成功响应
-      return {
-        success: true,
-        taskId,
-        message: `任务创建成功: ${taskType}`
-      };
-    } catch (error) {
-      console.error('创建任务失败:', error);
-      return {
-        success: false,
-        message: '任务创建失败，请稍后重试'
-      };
-    }
-  }
-  
-  /**
-   * 发送AI请求
-   * @param taskType 请求类型
-   * @param prompt 请求提示词
-   */
-  async sendAIRequest(taskType: string, prompt: string): Promise<{ 
-    success: boolean; 
-    result?: string; 
-    error?: string;
-    processingTime?: number;
-    tokensUsed?: number;
-  }> {
-    try {
-      // 模拟API请求延迟
-      const startTime = Date.now();
-      await delay(1200 + Math.random() * 800);
-      const processingTime = Date.now() - startTime;
-      
-      // 根据任务类型返回不同的模拟结果
-      let result = '';
-      const tokensUsed = Math.floor(prompt.length * 1.2);
-      
-      switch (taskType) {
-        case '写作':
-          result = `这是AI为您生成的${prompt}相关内容。AI通过深度学习算法，分析了大量相关文本，为您提供了高质量的写作素材。您可以根据需要进行修改和调整。`;
-          break;
-        case 'PPT':
-          result = `为您生成了${prompt}的PPT大纲：\n1. 引言\n2. 主要内容\n3. 关键数据\n4. 案例分析\n5. 总结与展望\n您可以使用这个大纲创建完整的演示文稿。`;
-          break;
-        case '设计':
-          result = `AI设计灵感：${prompt}可以尝试以下风格：\n- 极简主义设计\n- 自然元素融合\n- 大胆的色彩对比\n- 几何图形组合\n- 动态交互效果`;
-          break;
-        case 'Excel':
-          result = `Excel公式建议：针对${prompt}，您可以使用以下公式组合：\n- VLOOKUP + IFERROR\n- SUMIFS + COUNTIFS\n- PIVOT TABLE\n- 数据透视分析`;
-          break;
-        case '网页':
-          result = `网页设计方案：${prompt}的实现建议\n- 响应式布局设计\n- 现代UI组件库使用\n- 性能优化策略\n- 无障碍设计考虑\n- 交互体验提升`;
-          break;
-        case '播客':
-          result = `播客内容策划：关于${prompt}的播客可以包含以下环节：\n1. 开场介绍\n2. 主题探讨\n3. 专家观点\n4. 案例分享\n5. 听众互动\n6. 总结与预告`;
-          break;
-        default:
-          result = `AI已收到您的请求：${prompt}，正在处理中...`;
-      }
-      
-      // 模拟成功响应
-      return {
-        success: true,
-        result,
-        processingTime,
-        tokensUsed
-      };
-    } catch (error) {
-      console.error('AI请求失败:', error);
-      return {
-        success: false,
-        error: 'AI服务暂时不可用，请稍后重试'
-      };
-    }
-  }
-  
-  /**
-   * 优化内容
-   * @param content 需要优化的内容
-   */
-  async optimizeContent(content: string): Promise<{ 
-    success: boolean; 
-    optimizedContent?: string; 
-    suggestions?: string[];
-    error?: string;
-  }> {
-    try {
-      // 模拟API请求延迟
-      await delay(1000);
-      
-      // 模拟优化结果和建议
-      const suggestions = [
-        '增加更多具体案例支持论点',
-        '调整段落结构以提升可读性',
-        '简化复杂表述使内容更易懂',
-        '添加数据支持提升说服力'
-      ];
-      
-      // 模拟成功响应
-      return {
-        success: true,
-        optimizedContent: `${content}\n\n【AI优化建议】\n- 增加案例细节\n- 优化结构层次\n- 提升表达清晰度\n- 补充数据支撑`,
-        suggestions
-      };
-    } catch (error) {
-      console.error('内容优化失败:', error);
-      return {
-        success: false,
-        error: '内容优化失败，请稍后重试'
-      };
-    }
-  }
-  
-  /**
-   * 获取项目详情
-   * @param projectId 项目ID
-   */
-  async getProjectDetails(projectId: string): Promise<{
-    success: boolean;
-    project?: {
-      id: string;
-      title: string;
-      description: string;
-      imageUrl: string;
-      bgColor: string;
-      createdAt: string;
-      updatedAt: string;
+  async createNewTask(taskType: string, content: string) {
+    const taskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    return {
+      success: true,
+      taskId,
+      message: `已创建 ${taskType} 任务`
     };
-    error?: string;
-  }> {
-    try {
-      // 模拟API请求延迟
-      await delay(600);
-      
-      // 模拟项目数据
-      const projects: Record<string, any> = {
-        'project_ai_writing': {
-          id: 'project_ai_writing',
-          title: 'AI智能写作助手',
-          description: '基于先进AI技术的智能写作辅助工具，帮助用户快速生成高质量内容',
-          imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227',
-          bgColor: '#eff6ff',
-          createdAt: '2025-10-01T08:30:00Z',
-          updatedAt: '2025-10-15T14:20:00Z'
-        },
-        'project_data_analysis': {
-          id: 'project_data_analysis',
-          title: '智能数据分析工具',
-          description: '自动化数据分析和可视化平台，帮助企业快速洞察数据价值',
-          imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=Data%20visualization%20dashboard%2C%20modern%20design%2C%20blue%20and%20indigo%20colors&sign=ed4909d7a10fe86967a5aa6a0afaa434',
-          bgColor: '#e0e7ff',
-          createdAt: '2025-09-20T11:15:00Z',
-          updatedAt: '2025-10-10T09:45:00Z'
-        },
-        'project_learning_platform': {
-          id: 'project_learning_platform',
-          title: '个性化学习平台',
-          description: '基于AI推荐算法的个性化学习系统，为用户提供定制化学习体验',
-          imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20learning%20platform%20concept%2C%20interactive%20interface%2C%20blue%20colors&sign=0eba131c9b66799399b3e86f510476a7',
-          bgColor: '#dbeafe',
-          createdAt: '2025-09-05T16:20:00Z',
-          updatedAt: '2025-10-12T11:30:00Z'
-        }
-      };
-      
-      // 查找项目
-      const project = projects[projectId] || null;
-      
-      if (!project) {
-        return {
-          success: false,
-          error: '项目不存在'
-        };
+  }
+
+  async sendAIRequest(taskType: string, prompt: string): Promise<ChatResult> {
+    const query = this.buildTaskPrompt(taskType, prompt);
+    return this.invokeChatEndpoint(query);
+  }
+
+  async optimizeContent(content: string) {
+    const instruction = [
+      '请帮我优化下面的文本，要求：',
+      '1. 保持语义准确。',
+      '2. 结构清晰、精炼。',
+      '3. 列出 2 条可以参考的优化建议。',
+      '',
+      content
+    ].join('\n');
+
+    const response = await this.invokeChatEndpoint(instruction);
+    if (!response.success || !response.answer) {
+      return { success: false, error: response.error || '内容优化失败' };
+    }
+
+    const suggestions: string[] = [];
+    const suggestionMatches = response.answer.match(/(?:建议|提示)[：:]\s*(.*)/g);
+    if (suggestionMatches) {
+      suggestionMatches.forEach(item => {
+        const cleaned = item.replace(/^(?:建议|提示)[：:]\s*/, '').trim();
+        if (cleaned) suggestions.push(cleaned);
+      });
+    }
+
+    return {
+      success: true,
+      optimizedContent: response.answer,
+      suggestions
+    };
+  }
+
+  async getProjectDetails(projectId: string) {
+    const projects: Record<string, any> = {
+      project_ai_writing: {
+        id: 'project_ai_writing',
+        title: 'AI 智能写作助手',
+        description: '基于豆包大模型的写作助手，可快速生成高质量内容并支持多轮润色。',
+        imageUrl: 'https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20writing%20assistant%2C%20modern%20flat%20design%2C%20blue%20palette',
+        bgColor: '#eff6ff',
+        createdAt: '2025-10-01T08:30:00Z',
+        updatedAt: '2025-10-20T09:12:00Z'
       }
-      
-      // 模拟成功响应
+    };
+
+    const project = projects[projectId];
+    if (!project) {
+      return { success: false, error: '未找到对应项目' };
+    }
+
+    return { success: true, project };
+  }
+
+  async getInspiration() {
+    const ideas = [
+      '尝试把今天的工作拆分成三个 25 分钟的番茄钟。',
+      '把手头的任务分类：必须做、应该做、可以做。',
+      '记录一次灵感闪现的瞬间，帮助未来的自己。'
+    ];
+    return {
+      success: true,
+      inspiration: ideas[Math.floor(Math.random() * ideas.length)]
+    };
+  }
+
+  private async invokeChatEndpoint(query: string): Promise<ChatResult> {
+    try {
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query, topK: 3 })
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `调用失败，状态码 ${res.status}`);
+      }
+
+      const data = await res.json();
+      const answer = data.answer || data.result || '';
       return {
         success: true,
-        project
+        answer,
+        result: answer,
+        sources: data.sources || [],
+        provider: data.provider
       };
     } catch (error) {
-      console.error('获取项目详情失败:', error);
-      return {
-        success: false,
-        error: '获取项目详情失败，请稍后重试'
-      };
+      const message = error instanceof Error ? error.message : '调用后端接口失败';
+      console.error('调用后端接口失败:', error);
+      return { success: false, error: message };
     }
   }
-  
-  /**
-   * 获取灵感推荐
-   */
-  async getInspiration(): Promise<{
-    success: boolean;
-    inspiration?: string;
-    error?: string;
-  }> {
-    try {
-      // 模拟API请求延迟
-      await delay(500);
-      
-      // 模拟灵感推荐
-      const inspirations = [
-        '创新思维，高效创作',
-        '让AI成为您的创意伙伴',
-        '探索无限可能，激发创作灵感',
-        '用科技赋能想象力',
-        '智能协作，提升工作效率'
-      ];
-      
-      // 随机选择一个灵感
-      const inspiration = inspirations[Math.floor(Math.random() * inspirations.length)];
-      
-      // 模拟成功响应
-      return {
-        success: true,
-        inspiration
-      };
-    } catch (error) {
-      console.error('获取灵感失败:', error);
-      return {
-        success: false,
-        error: '获取灵感失败，请稍后重试'
-      };
-    }
+
+  private buildTaskPrompt(taskType: string, prompt: string) {
+    const instructions: Record<string, string> = {
+      写作: '请基于以下需求生成一段高质量的中文内容：',
+      PPT: '请根据用户需求输出 PPT 大纲，包含 3-5 个要点：',
+      设计: '请提出设计思路与关键元素：',
+      Excel: '请给出可在 Excel 中实现的方案与公式：',
+      网页: '请给出网页规划与实现建议：',
+      播客: '请给出播客节目脚本与结构建议：'
+    };
+    const instruction = instructions[taskType] || '请根据以下输入提供最佳回答：';
+    return `${instruction}\n\n${prompt}`;
   }
 }
 
-// 导出AI服务实例
-export const aiService = new AIServiceImpl();
+export const aiService: AIService = new AIServiceImpl();

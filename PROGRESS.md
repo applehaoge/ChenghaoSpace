@@ -6,6 +6,11 @@
 
 ## 重要变更与记录（按时间倒序）
 
+### 2025-10-21 10:40 ✅ 前端接入豆包模型
+- 操作：重写 aiService，使 sendAIRequest/optimizeContent 直接调用 `/api/chat` 并衔接豆包后端返回
+- 前端：重构 Home 页面，增加生成结果面板、加载状态和来源展示，按钮联动真实接口
+- 验证：手动触发写作任务，前端成功展示豆包回答与来源列表
+
 ### 2025-10-21 09:55 ✅ 接入火山引擎豆包 Provider
 - 操作：新增 `DoubaoProvider` 并在 `providerFactory` 中注册，支持通过 `PROVIDER=doubao` 与 `DOUBAO_API_KEY` 切换至豆包（`server/src/providers/doubaoProvider.ts`、`server/src/providers/providerFactory.ts`）
 - 配置：补充 `server/.env.example` 中的豆包相关占位变量，并在 `README.md` 中说明切换方式；默认聊天模型更新为 `doubao-seed-1-6-flash`
