@@ -26,6 +26,7 @@
 
 ### 后端服务
 - **模拟AI服务**：通过`aiService.ts`实现的模拟API服务，提供各种AI功能
+- **多模型 Provider**：后端 Node 服务现已支持按环境变量切换 OpenAI 或豆包（设置`PROVIDER=doubao`并提供`DOUBAO_API_KEY`，默认使用`doubao-seed-1-6-flash`）
 - **本地存储**：使用localStorage保存用户偏好设置
 
 ## 页面结构
@@ -202,7 +203,7 @@ if (response.success) {
 pnpm install
 
 # 后端（server）运行说明：
-# 在 server/ 下创建 .env（可复制 server/.env.example），并设置 OPENAI_API_KEY
+# 在 server/ 下创建 .env（可复制 server/.env.example），并设置 OPENAI_API_KEY 或 DOUBAO_API_KEY（豆包默认模型为 doubao-seed-1-6-flash，可按需覆盖 DOUBAO_CHAT_MODEL）
 # 可选：设置 OPENAI_API_BASE 指向自建的上游代理（如果直接访问 api.openai.com 被限制）
 # 示例：
 #   OPENAI_API_KEY=sk-xxxx
