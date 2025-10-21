@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git init)",
+      "Bash(git add .)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nchore: initial import\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(git branch -M main)",
+      "Bash(git remote add origin https://github.com/applehaoge/ChenghaoSpace.git)",
+      "Bash(git push -u origin main)",
+      "Bash(pnpm install)",
+      "Bash(pnpm --filter ./server dev)",
+      "Bash(pnpm run dev)",
+      "Bash(pnpm --filter ./server run dev)",
+      "Bash(pnpm add @fastify/cors @types/node-fetch -D)",
+      "Bash(curl -sS -X POST -H \"Content-Type: application/json\" --data '{\"\"query\"\":\"\"测试OpenAI连接\"\"}' http://localhost:8000/api/chat -w '\\nHTTP_STATUS:%{http_code}\\n')",
+      "Bash(curl -sS -X POST -H \"Content-Type: application/json\" -d '{\"\"query\"\":\"\"测试 raw 接口\"\"}' http://localhost:8000/api/chat-raw -w '\\nHTTP_STATUS:%{http_code}\\n')",
+      "Bash(node -e \"console.log(''OPENAI_API_KEY='', process.env.OPENAI_API_KEY ? ''***set***'' : ''***not set***'')\")",
+      "Bash(curl -v https://api.openai.com/v1/models --max-time 20)",
+      "Bash(pnpm --filter ./server add langchain openai)",
+      "Bash(node --experimental-specifier-resolution=node server/test_langchain.mjs)",
+      "Bash(node:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(tasklist:*)",
+      "Bash(curl:*)",
+      "Bash(nslookup:*)",
+      "Bash(tracert:*)",
+      "Bash(powershell:*)",
+      "Bash(cmd /c:*)",
+      "Read(//d/claude-code-proxy - 副本/src/core/**)",
+      "Read(//d/claude-code-proxy - 副本/**)",
+      "Bash(set:*)",
+      "Bash(pnpm --filter ./server build:*)",
+      "Bash(taskkill:*)",
+      "Bash(pnpm --filter ./server add:*)",
+      "Bash(export:*)",
+      "Bash(pnpm --filter ./server dev:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
