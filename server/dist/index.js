@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import dotenv from 'dotenv';
+import path from 'node:path';
 dotenv.config();
 const fastify = Fastify({ logger: true });
 // Simple CORS handling without external plugin
@@ -18,7 +19,8 @@ fastify.addHook('onRequest', async (request, reply) => {
             const clIsInvalid = Number.isNaN(clNum) || String(clNum) !== String(cl).trim();
             if ((te && te.includes('chunked')) || clIsInvalid) {
                 delete request.headers['content-length'];
-                request.log?.warn?.('Removed invalid Content-Length header to avoid parsing error');
+                const logger = request.log;
+                logger?.warn?.('Removed invalid Content-Length header to avoid parsing error');
             }
         }
     }
@@ -61,9 +63,7 @@ const buildDocumentContext = (hits) => {
         .map((hit, index) => `资料${index + 1}：${hit.text}`)
         .join('\n\n');
 };
-const formatHistory = (history) => history
-    .map(msg => `${msg.role === 'user' ? '用户' : '助手'}：${msg.content}`)
-    .join('\n');
+const formatHistory = (history) => history.map(msg => `${msg.role === 'user' ? '用户' : '助手'}：${msg.content}`).join('\n');
 const buildPromptFromMemory = (memoryContext, docContext, userMessage) => {
     const sections = [
         '你是一位专业且可靠的中文 AI 助手，请结合记忆与提供的参考资料回答用户问题。',
@@ -157,20 +157,24 @@ fastify.post('/api/seed', async (request, reply) => {
 });
 import { getProvider } from './providers/providerFactory.js';
 import { ConversationMemoryManager } from './memory/conversationMemory.js';
+import { FileMemoryStore } from './memory/storage/fileMemoryStore.js';
 // Provide a local proxy-style passthrough endpoint to avoid relying on external routing.
 // This proxy endpoint will accept OpenAI-compatible requests and forward them to the configured provider.
 // It preserves Authorization header if present, otherwise uses process.env.OPENAI_API_KEY.
 const provider = getProvider();
 const toNumber = (value, fallback) => {
-    const parsed = Number(value);
+    const parsed = typeof value === 'string' ? Number(value) : Number(value ?? NaN);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
+const memoryStoreDir = process.env.MEMORY_STORE_DIR || path.resolve(process.cwd(), 'server_data', 'memory');
+const memoryStore = new FileMemoryStore({ directory: memoryStoreDir });
 const memoryManager = new ConversationMemoryManager(provider, {
     maxHistoryMessages: toNumber(process.env.MEMORY_MAX_HISTORY, 8),
     maxStoredVectors: toNumber(process.env.MEMORY_VECTOR_LIMIT, 40),
     vectorSimilarityK: toNumber(process.env.MEMORY_VECTOR_K, 3),
     summaryInterval: toNumber(process.env.MEMORY_SUMMARY_INTERVAL, 6),
     minFactLength: toNumber(process.env.MEMORY_MIN_FACT_LENGTH, 16),
+    store: memoryStore,
 });
 // OpenAI-compatible local proxy endpoints
 import { OpenAIProvider } from './providers/openaiProvider.js';
@@ -258,7 +262,7 @@ fastify.get('/api/chat', async (request, reply) => {
     }
 });
 fastify.post('/api/chat', async (request, reply) => {
-    const body = request.body || {};
+    const body = request.body;
     const result = await processChatRequest(body, request);
     return reply.code(result.status).send(result.payload);
 });
@@ -290,7 +294,8 @@ fastify.post('/api/chat-raw', async (request, reply) => {
     }
     catch (err) {
         // 捕获流读取等其他错误，返回 500
-        request.log?.error?.(err);
+        const logger = request.log;
+        logger?.error?.(err);
         return reply.code(500).send({ error: 'Failed to read raw body' });
     }
 });
@@ -301,7 +306,7 @@ const start = async () => {
         console.log(`Server running at http://localhost:${port}`);
     }
     catch (err) {
-        fastify.log.error(err);
+        fastify.log.error?.(err);
         process.exit(1);
     }
 };

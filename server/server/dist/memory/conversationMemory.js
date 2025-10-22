@@ -9,10 +9,12 @@ export class ConversationMemoryManager {
     constructor(provider, options = {}) {
         this.provider = provider;
         this.sessions = new Map();
-        this.opts = { ...DEFAULT_OPTIONS, ...options };
+        const { store, ...rest } = options;
+        this.opts = { ...DEFAULT_OPTIONS, ...rest };
+        this.store = store;
     }
     async prepareContext(sessionId, userMessage) {
-        const session = this.ensureSession(sessionId);
+        const session = await this.ensureSession(sessionId);
         const relevantFacts = await this.searchRelevantFacts(session, userMessage, this.opts.vectorSimilarityK);
         const recentHistory = session.history.slice(-this.opts.maxHistoryMessages);
         return {
@@ -23,7 +25,7 @@ export class ConversationMemoryManager {
         };
     }
     async recordInteraction(sessionId, userMessage, assistantMessage) {
-        const session = this.ensureSession(sessionId);
+        const session = await this.ensureSession(sessionId);
         const now = Date.now();
         session.history.push({ role: 'user', content: userMessage, createdAt: now });
         if (this.shouldStoreFact(userMessage)) {
@@ -32,6 +34,7 @@ export class ConversationMemoryManager {
         session.history.push({ role: 'assistant', content: assistantMessage, createdAt: now + 1 });
         session.lastUpdated = Date.now();
         this.maybeScheduleSummary(session);
+        await this.persistSession(session);
         return {
             sessionId,
             summary: session.summary,
@@ -40,19 +43,53 @@ export class ConversationMemoryManager {
             totalMessages: session.history.length,
         };
     }
-    ensureSession(sessionId) {
+    async ensureSession(sessionId) {
         let session = this.sessions.get(sessionId);
-        if (!session) {
-            session = {
-                id: sessionId,
-                history: [],
-                vectors: [],
-                lastSummaryIndex: 0,
-                lastUpdated: Date.now(),
-            };
-            this.sessions.set(sessionId, session);
+        if (session)
+            return session;
+        if (this.store) {
+            try {
+                const snapshot = await this.store.loadSession(sessionId);
+                if (snapshot) {
+                    session = {
+                        ...snapshot,
+                        summarising: false,
+                    };
+                    this.sessions.set(sessionId, session);
+                    return session;
+                }
+            }
+            catch (err) {
+                console.warn('[memory] failed to load session from store:', err?.message || err);
+            }
         }
+        session = {
+            id: sessionId,
+            history: [],
+            vectors: [],
+            lastSummaryIndex: 0,
+            lastUpdated: Date.now(),
+        };
+        this.sessions.set(sessionId, session);
         return session;
+    }
+    async persistSession(session) {
+        if (!this.store)
+            return;
+        const snapshot = {
+            id: session.id,
+            history: session.history,
+            vectors: session.vectors,
+            summary: session.summary,
+            lastSummaryIndex: session.lastSummaryIndex,
+            lastUpdated: session.lastUpdated,
+        };
+        try {
+            await this.store.saveSession(snapshot);
+        }
+        catch (err) {
+            console.warn('[memory] failed to persist session:', err?.message || err);
+        }
     }
     shouldStoreFact(text) {
         if (!text)
@@ -160,6 +197,7 @@ export class ConversationMemoryManager {
         if (summary) {
             session.summary = summary;
             session.lastSummaryIndex = session.history.length;
+            await this.persistSession(session);
         }
     }
 }

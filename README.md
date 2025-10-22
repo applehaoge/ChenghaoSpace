@@ -28,6 +28,7 @@ AI demo with a Vite/React front-end (`front/`) and a Fastify back-end (`server/`
 - **Rolling summary**: every few turns (defaults to 6) the server asks the provider to condense the dialogue, keeping long-running chats concise.
 - **Vector recall**: user statements that look factual are embedded and stored; the next request retrieves the most relevant facts before generating a reply.
 - **Session tracking**: the front-end now generates a `sessionId` per chat window so the server can tie memory to a single conversation.
+- **持久化存储**: 默认写入 `server_data/memory` 目录，可通过 `MEMORY_STORE_DIR` 指定，服务重启后仍可恢复会话上下文。
 - **Config knobs** (all optional, in `server/.env`):
   ```ini
   MEMORY_MAX_HISTORY=8        # most recent messages injected verbatim
@@ -35,6 +36,7 @@ AI demo with a Vite/React front-end (`front/`) and a Fastify back-end (`server/`
   MEMORY_VECTOR_LIMIT=40      # cap for stored facts per session
   MEMORY_SUMMARY_INTERVAL=6   # how often to refresh the summary
   MEMORY_MIN_FACT_LENGTH=16   # heuristic gate before persisting a fact
+  MEMORY_STORE_DIR=server_data/memory  # default on-disk store location
   ```
 
 The memory manager lives in `server/server/src/memory/conversationMemory.ts` (with compiled JS under `server/dist/memory/`).
@@ -60,6 +62,7 @@ ALL_PROXY=socks5://127.0.0.1:33211
 # optional memory tuning (see table above)
 MEMORY_MAX_HISTORY=8
 MEMORY_VECTOR_K=3
+MEMORY_STORE_DIR=server_data/memory
 ```
 
 ### 3. Front-end configuration (`front/.env.local`)
@@ -116,3 +119,9 @@ Open the displayed URL to try the new chat experience with streaming Markdown, c
 - Extend the memory manager with persistence (Redis, Postgres + pgvector, etc.) or add per-user personas.
 
 Enjoy the upgraded conversation flow and feel free to extend it further! 💬
+
+---
+
+## 工作流程约定
+
+- **每完成一个功能步骤，先更新 `progress.md`**：把当次的实现细节、遗留问题和下一步计划记录进去，再继续后续开发。

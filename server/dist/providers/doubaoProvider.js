@@ -33,7 +33,7 @@ export class DoubaoProvider {
             return fetch(url, init);
         }
         try {
-            return await fetch(url, { ...init, agent });
+            return await fetch(url, { ...init, agent: agent });
         }
         catch (err) {
             if (this.shouldBypassProxy(err)) {

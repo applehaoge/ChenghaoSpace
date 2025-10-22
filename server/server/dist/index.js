@@ -1,5 +1,6 @@
 import Fastify from 'fastify';
 import dotenv from 'dotenv';
+import path from 'node:path';
 dotenv.config();
 const fastify = Fastify({ logger: true });
 // Simple CORS handling without external plugin
@@ -156,6 +157,7 @@ fastify.post('/api/seed', async (request, reply) => {
 });
 import { getProvider } from './providers/providerFactory.js';
 import { ConversationMemoryManager } from './memory/conversationMemory.js';
+import { FileMemoryStore } from './memory/storage/fileMemoryStore.js';
 // Provide a local proxy-style passthrough endpoint to avoid relying on external routing.
 // This proxy endpoint will accept OpenAI-compatible requests and forward them to the configured provider.
 // It preserves Authorization header if present, otherwise uses process.env.OPENAI_API_KEY.
@@ -164,12 +166,15 @@ const toNumber = (value, fallback) => {
     const parsed = typeof value === 'string' ? Number(value) : Number(value ?? NaN);
     return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
+const memoryStoreDir = process.env.MEMORY_STORE_DIR || path.resolve(process.cwd(), 'server_data', 'memory');
+const memoryStore = new FileMemoryStore({ directory: memoryStoreDir });
 const memoryManager = new ConversationMemoryManager(provider, {
     maxHistoryMessages: toNumber(process.env.MEMORY_MAX_HISTORY, 8),
     maxStoredVectors: toNumber(process.env.MEMORY_VECTOR_LIMIT, 40),
     vectorSimilarityK: toNumber(process.env.MEMORY_VECTOR_K, 3),
     summaryInterval: toNumber(process.env.MEMORY_SUMMARY_INTERVAL, 6),
     minFactLength: toNumber(process.env.MEMORY_MIN_FACT_LENGTH, 16),
+    store: memoryStore,
 });
 // OpenAI-compatible local proxy endpoints
 import { OpenAIProvider } from './providers/openaiProvider.js';

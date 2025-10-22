@@ -19,7 +19,7 @@ export class OpenAIProvider {
         const agent = proxy ? new HttpsProxyAgent(proxy) : undefined;
         const res = await fetch(url, {
             method: 'POST',
-            agent,
+            agent: agent,
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${this.apiKey}`
@@ -50,7 +50,7 @@ export class OpenAIProvider {
         // If apiPath points to /v1/messages and chat/completions fails, fall back to messages endpoint
         try {
             let res = await fetch(url, {
-                agent,
+                agent: agent,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -67,7 +67,7 @@ export class OpenAIProvider {
             const fallbackPath = 'v1/messages?beta=true';
             url = `${baseNoV1}/${fallbackPath}`;
             const res2 = await fetch(url, {
-                agent,
+                agent: agent,
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
