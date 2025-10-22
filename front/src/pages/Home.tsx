@@ -133,6 +133,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const handledInitialRef = useRef<string | null>(null);
   const streamingTimersRef = useRef<Record<string, number>>({});
   const sessionIdRef = useRef<string>('');
@@ -146,6 +147,21 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, []);
+
+  const adjustTextareaHeight = useCallback(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const minHeight = 56;
+    const maxHeight = 220;
+    el.style.height = 'auto';
+    const targetHeight = Math.min(maxHeight, el.scrollHeight);
+    el.style.height = `${Math.max(minHeight, targetHeight)}px`;
+    el.style.overflowY = el.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, []);
+
+  useEffect(() => {
+    adjustTextareaHeight();
+  }, [newMessage, adjustTextareaHeight]);
 
   const clearStreamingTimer = useCallback((id?: string) => {
     if (id) {
@@ -457,12 +473,15 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
         </div>
         <div className="flex gap-2.5">
           <textarea
+            ref={textareaRef}
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={handleKeyPress}
+            onInput={adjustTextareaHeight}
             className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
             placeholder="我指的是……"
             rows={2}
+            style={{ minHeight: 56, maxHeight: 220 }}
           />
           <button
             className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50"
