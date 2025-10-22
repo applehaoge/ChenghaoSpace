@@ -26,6 +26,8 @@ type MainContentProps = {
   onSendMessage?: (message: string) => void;
 };
 
+const CHAT_STORAGE_KEY = 'chs_chat_history_v1';
+
 const markdownComponents: Components = {
   h1: ({ children, ...props }) => (
     <h1 className="text-lg font-semibold mb-2" {...props}>
@@ -143,6 +145,57 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
   if (!sessionIdRef.current) {
     resetSession();
   }
+  const hydratedRef = useRef(false);
+
+  const persistConversation = useCallback((conversation: ChatBubble[], sessionId: string) => {
+    if (typeof window === 'undefined') return;
+    if (!sessionId) return;
+    const serialisable = conversation.map((msg) => ({
+      ...msg,
+      timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : new Date(msg.timestamp).toISOString(),
+    }));
+    const payload = JSON.stringify({ sessionId, messages: serialisable });
+    window.localStorage.setItem(CHAT_STORAGE_KEY, payload);
+  }, []);
+
+  const clearPersistedConversation = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.removeItem(CHAT_STORAGE_KEY);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      hydratedRef.current = true;
+      return;
+    }
+    try {
+      const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as {
+          sessionId?: string;
+          messages?: Array<Omit<ChatBubble, 'timestamp'> & { timestamp?: string }>;
+        };
+        if (parsed?.sessionId) {
+          sessionIdRef.current = parsed.sessionId;
+        }
+        if (Array.isArray(parsed?.messages) && parsed.messages.length) {
+          const restored = parsed.messages.map((msg) => ({
+            ...msg,
+            timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
+          })) as ChatBubble[];
+          setMessages(restored);
+          handledInitialRef.current = parsed.sessionId ? '__persisted__' : handledInitialRef.current;
+        }
+      }
+    } catch (error) {
+      console.error('恢复历史对话失败:', error);
+    } finally {
+      if (!sessionIdRef.current) {
+        resetSession();
+      }
+      hydratedRef.current = true;
+    }
+  }, [resetSession]);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -290,19 +343,25 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
   }, [messages, scrollToBottom]);
 
   useEffect(() => {
+    if (!hydratedRef.current) return;
+    if (!messages.length) {
+      clearPersistedConversation();
+      return;
+    }
+    persistConversation(messages, sessionIdRef.current);
+  }, [messages, persistConversation, clearPersistedConversation]);
+
+  useEffect(() => {
     return () => {
       clearStreamingTimer();
     };
   }, [clearStreamingTimer]);
 
   useEffect(() => {
+    if (!hydratedRef.current) return;
     const trimmed = initialMessage.trim();
     if (!trimmed) {
-      clearStreamingTimer();
-      setMessages([]);
-      setNewMessage('');
       handledInitialRef.current = null;
-      resetSession();
       return;
     }
 
@@ -310,6 +369,8 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
       return;
     }
     handledInitialRef.current = trimmed;
+    clearStreamingTimer();
+    clearPersistedConversation();
     resetSession();
 
     const first: ChatBubble = {
@@ -318,11 +379,10 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
       sender: 'user',
       timestamp: new Date()
     };
-    clearStreamingTimer();
     setMessages([first]);
     setNewMessage('');
     void fetchAssistantReply(trimmed);
-  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession]);
+  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, clearPersistedConversation]);
 
   const handleSendMessage = async () => {
     const trimmed = newMessage.trim();
@@ -861,7 +921,23 @@ export default function Home() {
      { id: 'task_4', name: '根据文稿编写网页', icon: 'file-alt', color: 'gray-500' },
      { id: 'task_5', name: '分析文件并共创策划书', icon: 'project-diagram', color: 'green-500' }
    ]);
-  const [scale, setScale] = useState(1);
+   const [scale, setScale] = useState(1);
+
+   useEffect(() => {
+     if (typeof window === 'undefined') {
+       return;
+     }
+     try {
+       const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
+       if (!raw) return;
+       const parsed = JSON.parse(raw);
+       if (parsed?.messages && Array.isArray(parsed.messages) && parsed.messages.length) {
+         setShowChat(true);
+       }
+     } catch (error) {
+       console.warn('检测历史对话失败:', error);
+     }
+   }, []);
 
    
    // 创建新任务的处理函数

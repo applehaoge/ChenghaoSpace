@@ -30,3 +30,5 @@ lerna-debug.log*
 # Backups & archives
 server_backup_*/
 *.zip
+server_data/
+
