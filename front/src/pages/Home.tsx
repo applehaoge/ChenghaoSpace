@@ -581,7 +581,7 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
   };
 
   return (
-      <main className="flex-1 w-[calc(100%-260px)] bg-white border-l border-gray-100 overflow-y-auto">
+      <main className="flex-1 bg-white border-l border-gray-100">
       <div className="flex items-center justify-between pt-8 pb-6 px-8 relative">
         <h1 className="text-2xl font-bold text-gray-800">
           <span className="text-blue-500">智能助手</span>，一键生成
@@ -907,8 +907,9 @@ export default function Home() {
    };
    
   // 渲染主页面
+  const layoutClass = showChat ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden overflow-y-auto';
   return (
-      <div className={`flex flex-row h-screen bg-gray-50 font-sans ${showChat ? '' : 'home-page'} overflow-hidden`}>
+      <div className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${showChat ? '' : 'home-page'}`}>
       {/* 左侧导航栏 */}
       <Sidebar onCreateNewTask={handleCreateNewTask} tasks={tasks} setTasks={setTasks} />
       

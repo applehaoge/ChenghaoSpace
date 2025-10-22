@@ -17,18 +17,15 @@
   -moz-osx-font-smoothing: grayscale;
  }
 
-/* 禁止整个页面滚动 */
 body {
-  overflow: hidden;
-  height: 100vh;
+  min-height: 100vh;
+  overflow-x: hidden;
   margin: 0;
   padding: 0;
 }
 
-/* 确保根容器撑满整个视口 */
 #root {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
 /* 聊天界面样式 */
