@@ -1,15 +1,15 @@
+const DEFAULT_OPTIONS = {
+    maxHistoryMessages: 8,
+    maxStoredVectors: 40,
+    vectorSimilarityK: 3,
+    summaryInterval: 6,
+    minFactLength: 16,
+};
 export class ConversationMemoryManager {
     constructor(provider, options = {}) {
         this.provider = provider;
         this.sessions = new Map();
-        this.opts = {
-            maxHistoryMessages: 8,
-            maxStoredVectors: 40,
-            vectorSimilarityK: 3,
-            summaryInterval: 6,
-            minFactLength: 16,
-            ...options,
-        };
+        this.opts = { ...DEFAULT_OPTIONS, ...options };
     }
     async prepareContext(sessionId, userMessage) {
         const session = this.ensureSession(sessionId);
@@ -75,11 +75,11 @@ export class ConversationMemoryManager {
             }
         }
         catch (err) {
-            console.warn('[memory] failed to embed text for vector store:', (err?.message) || err);
+            console.warn('[memory] failed to embed text for vector store:', err?.message || err);
         }
     }
     async searchRelevantFacts(session, query, k) {
-        if (!session.vectors.length || !(query?.trim()))
+        if (!session.vectors.length || !query?.trim())
             return [];
         try {
             const queryVector = await this.embedText(query);
@@ -97,7 +97,7 @@ export class ConversationMemoryManager {
             return Array.from(new Set(scored.map(item => item.value)));
         }
         catch (err) {
-            console.warn('[memory] failed to search relevant facts:', (err?.message) || err);
+            console.warn('[memory] failed to search relevant facts:', err?.message || err);
             return [];
         }
     }
@@ -136,7 +136,7 @@ export class ConversationMemoryManager {
             return;
         session.summarising = true;
         void this.updateSummary(session).catch((err) => {
-            console.warn('[memory] summarize failed:', (err?.message) || err);
+            console.warn('[memory] summarize failed:', err?.message || err);
         }).finally(() => {
             session.summarising = false;
         });

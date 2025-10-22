@@ -47,6 +47,106 @@ fastify.addContentTypeParser('application/json', { parseAs: 'buffer' }, function
 });
 // 简单内存文档存储（用于初期检索）
 const documents = [];
+const keywordSearch = (query, topK = 3) => {
+    if (!query)
+        return [];
+    return documents
+        .map(d => ({ id: d.id, text: d.text, score: d.text && query ? (d.text.includes(query) ? 1 : 0) : 0 }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, topK);
+};
+const buildDocumentContext = (hits) => {
+    if (!hits.length)
+        return '';
+    return hits
+        .map((hit, index) => `资料${index + 1}：${hit.text}`)
+        .join('\n\n');
+};
+const formatHistory = (history) => history.map(msg => `${msg.role === 'user' ? '用户' : '助手'}：${msg.content}`).join('\n');
+const buildPromptFromMemory = (memoryContext, docContext, userMessage) => {
+    const sections = [
+        '你是一位专业且可靠的中文 AI 助手，请结合记忆与提供的参考资料回答用户问题。',
+    ];
+    if (memoryContext.summary) {
+        sections.push(`会话摘要：\n${memoryContext.summary}`);
+    }
+    if (memoryContext.relevantFacts.length) {
+        sections.push(`相关长期记忆：\n${memoryContext.relevantFacts.map((fact, idx) => `${idx + 1}. ${fact}`).join('\n')}`);
+    }
+    if (docContext) {
+        sections.push(`参考资料：\n${docContext}`);
+    }
+    if (memoryContext.recentHistory.length) {
+        sections.push(`最近对话：\n${formatHistory(memoryContext.recentHistory)}`);
+    }
+    sections.push(`用户当前问题：\n${userMessage}`);
+    return sections.join('\n\n');
+};
+const processChatRequest = async (body = {}, request) => {
+    const taskType = body.taskType || 'general';
+    const sessionId = body.sessionId || body.conversationId || `session-${Date.now()}`;
+    const topK = Number(body.topK || 3);
+    const rawQuery = typeof body.query === 'string' ? body.query : '';
+    const userMessage = (body.userMessage || '').toString().trim() || rawQuery;
+    if (!userMessage) {
+        return { status: 400, payload: { error: '缺少用户输入' } };
+    }
+    if (taskType === '聊天') {
+        const searchRes = keywordSearch(userMessage, topK);
+        const docContext = buildDocumentContext(searchRes);
+        const memoryContext = await memoryManager.prepareContext(sessionId, userMessage);
+        const prompt = buildPromptFromMemory(memoryContext, docContext, userMessage);
+        try {
+            const res = await provider.chat({ prompt, systemPrompt: 'You are a helpful assistant.' });
+            const answer = res.text;
+            const memoryMeta = await memoryManager.recordInteraction(sessionId, userMessage, answer);
+            return {
+                status: 200,
+                payload: {
+                    answer,
+                    sources: searchRes,
+                    provider: res.metadata?.provider || 'unknown',
+                    memory: {
+                        sessionId,
+                        summary: memoryContext.summary,
+                        factsUsed: memoryContext.relevantFacts,
+                        recentCount: memoryContext.recentHistory.length,
+                        totalMessages: memoryMeta.totalMessages,
+                    },
+                },
+            };
+        }
+        catch (err) {
+            request?.log?.error?.(err);
+            const fallbackContextParts = [];
+            if (docContext)
+                fallbackContextParts.push(docContext);
+            if (memoryContext.summary)
+                fallbackContextParts.push(memoryContext.summary);
+            if (memoryContext.relevantFacts.length)
+                fallbackContextParts.push(memoryContext.relevantFacts.join('；'));
+            const fallbackBasis = fallbackContextParts.join(' / ') || '暂无有效记忆';
+            const fallback = `（模拟回退）基于记忆与资料：${fallbackBasis.substring(0, 120)}... 对问题 "${userMessage}" 的回答是：示例答案。`;
+            return {
+                status: 200,
+                payload: { answer: fallback, sources: searchRes, warning: 'provider.chat failed, used fallback', memory: { sessionId } },
+            };
+        }
+    }
+    const query = rawQuery || userMessage;
+    const searchRes = keywordSearch(query, topK);
+    const context = buildDocumentContext(searchRes);
+    const prompt = `根据以下上下文回答用户问题：\n${context}\n\n问题: ${query}`;
+    try {
+        const res = await provider.chat({ prompt, systemPrompt: 'You are a helpful assistant.' });
+        const answer = res.text;
+        return { status: 200, payload: { answer, sources: searchRes, provider: res.metadata?.provider || 'unknown' } };
+    }
+    catch (err) {
+        const fallback = `（模拟回退）基于检索到的内容：${context.substring(0, 120)}... 对问题 "${query}" 的回答是：示例答案。`;
+        return { status: 200, payload: { answer: fallback, sources: searchRes, warning: 'provider.chat failed, used fallback' } };
+    }
+};
 fastify.get('/health', async () => ({ ok: true }));
 fastify.post('/api/seed', async (request, reply) => {
     const body = request.body;
@@ -55,10 +155,22 @@ fastify.post('/api/seed', async (request, reply) => {
     return { success: true, count: documents.length };
 });
 import { getProvider } from './providers/providerFactory.js';
+import { ConversationMemoryManager } from './memory/conversationMemory.js';
 // Provide a local proxy-style passthrough endpoint to avoid relying on external routing.
 // This proxy endpoint will accept OpenAI-compatible requests and forward them to the configured provider.
 // It preserves Authorization header if present, otherwise uses process.env.OPENAI_API_KEY.
 const provider = getProvider();
+const toNumber = (value, fallback) => {
+    const parsed = typeof value === 'string' ? Number(value) : Number(value ?? NaN);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+const memoryManager = new ConversationMemoryManager(provider, {
+    maxHistoryMessages: toNumber(process.env.MEMORY_MAX_HISTORY, 8),
+    maxStoredVectors: toNumber(process.env.MEMORY_VECTOR_LIMIT, 40),
+    vectorSimilarityK: toNumber(process.env.MEMORY_VECTOR_K, 3),
+    summaryInterval: toNumber(process.env.MEMORY_SUMMARY_INTERVAL, 6),
+    minFactLength: toNumber(process.env.MEMORY_MIN_FACT_LENGTH, 16),
+});
 // OpenAI-compatible local proxy endpoints
 import { OpenAIProvider } from './providers/openaiProvider.js';
 fastify.post('/proxy/v1/chat/completions', async (request, reply) => {
@@ -146,27 +258,8 @@ fastify.get('/api/chat', async (request, reply) => {
 });
 fastify.post('/api/chat', async (request, reply) => {
     const body = request.body;
-    const query = body.query || '';
-    const topK = body.topK || 3;
-    // 检索（基于关键字匹配，后续替换为向量相似度）
-    const searchRes = documents
-        .map(d => ({ id: d.id, text: d.text, score: d.text.includes(query) ? 1 : 0 }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, topK);
-    // 拼接上下文
-    const context = searchRes.map(h => h.text).join('\n');
-    const prompt = `根据以下上下文回答用户问题:\n${context}\n问题: ${query}`;
-    try {
-        // 使用 provider.chat 调用真实 LLM
-        const res = await provider.chat({ prompt, systemPrompt: 'You are a helpful assistant.' });
-        const answer = res.text;
-        return { answer, sources: searchRes, provider: res.metadata?.provider || 'unknown' };
-    }
-    catch (err) {
-        // 回退到模拟回答，保证可用性
-        const fallback = `（模拟回退）基于检索到的内容：${context.substring(0, 120)}... 对问题 "${query}" 的回答是：示例答案。`;
-        return { answer: fallback, sources: searchRes, warning: 'provider.chat failed, used fallback' };
-    }
+    const result = await processChatRequest(body, request);
+    return reply.code(result.status).send(result.payload);
 });
 // 新增原始 POST 接口，直接从 Node 原始请求流读取 body，绕过 Fastify 的 body 解析，以便在 Content-Length 不匹配时仍能接收请求
 fastify.post('/api/chat-raw', async (request, reply) => {
@@ -191,24 +284,8 @@ fastify.post('/api/chat-raw', async (request, reply) => {
                 }
             }
         }
-        const query = body.query || '';
-        const topK = body.topK || 3;
-        // 简单检索（与 /api/chat 相同的逻辑）
-        const searchRes = documents
-            .map(d => ({ id: d.id, text: d.text, score: d.text.includes(query) ? 1 : 0 }))
-            .sort((a, b) => b.score - a.score)
-            .slice(0, topK);
-        const context = searchRes.map(h => h.text).join('\n');
-        const prompt = `根据以下上下文回答用户问题:\n${context}\n问题: ${query}`;
-        try {
-            const res = await provider.chat({ prompt, systemPrompt: 'You are a helpful assistant.' });
-            const answer = res.text;
-            return { answer, sources: searchRes, provider: res.metadata?.provider || 'unknown' };
-        }
-        catch (err) {
-            const fallback = `（模拟回退）基于检索到的内容：${context.substring(0, 120)}... 对问题 "${query}" 的回答是：示例答案。`;
-            return { answer: fallback, sources: searchRes, warning: 'provider.chat failed, used fallback' };
-        }
+        const result = await processChatRequest(body, request);
+        return reply.code(result.status).send(result.payload);
     }
     catch (err) {
         // 捕获流读取等其他错误，返回 500
