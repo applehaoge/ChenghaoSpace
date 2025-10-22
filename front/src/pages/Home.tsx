@@ -861,6 +861,8 @@ export default function Home() {
      { id: 'task_4', name: '根据文稿编写网页', icon: 'file-alt', color: 'gray-500' },
      { id: 'task_5', name: '分析文件并共创策划书', icon: 'project-diagram', color: 'green-500' }
    ]);
+  const [scale, setScale] = useState(1);
+
    
    // 创建新任务的处理函数
    const handleCreateNewTask = async () => {
@@ -906,10 +908,36 @@ export default function Home() {
      }
    };
    
+  useEffect(() => {
+    const baseWidth = 1440;
+    const maxScale = 1.35;
+
+    const updateScale = () => {
+      const width = window.innerWidth || baseWidth;
+      const nextScale = width > baseWidth ? Math.min(width / baseWidth, maxScale) : 1;
+      setScale(Number(nextScale.toFixed(3)));
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
+
+  const scaledSize = Number((100 / scale).toFixed(3));
+  const scaleStyle = {
+    transform: `scale(${scale})`,
+    transformOrigin: 'top center',
+    width: `${scaledSize}%`,
+    minHeight: `${scaledSize}vh`,
+    transition: 'transform 0.3s ease, width 0.3s ease, min-height 0.3s ease'
+  } as const;
+
   // 渲染主页面
   const layoutClass = showChat ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden overflow-y-auto';
   return (
-      <div className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${showChat ? '' : 'home-page'}`}>
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
+      <div className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${showChat ? '' : 'home-page'}`}
+        style={scaleStyle}>
       {/* 左侧导航栏 */}
       <Sidebar onCreateNewTask={handleCreateNewTask} tasks={tasks} setTasks={setTasks} />
       
@@ -934,6 +962,7 @@ export default function Home() {
       
       {/* 浮动帮助按钮 - 仅在首页显示 */}
       <FloatingHelpButton show={!showChat} />
-     </div>
+      </div>
+    </div>
   );
 }
