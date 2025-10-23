@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import type { KeyboardEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
@@ -251,14 +251,18 @@ function ChatInterface({
   const [messages, setMessages] = useState<ChatBubble[]>(() => initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const handledInitialRef = useRef<string | null>(null);
   const streamingTimersRef = useRef<Record<string, number>>({});
   const sessionIdRef = useRef<string>(sessionId ?? '');
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    requestAnimationFrame(() => {
+      container.scrollTo({ top: container.scrollHeight, behavior });
+    });
   }, []);
 
   const adjustTextareaHeight = useCallback(() => {
@@ -410,7 +414,8 @@ function ChatInterface({
   }, [conversationId, messages, onConversationUpdate]);
 
   useEffect(() => {
-    scrollToBottom();
+    const behavior = messages.length > 1 ? 'smooth' : 'auto';
+    scrollToBottom(behavior);
   }, [messages, scrollToBottom]);
 
   useEffect(() => {
@@ -424,7 +429,8 @@ function ChatInterface({
     setMessages(initialMessages);
     setNewMessage('');
     handledInitialRef.current = null;
-  }, [conversationId, clearStreamingTimer]);
+    scrollToBottom('auto');
+  }, [conversationId, initialMessages, clearStreamingTimer, scrollToBottom]);
 
   useEffect(() => {
     sessionIdRef.current = sessionId ?? '';
@@ -515,7 +521,10 @@ function ChatInterface({
       </div>
 
       {/* 聊天内容区域 */}
-      <div className="flex-1 overflow-y-auto p-5 bg-gray-50 chat-window min-h-0">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto p-5 bg-gray-50 chat-window min-h-0"
+      >
         {messages.map(message => (
           <div
             key={message.id}
@@ -585,8 +594,6 @@ function ChatInterface({
             </div>
           </div>
         )}
-
-        <div ref={messagesEndRef} />
       </div>
 
       {/* 输入区域 */}
@@ -715,7 +722,7 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
   };
 
   return (
-      <main className="flex-1 bg-white border-l border-gray-100">
+      <main className="flex-1 bg-white border-l border-gray-100 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between pt-8 pb-6 px-8 relative">
         <h1 className="text-2xl font-bold text-gray-800">
           <span className="text-blue-500">智能助手</span>，一键生成
@@ -728,29 +735,30 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
         </div>
       </div>
 
-      <div className="flex justify-center gap-3 mb-8 flex-wrap">
-        {tabs.map((tab) => (
-          <button
-            key={tab}
-            className={`px-4 py-2 rounded-full text-sm transition-colors ${
-              activeTab === tab
-                ? 'bg-gradient-to-r from-blue-400 to-indigo-400 text-white border-blue-400 shadow-sm'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50'
-            } border transition-all duration-300`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === '写作' && <i className="fas fa-pen-to-square mr-1"></i>}
-            {tab === 'PPT' && <i className="fas fa-file-powerpoint mr-1"></i>}
-            {tab === '设计' && <i className="fas fa-paint-brush mr-1"></i>}
-            {tab === 'Excel' && <i className="fas fa-file-excel mr-1"></i>}
-            {tab === '网页' && <i className="fas fa-globe mr-1"></i>}
-            {tab === '播客' && <i className="fas fa-podcast mr-1"></i>}
-            {tab}
-          </button>
-        ))}
-      </div>
+      <div className="flex-1 overflow-y-auto px-8 pb-8 space-y-8 custom-scrollbar">
+        <div className="flex justify-center gap-3 flex-wrap">
+          {tabs.map((tab) => (
+            <button
+              key={tab}
+              className={`px-4 py-2 rounded-full text-sm transition-colors ${
+                activeTab === tab
+                  ? 'bg-gradient-to-r from-blue-400 to-indigo-400 text-white border-blue-400 shadow-sm'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50'
+              } border transition-all duration-300`}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === '写作' && <i className="fas fa-pen-to-square mr-1"></i>}
+              {tab === 'PPT' && <i className="fas fa-file-powerpoint mr-1"></i>}
+              {tab === '设计' && <i className="fas fa-paint-brush mr-1"></i>}
+              {tab === 'Excel' && <i className="fas fa-file-excel mr-1"></i>}
+              {tab === '网页' && <i className="fas fa-globe mr-1"></i>}
+              {tab === '播客' && <i className="fas fa-podcast mr-1"></i>}
+              {tab}
+            </button>
+          ))}
+        </div>
 
-      <div className="max-w-[800px] mx-auto p-6 bg-white rounded-xl border border-gray-100 mb-10 shadow-sm">
+      <div className="max-w-[800px] mx-auto p-6 bg-white rounded-xl border border-gray-100 shadow-sm">
         <div className="flex items-center mb-4 gap-2.5">
           <span className="px-2 py-1 bg-blue-50 text-blue-500 rounded-full text-xs font-medium">
             {activeTab}
@@ -822,26 +830,29 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
-           <ProjectCard 
-             title="AI智能写作助手" 
-             imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"
-             bgColor="#eff6ff"
-             projectId="project_ai_writing"
-           />
-           <ProjectCard 
-             title="智能数据分析工具" 
-             imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=Data%20visualization%20dashboard%2C%20modern%20design%2C%20blue%20and%20indigo%20colors&sign=ed4909d7a10fe86967a5aa6a0afaa434"
-             bgColor="#e0e7ff"
-             projectId="project_data_analysis"
-           />
-           <ProjectCard 
-             title="个性化学习平台" 
-             imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20learning%20platform%20concept%2C%20interactive%20interface%2C%20blue%20colors&sign=0eba131c9b66799399b3e86f510476a7"
-             bgColor="#dbeafe"
-             projectId="project_learning_platform"
-           />
+        <div className="max-h-[360px] overflow-y-auto pr-1 custom-scrollbar">
+          <div className="grid grid-cols-3 gap-4">
+             <ProjectCard 
+               title="AI智能写作助手" 
+               imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"
+               bgColor="#eff6ff"
+               projectId="project_ai_writing"
+             />
+             <ProjectCard 
+               title="智能数据分析工具" 
+               imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=Data%20visualization%20dashboard%2C%20modern%20design%2C%20blue%20and%20indigo%20colors&sign=ed4909d7a10fe86967a5aa6a0afaa434"
+               bgColor="#e0e7ff"
+               projectId="project_data_analysis"
+             />
+             <ProjectCard 
+               title="个性化学习平台" 
+               imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20learning%20platform%20concept%2C%20interactive%20interface%2C%20blue%20colors&sign=0eba131c9b66799399b3e86f510476a7"
+               bgColor="#dbeafe"
+               projectId="project_learning_platform"
+             />
+          </div>
         </div>
+      </div>
       </div>
     </main>
   );
@@ -860,9 +871,10 @@ interface SidebarProps {
   }>;
   activeTaskId?: string | null;
   onSelectTask?: (taskId: string) => void;
+  onDeleteTask?: (taskId: string) => void;
 }
 
-function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask }: SidebarProps) {
+function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask, onDeleteTask }: SidebarProps) {
   // 处理创建新聊天按钮点击
   const handleCreateNewTask = onCreateNewTask;
   
@@ -943,7 +955,7 @@ function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask }: Sidebar
           {tasks.map((task, index) => (
             <li 
               key={task.id}
-              className={`flex items-center gap-2.5 p-3 mb-2 rounded-md cursor-pointer transition-colors ${index === tasks.length - 1 ? 'mb-0' : ''} ${
+              className={`group flex items-center gap-2.5 p-3 mb-2 rounded-md cursor-pointer transition-colors ${index === tasks.length - 1 ? 'mb-0' : ''} ${
                 activeTaskId === task.id ? 'bg-blue-50 border border-blue-200 text-blue-600' : 'bg-gray-100 hover:bg-gray-200'
               }`}
               onClick={() => onSelectTask?.(task.id)}
@@ -971,6 +983,17 @@ function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask }: Sidebar
                   </span>
                 ) : null}
               </div>
+              <button
+                type="button"
+                className="opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-red-500"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onDeleteTask?.(task.id);
+                }}
+                aria-label={`删除聊天 ${task.name}`}
+              >
+                <i className="fas fa-trash-can"></i>
+              </button>
             </li>
           ))}
         </ul>
@@ -1204,10 +1227,11 @@ export default function Home() {
   } as const;
 
   // 渲染主页面
-  const layoutClass = isChatting ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden overflow-y-auto';
+  const layoutClass = 'h-full overflow-hidden';
   return (
-    <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
-      <div className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
+    <div className="h-screen bg-gray-50 overflow-hidden flex justify-center">
+      <div
+        className={`flex flex-row bg-gray-50 font-sans h-full ${layoutClass} ${isChatting ? '' : 'home-page'}`}
         style={scaleStyle}>
       {/* 左侧导航栏 */}
       <Sidebar 
