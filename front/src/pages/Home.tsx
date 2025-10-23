@@ -255,9 +255,13 @@ function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const handledInitialRef = useRef<string | null>(null);
+  const lastInitialMessageRef = useRef<{ conversationId: string | null; message: string | null }>({
+    conversationId: null,
+    message: null,
+  });
   const streamingTimersRef = useRef<Record<string, number>>({});
   const sessionIdRef = useRef<string>(sessionId ?? '');
+  const lastConversationIdRef = useRef<string | null>(null);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -422,11 +426,16 @@ function ChatInterface({
   }, [clearStreamingTimer]);
 
   useEffect(() => {
+    if (lastConversationIdRef.current === conversationId) {
+      return;
+    }
+
+    lastConversationIdRef.current = conversationId;
     clearStreamingTimer();
     setMessages(initialMessages);
     setNewMessage('');
-    handledInitialRef.current = null;
-  }, [conversationId, clearStreamingTimer]);
+    lastInitialMessageRef.current = { conversationId, message: null };
+  }, [conversationId, clearStreamingTimer, initialMessages]);
 
   useEffect(() => {
     sessionIdRef.current = sessionId ?? '';
@@ -437,15 +446,22 @@ function ChatInterface({
 
   useEffect(() => {
     const trimmed = initialMessage.trim();
+    const lastHandled = lastInitialMessageRef.current;
+
     if (!trimmed) {
-      handledInitialRef.current = null;
+      if (lastHandled.conversationId === conversationId) {
+        lastInitialMessageRef.current = { conversationId, message: null };
+      }
       return;
     }
 
-    if (handledInitialRef.current === trimmed) {
+    if (
+      lastHandled.conversationId === conversationId &&
+      lastHandled.message === trimmed
+    ) {
       return;
     }
-    handledInitialRef.current = trimmed;
+    lastInitialMessageRef.current = { conversationId, message: trimmed };
     onInitialMessageHandled?.();
     resetSession();
 
@@ -459,7 +475,7 @@ function ChatInterface({
     setMessages([first]);
     setNewMessage('');
     void fetchAssistantReply(trimmed);
-  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, onInitialMessageHandled]);
+  }, [conversationId, initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, onInitialMessageHandled]);
 
   const handleSendMessage = async () => {
     const trimmed = newMessage.trim();
