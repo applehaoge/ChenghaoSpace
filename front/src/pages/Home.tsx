@@ -713,6 +713,13 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
     setInputText('');
   };
 
+  const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      handleSend();
+    }
+  };
+
   // 处理一键优化按钮点击
   const handleOptimize = async () => {
     if (!inputText.trim()) {
@@ -811,6 +818,7 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onInput={adjustHomeTextareaHeight}
+            onKeyDown={handleHomeKeyDown}
             className="flex-1 bg-transparent border-none outline-none text-sm text-gray-800 resize-none"
             placeholder="请告诉我您的需求，我会为您提供专业的AI帮助..."
             rows={1}
