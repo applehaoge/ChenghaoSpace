@@ -529,13 +529,13 @@ function ChatInterface({
                 <i className="fas fa-robot text-blue-500"></i>
               </div>
             )}
-              <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'} group`}>
+              <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'} group relative`}>
                 <div
                   className={`relative rounded-lg ${
                     message.sender === 'user'
                       ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
                       : 'bg-white border border-gray-200 text-gray-800'
-                  } p-4 ${message.sender === 'ai' ? 'pb-10' : ''}`}
+                  } p-4`}
                 >
                   {message.sender === 'ai' ? (
                     <div className="text-sm leading-relaxed space-y-2">
@@ -551,17 +551,17 @@ function ChatInterface({
                       {message.content}
                     </div>
                   )}
-                  {message.sender === 'ai' && (
-                    <button
-                      type="button"
-                      className="absolute bottom-2.5 left-2.5 h-7 w-7 flex items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700 shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                      onClick={() => handleCopy(message.content)}
-                      aria-label="复制该条消息"
-                    >
-                      <i className="fas fa-copy text-base leading-none"></i>
-                    </button>
-                  )}
                 </div>
+                {message.sender === 'ai' && (
+                  <button
+                    type="button"
+                    className="absolute -bottom-3 left-0 h-7 w-7 flex items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700 shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                    onClick={() => handleCopy(message.content)}
+                    aria-label="复制该条消息"
+                  >
+                    <i className="fas fa-copy text-base leading-none"></i>
+                  </button>
+                )}
                 {message.sender !== 'ai' && (
                   <div
                     className={`flex mt-2 ${
