@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, ChangeEvent } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -123,6 +123,271 @@ const deriveConversationTitle = (messages: ChatBubble[], currentName: string) =>
 
   return currentName;
 };
+
+type FileAttachmentStatus = 'uploading' | 'done' | 'error';
+
+type FileAttachment = {
+  id: string;
+  name: string;
+  size: number;
+  mimeType: string;
+  status: FileAttachmentStatus;
+  error?: string;
+  previewUrl?: string;
+  fileId?: string;
+  downloadUrl?: string;
+};
+
+const formatFileSize = (size: number) => {
+  if (!Number.isFinite(size) || size <= 0) return '';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let index = 0;
+  let next = size;
+
+  while (next >= 1024 && index < units.length - 1) {
+    next /= 1024;
+    index += 1;
+  }
+
+  return `${next.toFixed(next >= 10 || index === 0 ? 0 : 1)}${units[index]}`;
+};
+
+const detectCategory = (mimeType: string, name: string) => {
+  const lowerMime = mimeType.toLowerCase();
+  const lowerName = name.toLowerCase();
+
+  if (lowerMime.startsWith('image/')) return 'image';
+  if (lowerMime.startsWith('video/')) return 'video';
+  if (lowerMime.startsWith('audio/')) return 'audio';
+  if (lowerMime === 'application/pdf' || lowerName.endsWith('.pdf')) return 'pdf';
+  if (
+    lowerMime.includes('word') ||
+    lowerMime.includes('msword') ||
+    lowerMime.includes('officedocument.word') ||
+    lowerName.endsWith('.doc') ||
+    lowerName.endsWith('.docx')
+  ) {
+    return 'word';
+  }
+  if (
+    lowerMime.includes('excel') ||
+    lowerMime.includes('spreadsheet') ||
+    lowerName.endsWith('.xls') ||
+    lowerName.endsWith('.xlsx')
+  ) {
+    return 'excel';
+  }
+  if (
+    lowerMime.includes('powerpoint') ||
+    lowerName.endsWith('.ppt') ||
+    lowerName.endsWith('.pptx')
+  ) {
+    return 'ppt';
+  }
+  if (lowerMime.includes('text') || lowerName.endsWith('.txt') || lowerName.endsWith('.md')) {
+    return 'text';
+  }
+  return 'generic';
+};
+
+const getAttachmentVisual = (mimeType: string, name: string) => {
+  switch (detectCategory(mimeType, name)) {
+    case 'image':
+      return { icon: 'fas fa-image', accentClass: 'bg-blue-500', label: '图片' };
+    case 'video':
+      return { icon: 'fas fa-video', accentClass: 'bg-purple-500', label: '视频' };
+    case 'audio':
+      return { icon: 'fas fa-music', accentClass: 'bg-pink-500', label: '音频' };
+    case 'pdf':
+      return { icon: 'fas fa-file-pdf', accentClass: 'bg-red-500', label: 'PDF' };
+    case 'word':
+      return { icon: 'fas fa-file-word', accentClass: 'bg-blue-600', label: '文档' };
+    case 'excel':
+      return { icon: 'fas fa-file-excel', accentClass: 'bg-green-600', label: '表格' };
+    case 'ppt':
+      return { icon: 'fas fa-file-powerpoint', accentClass: 'bg-orange-500', label: '演示' };
+    case 'text':
+      return { icon: 'fas fa-file-lines', accentClass: 'bg-slate-500', label: '文本' };
+    default:
+      return { icon: 'fas fa-file', accentClass: 'bg-gray-500', label: '附件' };
+  }
+};
+
+type AttachmentBadgeProps = {
+  attachment: FileAttachment;
+  onRemove: (id: string) => void;
+};
+
+function AttachmentBadge({ attachment, onRemove }: AttachmentBadgeProps) {
+  const visual = getAttachmentVisual(attachment.mimeType, attachment.name);
+  const isErrored = attachment.status === 'error';
+  const isUploading = attachment.status === 'uploading';
+
+  return (
+    <div className="flex items-center gap-3 pr-3 pl-2 py-2 rounded-2xl border border-gray-200 bg-white shadow-sm max-w-full">
+      <div className="relative flex-shrink-0">
+        {attachment.previewUrl && !isErrored ? (
+          <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
+            <img
+              src={attachment.previewUrl}
+              alt={attachment.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        ) : (
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white ${visual.accentClass}`}>
+            <i className={`${visual.icon} text-lg`}></i>
+          </div>
+        )}
+        {isUploading && (
+          <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center animate-pulse">
+            <i className="fas fa-spinner animate-spin"></i>
+          </span>
+        )}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="text-sm font-medium text-gray-800 truncate">{attachment.name}</div>
+        <div className={`text-xs mt-0.5 ${isErrored ? 'text-red-500' : 'text-gray-500'} flex items-center gap-1`}>
+          <span>{formatFileSize(attachment.size)}</span>
+          <span>·</span>
+          <span>
+            {isUploading ? '上传中…' : isErrored ? attachment.error || '上传失败' : '上传完成'}
+          </span>
+        </div>
+      </div>
+      <button
+        type="button"
+        className="ml-2 w-6 h-6 rounded-full bg-black/80 text-white flex items-center justify-center text-xs hover:bg-black focus-visible:bg-black transition-colors"
+        onClick={() => onRemove(attachment.id)}
+        aria-label={`移除 ${attachment.name}`}
+      >
+        <i className="fas fa-xmark"></i>
+      </button>
+    </div>
+  );
+}
+
+function useFileUploader() {
+  const [attachments, setAttachments] = useState<FileAttachment[]>([]);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const latestRef = useRef<FileAttachment[]>([]);
+
+  useEffect(() => {
+    latestRef.current = attachments;
+  }, [attachments]);
+
+  useEffect(() => {
+    return () => {
+      latestRef.current.forEach(att => {
+        if (att.previewUrl) {
+          URL.revokeObjectURL(att.previewUrl);
+        }
+      });
+    };
+  }, []);
+
+  const removeAttachment = useCallback((id: string) => {
+    setAttachments(prev => {
+      const target = prev.find(item => item.id === id);
+      if (target?.previewUrl) {
+        URL.revokeObjectURL(target.previewUrl);
+      }
+      return prev.filter(item => item.id !== id);
+    });
+  }, []);
+
+  const clearAttachments = useCallback(() => {
+    setAttachments(prev => {
+      prev.forEach(item => {
+        if (item.previewUrl) {
+          URL.revokeObjectURL(item.previewUrl);
+        }
+      });
+      return [];
+    });
+  }, []);
+
+  const startUpload = useCallback(async (attachmentId: string, file: File) => {
+    const result = await aiService.uploadFile(file);
+    if (!result.success) {
+      const message = result.error || '上传失败';
+      setAttachments(prev =>
+        prev.map(item =>
+          item.id === attachmentId ? { ...item, status: 'error', error: message } : item
+        )
+      );
+      toast.error(`${file.name} 上传失败: ${message}`);
+      return;
+    }
+
+    setAttachments(prev =>
+      prev.map(item =>
+        item.id === attachmentId
+          ? {
+              ...item,
+              status: 'done',
+              name: result.fileName || item.name,
+              size: result.size ?? item.size,
+              mimeType: result.mimeType || item.mimeType,
+              fileId: result.fileId,
+              downloadUrl: result.url,
+            }
+          : item
+      )
+    );
+    toast.success(`${file.name} 上传成功`);
+  }, []);
+
+  const queueFiles = useCallback(
+    (files: File[]) => {
+      if (!files.length) return;
+      setAttachments(prev => {
+        const nextItems = [...prev];
+        files.forEach(file => {
+          const id = `att_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+          const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
+          nextItems.push({
+            id,
+            name: file.name,
+            size: file.size,
+            mimeType: file.type || 'application/octet-stream',
+            status: 'uploading',
+            previewUrl,
+          });
+          void startUpload(id, file);
+        });
+        return nextItems;
+      });
+    },
+    [startUpload]
+  );
+
+  const handleInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      const fileList = event.target.files;
+      const files = fileList ? Array.from(fileList) : [];
+      queueFiles(files);
+      if (event.target) {
+        event.target.value = '';
+      }
+    },
+    [queueFiles]
+  );
+
+  const triggerFileDialog = useCallback(() => {
+    fileInputRef.current?.click();
+  }, []);
+
+  return {
+    attachments,
+    hasUploading: attachments.some(item => item.status === 'uploading'),
+    triggerFileDialog,
+    fileInputRef,
+    handleInputChange,
+    removeAttachment,
+    clearAttachments,
+  };
+}
 
 
 const markdownComponents: Components = {
@@ -298,6 +563,15 @@ function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const {
+    attachments: chatAttachments,
+    hasUploading: chatHasUploading,
+    triggerFileDialog: openChatFileDialog,
+    fileInputRef: chatFileInputRef,
+    handleInputChange: handleChatFileInputChange,
+    removeAttachment: removeChatAttachment,
+    clearAttachments: clearChatAttachments,
+  } = useFileUploader();
   const lastInitialMessageRef = useRef<{ conversationId: string | null; message: string | null }>({
     conversationId: null,
     message: null,
@@ -520,9 +794,21 @@ function ChatInterface({
     void fetchAssistantReply(trimmed);
   }, [conversationId, initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, onInitialMessageHandled]);
 
+  useEffect(() => {
+    clearChatAttachments();
+  }, [conversationId, clearChatAttachments]);
+
   const handleSendMessage = async () => {
     const trimmed = newMessage.trim();
     if (!trimmed || isLoading) return;
+    if (chatHasUploading) {
+      toast.info('请等待文件上传完成');
+      return;
+    }
+    if (chatAttachments.some(item => item.status === 'error')) {
+      toast.error('请先移除上传失败的附件');
+      return;
+    }
 
     const userBubble: ChatBubble = {
       id: `msg_${Date.now()}_user`,
@@ -539,13 +825,20 @@ function ChatInterface({
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
+      if (chatHasUploading) {
+        toast.info('请等待文件上传完成');
+        return;
+      }
       void handleSendMessage();
     }
   };
 
   const handleFileUpload = () => {
-    toast.info('文件上传功能即将上线');
+    openChatFileDialog();
   };
+
+  const disableSend =
+    !newMessage.trim() || isLoading || chatHasUploading || chatAttachments.some(item => item.status === 'error');
 
   return (
     <main className="flex-1 w-[calc(100%-260px)] bg-white border-l border-gray-100 flex flex-col min-h-0">
@@ -683,6 +976,13 @@ function ChatInterface({
             <i className="fas fa-smile text-gray-500"></i>
           </button>
         </div>
+        {chatAttachments.length > 0 && (
+          <div className="flex flex-wrap gap-3 mb-3">
+            {chatAttachments.map(item => (
+              <AttachmentBadge key={item.id} attachment={item} onRemove={removeChatAttachment} />
+            ))}
+          </div>
+        )}
         <div className="flex gap-2.5">
           <textarea
             ref={textareaRef}
@@ -698,11 +998,18 @@ function ChatInterface({
           <button
             className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50"
             onClick={handleSendMessage}
-            disabled={!newMessage.trim() || isLoading}
+            disabled={disableSend}
           >
             <i className="fas fa-paper-plane"></i>
           </button>
         </div>
+        <input
+          ref={chatFileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleChatFileInputChange}
+        />
       </div>
     </main>
   );
@@ -712,6 +1019,14 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
   const tabs = ['写作', 'PPT', '设计', 'Excel', '网页', '播客'];
   const [inspiration, setInspiration] = useState('创新思维，高效创作');
   const homeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const {
+    attachments: homeAttachments,
+    hasUploading: homeHasUploading,
+    triggerFileDialog: openHomeFileDialog,
+    fileInputRef: homeFileInputRef,
+    handleInputChange: handleHomeFileInputChange,
+    removeAttachment: removeHomeAttachment,
+  } = useFileUploader();
   const adjustHomeTextareaHeight = useCallback(() => {
     const el = homeTextareaRef.current;
     if (!el) return;
@@ -749,6 +1064,14 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
     const trimmed = inputText.trim();
     if (!trimmed) {
       toast.warning('请输入您的需求');
+      return;
+    }
+    if (homeHasUploading) {
+      toast.info('请等待文件上传完成');
+      return;
+    }
+    if (homeAttachments.some(item => item.status === 'error')) {
+      toast.error('请先移除上传失败的附件');
       return;
     }
 
@@ -802,7 +1125,7 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
   
   // 处理文件上传按钮点击
   const handleFileUpload = () => {
-    toast.info('文件上传功能即将上线');
+    openHomeFileDialog();
   };
   
   // 处理格式设置按钮点击
@@ -814,6 +1137,9 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
   const handlePracticeCategory = (category) => {
     toast.info(`已切换到${category}分类`);
   };
+
+  const disableHomeSend =
+    !inputText.trim() || homeHasUploading || homeAttachments.some(item => item.status === 'error');
 
   return (
       <main className="flex-1 bg-white border-l border-gray-100">
@@ -868,6 +1194,13 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
             style={{ minHeight: 56, maxHeight: 220 }}
           />
         </div>
+        {homeAttachments.length > 0 && (
+          <div className="flex flex-wrap gap-3 mb-4 ml-12">
+            {homeAttachments.map(item => (
+              <AttachmentBadge key={item.id} attachment={item} onRemove={removeHomeAttachment} />
+            ))}
+          </div>
+        )}
         <div className="flex items-center justify-between gap-2.5">
           <div className="flex gap-2.5">
             <button 
@@ -891,13 +1224,21 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
               一键优化
             </button>
             <button 
-              className="w-11 h-11 rounded-lg border-none bg-gradient-to-r from-blue-400 to-indigo-400 text-white cursor-pointer hover:shadow-lg transition-all flex items-center justify-center"
+              className="w-11 h-11 rounded-lg border-none bg-gradient-to-r from-blue-400 to-indigo-400 text-white transition-all flex items-center justify-center hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
               onClick={handleSend}
+              disabled={disableHomeSend}
             >
-               <i className="fas fa-paper-plane"></i>
-             </button>
+              <i className="fas fa-paper-plane"></i>
+            </button>
           </div>
         </div>
+        <input
+          ref={homeFileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleHomeFileInputChange}
+        />
       </div>
 
        <div className="max-w-[800px] mx-auto px-5 pb-10">
