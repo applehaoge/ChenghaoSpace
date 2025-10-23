@@ -4,6 +4,18 @@
 - 目标：在一周内完成面试用 demo，包含聊天 UI、检索增强生成、多 Provider 支持（OpenAI 为首选）以及容器化部署
 
 ## 重要变更与记录（按时间倒序）
+### 2025-10-23 17:50 – Markdown 代码块复制按钮
+- 调整 `front/src/pages/Home.tsx` 中 `markdownComponents.code` 的渲染逻辑，为每个块级代码框包裹容器并在右上角新增复制按钮。
+- 复制操作优先使用 `navigator.clipboard.writeText`，在不支持的环境下退回到临时 `textarea`，并通过 `toast` 显示成功/失败提示。
+- 保留原有语法高亮类名及布局，仅微调右侧内边距以避免按钮遮挡内容。
+
+### 2025-10-23 17:35 – 首页输入框支持回车发送
+- 在首页 `MainContent` 文本域新增 `handleHomeKeyDown`，当用户按下 Enter 且未同时按住 Shift 时阻止默认换行并调用现有发送逻辑。
+- 继续保留 Shift+Enter 换行行为，逻辑仅作用于首页输入框，不影响聊天面板。
+
+### 2025-10-23 17:20 – 首条消息仅发送一次
+- 为 `ChatInterface` 添加 `lastConversationIdRef`，确保同一会话在 React StrictMode 下不会重复执行初始消息逻辑。
+- 初次进入聊天时保持首条消息发送，防止组件重复挂载导致双重请求。
 ### 2025-10-22 15:50 ✅ 会话记忆持久化（文件存储）
 - 实现：为 `ConversationMemoryManager` 抽象 `MemoryStore`，默认注入 `FileMemoryStore`，将历史消息、向量与摘要写入磁盘（`server_data/memory`）。
 - 改动：新增 `server/server/src/memory/storage/fileMemoryStore.ts`，重构 `conversationMemory.ts` 以异步加载/持久化，并在 `index.ts` 里根据 `MEMORY_STORE_DIR` 初始化存储。
