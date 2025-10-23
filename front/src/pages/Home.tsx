@@ -1105,7 +1105,7 @@ export default function Home() {
 
         setActiveTaskId(newTaskId);
         setInitialChatMessage('');
-        setShowChat(true);
+        setShowChat(false);
 
         toast.success(response.message || '新聊天开启成功');
         console.log('新聊天ID:', response.taskId);
