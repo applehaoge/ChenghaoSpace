@@ -166,16 +166,59 @@ const markdownComponents: Components = {
       {children}
     </strong>
   ),
-  code: ({ inline, className, children, ...props }) =>
-    inline ? (
-      <code className="px-1 py-0.5 bg-gray-100 rounded text-sm" {...props}>
-        {children}
-      </code>
-    ) : (
-      <pre className="mb-2 rounded-lg bg-gray-900 text-gray-100 p-3 overflow-auto text-sm" {...props}>
-        <code>{children}</code>
-      </pre>
-    ),
+  code: ({ inline, className, children, ...props }) => {
+    if (inline) {
+      return (
+        <code className="px-1 py-0.5 bg-gray-100 rounded text-sm" {...props}>
+          {children}
+        </code>
+      );
+    }
+
+    const raw = Array.isArray(children) ? children.join('') : String(children ?? '');
+    const codeText = raw.replace(/\s+$/, '');
+    const languageClass = typeof className === 'string' ? className : '';
+
+    const handleCopy = async () => {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(codeText);
+        } else if (typeof document !== 'undefined') {
+          const textarea = document.createElement('textarea');
+          textarea.value = codeText;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        } else {
+          throw new Error('clipboard unavailable');
+        }
+        toast.success('已复制代码');
+      } catch (error) {
+        console.error('复制代码失败:', error);
+        toast.error('复制失败，请手动复制');
+      }
+    };
+
+    return (
+      <div className="relative mb-2 group">
+        <pre
+          className="rounded-lg bg-gray-900 text-gray-100 p-3 pr-12 overflow-auto text-sm"
+          {...props}
+        >
+          <code className={languageClass}>{children}</code>
+        </pre>
+        <button
+          type="button"
+          className="absolute top-2 right-2 rounded-md border border-gray-700 bg-gray-800/80 text-gray-200 px-2 py-1 text-xs opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+          onClick={handleCopy}
+          aria-label="复制代码"
+        >
+          <i className="fas fa-copy"></i>
+        </button>
+      </div>
+    );
+  },
 };
 
 // 项目卡片组件
