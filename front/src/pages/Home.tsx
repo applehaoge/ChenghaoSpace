@@ -89,6 +89,41 @@ const summarizeMessage = (text: string, limit = 24) => {
   return compact.length > limit ? `${compact.slice(0, limit)}...` : compact;
 };
 
+const isPlaceholderName = (name: string) => {
+  if (!name) return true;
+  const trimmed = name.trim();
+  if (!trimmed) return true;
+  return /^(新聊天|未命名对话|AI对话|AI 对话|快速对话|待命名对话)/.test(trimmed);
+};
+
+const deriveConversationTitle = (messages: ChatBubble[], currentName: string) => {
+  const firstUserMessage = messages.find(msg => msg.sender === 'user' && msg.content?.trim());
+  if (!firstUserMessage) {
+    return currentName;
+  }
+
+  const firstLine = firstUserMessage.content.split(/\r?\n+/)[0]?.trim() ?? '';
+  if (!firstLine) {
+    return currentName;
+  }
+
+  const cleaned = firstLine.replace(/^[#>*\-\d\.\)\(]+\s*/, '').trim();
+  if (!cleaned) {
+    return currentName;
+  }
+
+  const candidate = summarizeMessage(cleaned, 20);
+  if (!candidate) {
+    return currentName;
+  }
+
+  if (isPlaceholderName(currentName) || candidate !== currentName) {
+    return candidate;
+  }
+
+  return currentName;
+};
+
 
 const markdownComponents: Components = {
   h1: ({ children, ...props }) => (
@@ -828,7 +863,7 @@ interface SidebarProps {
 }
 
 function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask }: SidebarProps) {
-  // 处理创建新任务按钮点击
+  // 处理创建新聊天按钮点击
   const handleCreateNewTask = onCreateNewTask;
   
    // 处理侧边栏菜单项点击
@@ -867,7 +902,7 @@ function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask }: Sidebar
         onClick={handleCreateNewTask}
       >
         <i className="fas fa-plus-circle"></i>
-        <span>创建新任务</span>
+        <span>开启新聊天</span>
         <span className="text-xs bg-white/30 px-1.5 py-0.5 rounded">Ctrl</span>
       </button>
 
@@ -902,7 +937,7 @@ function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask }: Sidebar
         </li>
       </ul>
 
-      <div className="p-[0_20px_10px] text-xs text-gray-500">任务</div>
+      <div className="p-[0_20px_10px] text-xs text-gray-500">聊天</div>
       <div className="p-[0_20px] max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
         <ul className="list-none">
           {tasks.map((task, index) => (
@@ -986,10 +1021,10 @@ export default function Home() {
   const [scale, setScale] = useState(1);
 
    
-  // 创建新任务的处理函数
+  // 创建新聊天的处理函数
   const handleCreateNewTask = async () => {
     try {
-      const loadingToast = toast.loading('正在创建新任务...');
+      const loadingToast = toast.loading('正在开启新聊天...');
 
       const response = await aiService.createNewTask('general', '');
 
@@ -1004,7 +1039,7 @@ export default function Home() {
         const now = new Date().toISOString();
 
         setTasks(prevTasks => {
-          const name = `新任务 ${prevTasks.length + 1}`;
+          const name = `新聊天 ${prevTasks.length + 1}`;
           const nextTask: TaskConversation = {
             id: newTaskId,
             name,
@@ -1022,14 +1057,14 @@ export default function Home() {
         setInitialChatMessage('');
         setShowChat(true);
 
-        toast.success(response.message || '新任务创建成功');
-        console.log('新任务ID:', response.taskId);
+        toast.success(response.message || '新聊天开启成功');
+        console.log('新聊天ID:', response.taskId);
       } else {
-        toast.error(response.message || '创建新任务失败');
+        toast.error(response.message || '开启新聊天失败');
       }
     } catch (error) {
-      console.error('创建新任务失败:', error);
-      toast.error('创建新任务时发生错误');
+      console.error('开启新聊天失败:', error);
+      toast.error('开启新聊天时发生错误');
     }
   };
 
@@ -1060,11 +1095,13 @@ export default function Home() {
             normalized.length > 0
               ? normalized[normalized.length - 1].timestamp
               : task.updatedAt || new Date().toISOString();
+          const nextName = deriveConversationTitle(normalized, task.name);
 
           return {
             ...task,
             messages: normalized,
             updatedAt,
+            name: nextName,
           };
         });
 
@@ -1109,7 +1146,7 @@ export default function Home() {
     const now = new Date().toISOString();
 
     setTasks(prevTasks => {
-      const title = summarizeMessage(trimmed, 12) || `新任务 ${prevTasks.length + 1}`;
+      const title = `新聊天 ${prevTasks.length + 1}`;
       const nextTask: TaskConversation = {
         id: newTaskId,
         name: title,
