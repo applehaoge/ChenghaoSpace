@@ -652,6 +652,22 @@ function ChatInterface({
 function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendMessage }: MainContentProps) {
   const tabs = ['写作', 'PPT', '设计', 'Excel', '网页', '播客'];
   const [inspiration, setInspiration] = useState('创新思维，高效创作');
+  const homeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const adjustHomeTextareaHeight = useCallback(() => {
+    const el = homeTextareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const minHeight = 56;
+    const maxHeight = 220;
+    const nextHeight = Math.min(Math.max(el.scrollHeight, minHeight), maxHeight);
+    el.style.height = `${nextHeight}px`;
+    el.style.overflowY = nextHeight >= maxHeight ? 'auto' : 'hidden';
+  }, []);
+
+  useEffect(() => {
+    adjustHomeTextareaHeight();
+  }, [inputText, adjustHomeTextareaHeight]);
+
   
   // 获取今日灵感
   useEffect(() => {
@@ -770,16 +786,19 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
       </div>
 
       <div className="max-w-[800px] mx-auto p-6 bg-white rounded-xl border border-gray-100 mb-10 shadow-sm">
-        <div className="flex items-center mb-4 gap-2.5">
+        <div className="flex items-start mb-4 gap-2.5">
           <span className="px-2 py-1 bg-blue-50 text-blue-500 rounded-full text-xs font-medium">
             {activeTab}
           </span>
-          <input
-            type="text"
+          <textarea
+            ref={homeTextareaRef}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-800"
-             placeholder="请告诉我您的需求，我会为您提供专业的AI帮助..."
+            onInput={adjustHomeTextareaHeight}
+            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-800 resize-none"
+            placeholder="请告诉我您的需求，我会为您提供专业的AI帮助..."
+            rows={1}
+            style={{ minHeight: 56, maxHeight: 220 }}
           />
         </div>
         <div className="flex items-center justify-between gap-2.5">
