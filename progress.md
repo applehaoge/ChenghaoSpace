@@ -98,3 +98,4 @@
    - 配置示例：`server/.env.example`。
 
 > 本文自 2025-10-20 起由自动化助手维护，用于记录排障与配置要点。
+### 2025-10-23 12:50 ? 聊天首句去重优化\n- 更新 ront/src/pages/Home.tsx，为 ChatInterface 增加 onInitialMessageHandled 回调，并在初始消息派发后立即通知父组件清空，规避 React StrictMode 下的重复问候。\n- 新回调在 Home 组件中实现，配合已有会话删除功能，确保首次打招呼只触发一次 AI 回复并保持状态同步。\n

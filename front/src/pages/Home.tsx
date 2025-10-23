@@ -235,6 +235,7 @@ type ChatInterfaceProps = {
   onBack: () => void;
   onConversationUpdate: (conversationId: string, messages: ChatBubble[]) => void;
   onSessionChange: (conversationId: string, sessionId: string) => void;
+  onInitialMessageHandled?: () => void;
 };
 
 // 聊天界面组件
@@ -247,6 +248,7 @@ function ChatInterface({
   onBack,
   onConversationUpdate,
   onSessionChange,
+  onInitialMessageHandled,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<ChatBubble[]>(() => initialMessages);
   const [newMessage, setNewMessage] = useState('');
@@ -444,6 +446,7 @@ function ChatInterface({
       return;
     }
     handledInitialRef.current = trimmed;
+    onInitialMessageHandled?.();
     resetSession();
 
     const first: ChatBubble = {
@@ -456,7 +459,7 @@ function ChatInterface({
     setMessages([first]);
     setNewMessage('');
     void fetchAssistantReply(trimmed);
-  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession]);
+  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, onInitialMessageHandled]);
 
   const handleSendMessage = async () => {
     const trimmed = newMessage.trim();
@@ -1148,6 +1151,10 @@ export default function Home() {
     setShowChat(true);
   };
 
+  const handleInitialMessageHandled = useCallback(() => {
+    setInitialChatMessage('');
+  }, []);
+
   const handleDeleteTask = useCallback(
     (taskId: string) => {
       const outcome = { deleted: false };
@@ -1287,6 +1294,7 @@ export default function Home() {
           }} 
           onConversationUpdate={handleConversationUpdate}
           onSessionChange={handleSessionChange}
+          onInitialMessageHandled={handleInitialMessageHandled}
         />
       ) : (
         <MainContent 
