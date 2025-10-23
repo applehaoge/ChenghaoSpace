@@ -10,7 +10,7 @@ type ChatBubble = {
   id: string;
   content: string;
   sender: 'user' | 'ai';
-  timestamp: Date;
+  timestamp: string;
   provider?: string;
   sources?: Array<{ id: string; text: string; score?: number }>;
   error?: string;
@@ -26,7 +26,69 @@ type MainContentProps = {
   onSendMessage?: (message: string) => void;
 };
 
-const CHAT_STORAGE_KEY = 'chs_chat_history_v1';
+type TaskConversation = {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  isBrand?: boolean;
+  messages: ChatBubble[];
+  createdAt: string;
+  updatedAt: string;
+  sessionId: string;
+};
+
+const TASK_STORAGE_KEY = 'chspace_tasks_v1';
+
+const createSessionId = () => `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+const normalizeMessages = (messages: ChatBubble[]): ChatBubble[] =>
+  messages.map(message => ({
+    ...message,
+    timestamp: message.timestamp || new Date().toISOString(),
+    isStreaming: message.isStreaming ? false : message.isStreaming,
+  }));
+
+const loadStoredTasks = (): TaskConversation[] => {
+  if (typeof window === 'undefined') {
+    return [];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(TASK_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as TaskConversation[];
+    const filtered = parsed.filter(task => {
+      if (!task || typeof task !== 'object') return false;
+      const id = task.id ?? '';
+      if (!id) return false;
+      const messages = Array.isArray(task.messages) ? task.messages : [];
+      const isPlaceholder = /^task_\d+$/.test(id);
+      if (isPlaceholder && messages.length === 0) {
+        return false;
+      }
+      return true;
+    });
+
+    return filtered.map(task => ({
+      ...task,
+      messages: normalizeMessages(task.messages ?? []),
+      createdAt: task.createdAt || new Date().toISOString(),
+      updatedAt: task.updatedAt || new Date().toISOString(),
+      sessionId: task.sessionId || createSessionId(),
+    }));
+  } catch (error) {
+    console.error('读取本地任务记录失败:', error);
+    return [];
+  }
+};
+
+const summarizeMessage = (text: string, limit = 24) => {
+  const compact = text.replace(/\s+/g, ' ').trim();
+  if (!compact) return '';
+  return compact.length > limit ? `${compact.slice(0, limit)}...` : compact;
+};
+
 
 const markdownComponents: Components = {
   h1: ({ children, ...props }) => (
@@ -129,73 +191,36 @@ function ProjectCard({ title, imageUrl, bgColor, projectId }) {
   );
 }
 
+type ChatInterfaceProps = {
+  conversationId: string;
+  title: string;
+  initialMessage: string;
+  initialMessages: ChatBubble[];
+  sessionId?: string;
+  onBack: () => void;
+  onConversationUpdate: (conversationId: string, messages: ChatBubble[]) => void;
+  onSessionChange: (conversationId: string, sessionId: string) => void;
+};
+
 // 聊天界面组件
-function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onBack: () => void }) {
-  const [messages, setMessages] = useState<ChatBubble[]>([]);
+function ChatInterface({
+  conversationId,
+  title,
+  initialMessage,
+  initialMessages,
+  sessionId,
+  onBack,
+  onConversationUpdate,
+  onSessionChange,
+}: ChatInterfaceProps) {
+  const [messages, setMessages] = useState<ChatBubble[]>(() => initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const handledInitialRef = useRef<string | null>(null);
   const streamingTimersRef = useRef<Record<string, number>>({});
-  const sessionIdRef = useRef<string>('');
-  const resetSession = useCallback(() => {
-    sessionIdRef.current = `chat_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  }, []);
-  if (!sessionIdRef.current) {
-    resetSession();
-  }
-  const hydratedRef = useRef(false);
-
-  const persistConversation = useCallback((conversation: ChatBubble[], sessionId: string) => {
-    if (typeof window === 'undefined') return;
-    if (!sessionId) return;
-    const serialisable = conversation.map((msg) => ({
-      ...msg,
-      timestamp: msg.timestamp instanceof Date ? msg.timestamp.toISOString() : new Date(msg.timestamp).toISOString(),
-    }));
-    const payload = JSON.stringify({ sessionId, messages: serialisable });
-    window.localStorage.setItem(CHAT_STORAGE_KEY, payload);
-  }, []);
-
-  const clearPersistedConversation = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.removeItem(CHAT_STORAGE_KEY);
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') {
-      hydratedRef.current = true;
-      return;
-    }
-    try {
-      const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as {
-          sessionId?: string;
-          messages?: Array<Omit<ChatBubble, 'timestamp'> & { timestamp?: string }>;
-        };
-        if (parsed?.sessionId) {
-          sessionIdRef.current = parsed.sessionId;
-        }
-        if (Array.isArray(parsed?.messages) && parsed.messages.length) {
-          const restored = parsed.messages.map((msg) => ({
-            ...msg,
-            timestamp: msg.timestamp ? new Date(msg.timestamp) : new Date(),
-          })) as ChatBubble[];
-          setMessages(restored);
-          handledInitialRef.current = parsed.sessionId ? '__persisted__' : handledInitialRef.current;
-        }
-      }
-    } catch (error) {
-      console.error('恢复历史对话失败:', error);
-    } finally {
-      if (!sessionIdRef.current) {
-        resetSession();
-      }
-      hydratedRef.current = true;
-    }
-  }, [resetSession]);
+  const sessionIdRef = useRef<string>(sessionId ?? '');
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -228,6 +253,12 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
     Object.values(streamingTimersRef.current).forEach(timer => window.clearInterval(timer));
     streamingTimersRef.current = {};
   }, []);
+
+  const resetSession = useCallback(() => {
+    const next = createSessionId();
+    sessionIdRef.current = next;
+    onSessionChange(conversationId, next);
+  }, [conversationId, onSessionChange]);
 
   const startStreaming = useCallback((fullText: string, messageId: string) => {
     clearStreamingTimer(messageId);
@@ -274,6 +305,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
     try {
       const response = await aiService.sendAIRequest('聊天', userMessage, {
         sessionId: sessionIdRef.current,
+        conversationId,
         userMessage,
       });
       const text = response.answer || response.result || '';
@@ -282,7 +314,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
         id: `msg_${Date.now()}_ai`,
         content: '',
         sender: 'ai',
-        timestamp: new Date(),
+        timestamp: new Date().toISOString(),
         provider: response.provider,
         sources: response.sources,
         error: response.success ? undefined : response.error,
@@ -318,7 +350,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
           id: `msg_${Date.now()}_ai_error`,
           content: '抱歉，生成过程中出现错误，请稍后重试。',
           sender: 'ai',
-          timestamp: new Date(),
+          timestamp: new Date().toISOString(),
           error: (error as Error)?.message
         }
       ]);
@@ -339,17 +371,12 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    onConversationUpdate(conversationId, normalizeMessages(messages));
+  }, [conversationId, messages, onConversationUpdate]);
 
   useEffect(() => {
-    if (!hydratedRef.current) return;
-    if (!messages.length) {
-      clearPersistedConversation();
-      return;
-    }
-    persistConversation(messages, sessionIdRef.current);
-  }, [messages, persistConversation, clearPersistedConversation]);
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
   useEffect(() => {
     return () => {
@@ -358,7 +385,20 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
   }, [clearStreamingTimer]);
 
   useEffect(() => {
-    if (!hydratedRef.current) return;
+    clearStreamingTimer();
+    setMessages(initialMessages);
+    setNewMessage('');
+    handledInitialRef.current = null;
+  }, [conversationId, clearStreamingTimer]);
+
+  useEffect(() => {
+    sessionIdRef.current = sessionId ?? '';
+    if (!sessionIdRef.current) {
+      resetSession();
+    }
+  }, [conversationId, sessionId, resetSession]);
+
+  useEffect(() => {
     const trimmed = initialMessage.trim();
     if (!trimmed) {
       handledInitialRef.current = null;
@@ -369,20 +409,19 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
       return;
     }
     handledInitialRef.current = trimmed;
-    clearStreamingTimer();
-    clearPersistedConversation();
     resetSession();
 
     const first: ChatBubble = {
       id: `msg_${Date.now()}_user`,
       content: trimmed,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     };
+    clearStreamingTimer();
     setMessages([first]);
     setNewMessage('');
     void fetchAssistantReply(trimmed);
-  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, clearPersistedConversation]);
+  }, [initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession]);
 
   const handleSendMessage = async () => {
     const trimmed = newMessage.trim();
@@ -392,7 +431,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
       id: `msg_${Date.now()}_user`,
       content: trimmed,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date().toISOString()
     };
     const nextConversation = [...messages, userBubble];
     setMessages(nextConversation);
@@ -422,7 +461,7 @@ function ChatInterface({ initialMessage, onBack }: { initialMessage: string; onB
           >
             <i className="fas fa-arrow-left text-gray-500"></i>
           </button>
-          <h2 className="text-lg font-medium text-gray-800">AI对话机器人</h2>
+          <h2 className="text-lg font-medium text-gray-800">{title || 'AI对话机器人'}</h2>
         </div>
         <div className="flex items-center gap-3">
           <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
@@ -782,17 +821,13 @@ interface SidebarProps {
     icon: string;
     color: string;
     isBrand?: boolean;
+    lastMessagePreview?: string;
   }>;
-  setTasks: React.Dispatch<React.SetStateAction<Array<{
-    id: string;
-    name: string;
-    icon: string;
-    color: string;
-    isBrand?: boolean;
-  }>>>;
+  activeTaskId?: string | null;
+  onSelectTask?: (taskId: string) => void;
 }
 
-function Sidebar({ onCreateNewTask, tasks, setTasks }: SidebarProps) {
+function Sidebar({ onCreateNewTask, tasks, activeTaskId, onSelectTask }: SidebarProps) {
   // 处理创建新任务按钮点击
   const handleCreateNewTask = onCreateNewTask;
   
@@ -873,15 +908,34 @@ function Sidebar({ onCreateNewTask, tasks, setTasks }: SidebarProps) {
           {tasks.map((task, index) => (
             <li 
               key={task.id}
-              className={`flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors ${index === tasks.length - 1 ? 'mb-0' : ''}`}
-              onClick={() => handleMenuItemClick(task.name)}
+              className={`flex items-center gap-2.5 p-3 mb-2 rounded-md cursor-pointer transition-colors ${index === tasks.length - 1 ? 'mb-0' : ''} ${
+                activeTaskId === task.id ? 'bg-blue-50 border border-blue-200 text-blue-600' : 'bg-gray-100 hover:bg-gray-200'
+              }`}
+              onClick={() => onSelectTask?.(task.id)}
             >
               {task.isBrand ? (
                 <i className={`fab fa-${task.icon} text-${task.color}`}></i>
               ) : (
                 <i className={`fas fa-${task.icon} text-${task.color}`}></i>
               )}
-              <span className="text-sm text-gray-800">{task.name}</span>
+              <div className="flex flex-col flex-1 min-w-0">
+                <span
+                  className={`text-sm truncate ${
+                    activeTaskId === task.id ? 'text-blue-700 font-medium' : 'text-gray-800'
+                  }`}
+                >
+                  {task.name}
+                </span>
+                {task.lastMessagePreview ? (
+                  <span
+                    className={`text-xs truncate ${
+                      activeTaskId === task.id ? 'text-blue-500' : 'text-gray-500'
+                    }`}
+                  >
+                    {task.lastMessagePreview}
+                  </span>
+                ) : null}
+              </div>
             </li>
           ))}
         </ul>
@@ -910,80 +964,170 @@ function FloatingHelpButton({ show = true }) {
 
 // AI智能体前端页面
 export default function Home() {
-   const [activeTab, setActiveTab] = useState('AI专家');
-    const [inputText, setInputText] = useState('');
-   const [showChat, setShowChat] = useState(false);
-   const [initialChatMessage, setInitialChatMessage] = useState('');
-   const [tasks, setTasks] = useState([
-     { id: 'task_1', name: '少儿编程科技风', icon: 'code', color: 'indigo-500' },
-     { id: 'task_2', name: 'QuantumLeap 2023销售业绩', icon: 'chart-bar', color: 'yellow-500' },
-     { id: 'task_3', name: 'AI Python小精灵', icon: 'python', color: 'blue-500', isBrand: true },
-     { id: 'task_4', name: '根据文稿编写网页', icon: 'file-alt', color: 'gray-500' },
-     { id: 'task_5', name: '分析文件并共创策划书', icon: 'project-diagram', color: 'green-500' }
-   ]);
-   const [scale, setScale] = useState(1);
-
-   useEffect(() => {
-     if (typeof window === 'undefined') {
-       return;
-     }
-     try {
-       const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
-       if (!raw) return;
-       const parsed = JSON.parse(raw);
-       if (parsed?.messages && Array.isArray(parsed.messages) && parsed.messages.length) {
-         setShowChat(true);
-       }
-     } catch (error) {
-       console.warn('检测历史对话失败:', error);
-     }
-   }, []);
+  const [activeTab, setActiveTab] = useState('AI专家');
+  const [inputText, setInputText] = useState('');
+  const [showChat, setShowChat] = useState(false);
+  const [initialChatMessage, setInitialChatMessage] = useState('');
+  const [tasks, setTasks] = useState<TaskConversation[]>(() => {
+    const stored = loadStoredTasks();
+    if (stored.length) {
+      return stored;
+    }
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify([]));
+      } catch (error) {
+        console.error('初始化任务列表失败:', error);
+      }
+    }
+    return [];
+  });
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [scale, setScale] = useState(1);
 
    
-   // 创建新任务的处理函数
-   const handleCreateNewTask = async () => {
-     try {
-       // 显示加载状态
-       const loadingToast = toast.loading('正在创建新任务...');
-       
-       // 调用创建任务API
-       const response = await aiService.createNewTask('general', '');
-       
-       // 关闭加载状态
-       toast.dismiss(loadingToast);
-       
-       if (response.success && response.taskId) {
-         // 生成新任务名称和随机图标
-         const icons = ['lightbulb', 'edit', 'file', 'clipboard', 'calendar', 'list-check', 'target'];
-         const colors = ['blue-500', 'green-500', 'indigo-500', 'purple-500', 'pink-500', 'red-500', 'orange-500'];
-         const randomIcon = icons[Math.floor(Math.random() * icons.length)];
-         const randomColor = colors[Math.floor(Math.random() * colors.length)];
-         
-         // 创建新任务对象
-         const newTask = {
-           id: response.taskId,
-           name: `新任务 ${tasks.length + 1}`,
-           icon: randomIcon,
-           color: randomColor
-         };
-         
-         // 将新任务添加到任务列表的开头
-         setTasks(prevTasks => [newTask, ...prevTasks]);
-         
-         // 确保回到首页
-         setShowChat(false);
-         
-         toast.success(response.message || '新任务创建成功');
-         console.log('新任务ID:', response.taskId);
-       } else {
-         toast.error(response.message || '创建新任务失败');
-       }
-     } catch (error) {
-       console.error('创建新任务失败:', error);
-       toast.error('创建新任务时发生错误');
-     }
-   };
-   
+  // 创建新任务的处理函数
+  const handleCreateNewTask = async () => {
+    try {
+      const loadingToast = toast.loading('正在创建新任务...');
+
+      const response = await aiService.createNewTask('general', '');
+
+      toast.dismiss(loadingToast);
+
+      if (response.success && response.taskId) {
+        const icons = ['lightbulb', 'edit', 'file', 'clipboard', 'calendar', 'list-check', 'target'];
+        const colors = ['blue-500', 'green-500', 'indigo-500', 'purple-500', 'pink-500', 'red-500', 'orange-500'];
+        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        const newTaskId = response.taskId;
+        const now = new Date().toISOString();
+
+        setTasks(prevTasks => {
+          const name = `新任务 ${prevTasks.length + 1}`;
+          const nextTask: TaskConversation = {
+            id: newTaskId,
+            name,
+            icon: randomIcon,
+            color: randomColor,
+            messages: [],
+            createdAt: now,
+            updatedAt: now,
+            sessionId: createSessionId(),
+          };
+          return [nextTask, ...prevTasks];
+        });
+
+        setActiveTaskId(newTaskId);
+        setInitialChatMessage('');
+        setShowChat(true);
+
+        toast.success(response.message || '新任务创建成功');
+        console.log('新任务ID:', response.taskId);
+      } else {
+        toast.error(response.message || '创建新任务失败');
+      }
+    } catch (error) {
+      console.error('创建新任务失败:', error);
+      toast.error('创建新任务时发生错误');
+    }
+  };
+
+  useEffect(() => {
+    if (!activeTaskId && tasks.length) {
+      setActiveTaskId(tasks[0].id);
+    }
+  }, [activeTaskId, tasks]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify(tasks));
+    } catch (error) {
+      console.error('保存任务记录失败:', error);
+    }
+  }, [tasks]);
+
+  const handleConversationUpdate = useCallback(
+    (conversationId: string, nextMessages: ChatBubble[]) => {
+      setTasks(prevTasks => {
+        let hasChange = false;
+        const next = prevTasks.map(task => {
+          if (task.id !== conversationId) return task;
+          hasChange = true;
+          const normalized = normalizeMessages(nextMessages);
+          const updatedAt =
+            normalized.length > 0
+              ? normalized[normalized.length - 1].timestamp
+              : task.updatedAt || new Date().toISOString();
+
+          return {
+            ...task,
+            messages: normalized,
+            updatedAt,
+          };
+        });
+
+        if (!hasChange) {
+          return prevTasks;
+        }
+
+        return next
+          .slice()
+          .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+      });
+    },
+    []
+  );
+
+  const handleSessionChange = useCallback((conversationId: string, nextSessionId: string) => {
+    setTasks(prevTasks =>
+      prevTasks.map(task =>
+        task.id === conversationId
+          ? {
+              ...task,
+              sessionId: nextSessionId,
+            }
+          : task
+      )
+    );
+  }, []);
+
+  const handleSelectTask = (taskId: string) => {
+    setActiveTaskId(taskId);
+    setInitialChatMessage('');
+    setShowChat(true);
+  };
+
+  const handleStartConversationFromPrompt = (message: string) => {
+    const trimmed = message.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    const newTaskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
+    const now = new Date().toISOString();
+
+    setTasks(prevTasks => {
+      const title = summarizeMessage(trimmed, 12) || `新任务 ${prevTasks.length + 1}`;
+      const nextTask: TaskConversation = {
+        id: newTaskId,
+        name: title,
+        icon: 'comments',
+        color: 'blue-500',
+        messages: [],
+        createdAt: now,
+        updatedAt: now,
+        sessionId: createSessionId(),
+      };
+      return [nextTask, ...prevTasks];
+    });
+
+    setActiveTaskId(newTaskId);
+    setInitialChatMessage(trimmed);
+    setShowChat(true);
+  };
+
   useEffect(() => {
     const baseWidth = 1440;
     const maxScale = 1.35;
@@ -999,6 +1143,20 @@ export default function Home() {
     return () => window.removeEventListener('resize', updateScale);
   }, []);
 
+  const activeTask = tasks.find(task => task.id === activeTaskId) || null;
+  const isChatting = showChat && Boolean(activeTask);
+  const sidebarTasks = tasks.map(task => {
+    const lastMessage = task.messages.length > 0 ? task.messages[task.messages.length - 1] : undefined;
+    return {
+      id: task.id,
+      name: task.name,
+      icon: task.icon,
+      color: task.color,
+      isBrand: task.isBrand,
+      lastMessagePreview: lastMessage ? summarizeMessage(lastMessage.content, 22) : undefined,
+    };
+  });
+
   const scaledSize = Number((100 / scale).toFixed(3));
   const scaleStyle = {
     transform: `scale(${scale})`,
@@ -1009,19 +1167,33 @@ export default function Home() {
   } as const;
 
   // 渲染主页面
-  const layoutClass = showChat ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden overflow-y-auto';
+  const layoutClass = isChatting ? 'h-screen overflow-hidden' : 'min-h-screen overflow-x-hidden overflow-y-auto';
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
-      <div className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${showChat ? '' : 'home-page'}`}
+      <div className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
         style={scaleStyle}>
       {/* 左侧导航栏 */}
-      <Sidebar onCreateNewTask={handleCreateNewTask} tasks={tasks} setTasks={setTasks} />
+      <Sidebar 
+        onCreateNewTask={handleCreateNewTask} 
+        tasks={sidebarTasks} 
+        activeTaskId={activeTaskId} 
+        onSelectTask={handleSelectTask} 
+      />
       
       {/* 内容区域 - 根据状态显示主内容或聊天界面 */}
-      {showChat ? (
+      {isChatting && activeTask ? (
         <ChatInterface 
+          conversationId={activeTask.id}
+          title={activeTask.name}
           initialMessage={initialChatMessage} 
-          onBack={() => setShowChat(false)} 
+          initialMessages={activeTask.messages}
+          sessionId={activeTask.sessionId}
+          onBack={() => {
+            setShowChat(false);
+            setInitialChatMessage('');
+          }} 
+          onConversationUpdate={handleConversationUpdate}
+          onSessionChange={handleSessionChange}
         />
       ) : (
         <MainContent 
@@ -1029,15 +1201,12 @@ export default function Home() {
           setActiveTab={setActiveTab}
           inputText={inputText}
           setInputText={setInputText}
-          onSendMessage={(message) => {
-            setInitialChatMessage(message);
-            setShowChat(true);
-          }}
+          onSendMessage={handleStartConversationFromPrompt}
         />
       )}
       
       {/* 浮动帮助按钮 - 仅在首页显示 */}
-      <FloatingHelpButton show={!showChat} />
+      <FloatingHelpButton show={!isChatting} />
       </div>
     </div>
   );
