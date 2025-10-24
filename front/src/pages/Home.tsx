@@ -372,6 +372,18 @@ function useFileUploader() {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const latestRef = useRef<FileAttachment[]>([]);
 
+  const generateImagePreview = useCallback((file: File): Promise<string | undefined> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const result = typeof reader.result === 'string' ? reader.result : undefined;
+        resolve(result);
+      };
+      reader.onerror = () => resolve(undefined);
+      reader.readAsDataURL(file);
+    });
+  }, []);
+
   useEffect(() => {
     latestRef.current = attachments;
   }, [attachments]);
@@ -379,7 +391,7 @@ function useFileUploader() {
   useEffect(() => {
     return () => {
       latestRef.current.forEach(att => {
-        if (att.previewUrl) {
+        if (att.previewUrl && att.previewUrl.startsWith('blob:')) {
           URL.revokeObjectURL(att.previewUrl);
         }
       });
@@ -399,7 +411,7 @@ function useFileUploader() {
   const clearAttachments = useCallback(() => {
     setAttachments(prev => {
       prev.forEach(item => {
-        if (item.previewUrl) {
+        if (item.previewUrl && item.previewUrl.startsWith('blob:')) {
           URL.revokeObjectURL(item.previewUrl);
         }
       });
@@ -445,21 +457,30 @@ function useFileUploader() {
         const nextItems = [...prev];
         files.forEach(file => {
           const id = `att_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-          const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
-          nextItems.push({
+          const isImage = file.type.startsWith('image/');
+          const nextItem: FileAttachment = {
             id,
             name: file.name,
             size: file.size,
             mimeType: file.type || 'application/octet-stream',
             status: 'uploading',
-            previewUrl,
-          });
+            previewUrl: undefined,
+          };
+          nextItems.push(nextItem);
+          if (isImage) {
+            void generateImagePreview(file).then(url => {
+              if (!url) return;
+              setAttachments(prev =>
+                prev.map(item => (item.id === id ? { ...item, previewUrl: url } : item))
+              );
+            });
+          }
           void startUpload(id, file);
         });
         return nextItems;
       });
     },
-    [startUpload]
+    [startUpload, generateImagePreview]
   );
 
   const handleInputChange = useCallback(
@@ -644,6 +665,7 @@ type ChatInterfaceProps = {
   conversationId: string;
   title: string;
   initialMessage: string;
+  initialAttachments?: UploadedAttachment[];
   initialMessages: ChatBubble[];
   sessionId?: string;
   onBack: () => void;
@@ -657,6 +679,7 @@ function ChatInterface({
   conversationId,
   title,
   initialMessage,
+  initialAttachments = [],
   initialMessages,
   sessionId,
   onBack,
@@ -685,6 +708,7 @@ function ChatInterface({
   const streamingTimersRef = useRef<Record<string, number>>({});
   const sessionIdRef = useRef<string>(sessionId ?? '');
   const lastConversationIdRef = useRef<string | null>(null);
+  const initialAttachmentsRef = useRef<UploadedAttachment[]>(initialAttachments);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -874,6 +898,10 @@ function ChatInterface({
   }, [conversationId, sessionId, resetSession]);
 
   useEffect(() => {
+    initialAttachmentsRef.current = Array.isArray(initialAttachments) ? initialAttachments : [];
+  }, [initialAttachments]);
+
+  useEffect(() => {
     const trimmed = initialMessage.trim();
     const lastHandled = lastInitialMessageRef.current;
 
@@ -894,16 +922,19 @@ function ChatInterface({
     onInitialMessageHandled?.();
     resetSession();
 
+    const initialAttached = initialAttachmentsRef.current ?? [];
     const first: ChatBubble = {
       id: `msg_${Date.now()}_user`,
       content: trimmed,
       sender: 'user',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      attachments: initialAttached.length ? initialAttached : undefined,
     };
     clearStreamingTimer();
     setMessages([first]);
     setNewMessage('');
-    void fetchAssistantReply(trimmed, []);
+    void fetchAssistantReply(trimmed, initialAttached);
+    initialAttachmentsRef.current = [];
   }, [conversationId, initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, onInitialMessageHandled]);
 
   useEffect(() => {
@@ -1167,6 +1198,7 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
     fileInputRef: homeFileInputRef,
     handleInputChange: handleHomeFileInputChange,
     removeAttachment: removeHomeAttachment,
+    clearAttachments: clearHomeAttachments,
   } = useFileUploader();
   const adjustHomeTextareaHeight = useCallback(() => {
     const el = homeTextareaRef.current;
@@ -1216,8 +1248,28 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
       return;
     }
 
-    onSendMessage?.(trimmed);
+    const completedAttachments = homeAttachments
+      .filter(item => item.status === 'done' && item.fileId)
+      .map(item => ({
+        fileId: item.fileId as string,
+        name: item.name,
+        mimeType: item.mimeType,
+        size: item.size,
+        previewUrl: item.downloadUrl || item.previewUrl,
+        downloadUrl: item.downloadUrl,
+      }));
+
+    const hasInvalidMetadata = homeAttachments.some(
+      item => item.status === 'done' && !item.fileId
+    );
+    if (hasInvalidMetadata) {
+      toast.error('Attachment metadata is missing. Please re-upload the file.');
+      return;
+    }
+
+    onSendMessage?.(trimmed, completedAttachments);
     setInputText('');
+    clearHomeAttachments();
   };
 
   const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1602,6 +1654,7 @@ export default function Home() {
   const [inputText, setInputText] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [initialChatMessage, setInitialChatMessage] = useState('');
+  const [initialChatAttachments, setInitialChatAttachments] = useState<UploadedAttachment[]>([]);
   const [tasks, setTasks] = useState<TaskConversation[]>(() => {
     const stored = loadStoredTasks();
     if (stored.length) {
@@ -1737,6 +1790,7 @@ export default function Home() {
 
   const handleInitialMessageHandled = useCallback(() => {
     setInitialChatMessage('');
+    setInitialChatAttachments([]);
   }, []);
 
   const handleDeleteTask = useCallback(
@@ -1782,7 +1836,7 @@ export default function Home() {
     [activeTaskId]
   );
 
-  const handleStartConversationFromPrompt = (message: string) => {
+  const handleStartConversationFromPrompt = (message: string, attachments: UploadedAttachment[] = []) => {
     const trimmed = message.trim();
     if (!trimmed) {
       return;
@@ -1808,6 +1862,7 @@ export default function Home() {
 
     setActiveTaskId(newTaskId);
     setInitialChatMessage(trimmed);
+    setInitialChatAttachments(attachments);
     setShowChat(true);
   };
 
@@ -1870,11 +1925,13 @@ export default function Home() {
           conversationId={activeTask.id}
           title={activeTask.name}
           initialMessage={initialChatMessage} 
+          initialAttachments={initialChatAttachments}
           initialMessages={activeTask.messages}
           sessionId={activeTask.sessionId}
           onBack={() => {
             setShowChat(false);
             setInitialChatMessage('');
+            setInitialChatAttachments([]);
           }} 
           onConversationUpdate={handleConversationUpdate}
           onSessionChange={handleSessionChange}

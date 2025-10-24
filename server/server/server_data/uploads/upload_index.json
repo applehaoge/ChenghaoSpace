@@ -124,5 +124,32 @@
     "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "size": 12828,
     "uploadedAt": "2025-10-24T09:53:12.651Z"
+  },
+  "739febda-2be7-436d-b355-f762f36ea45f": {
+    "fileId": "739febda-2be7-436d-b355-f762f36ea45f",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "739febda-2be7-436d-b355-f762f36ea45f.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\739febda-2be7-436d-b355-f762f36ea45f.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-24T09:56:56.695Z"
+  },
+  "fabc027a-d653-4db7-bd05-95ac83c90621": {
+    "fileId": "fabc027a-d653-4db7-bd05-95ac83c90621",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "fabc027a-d653-4db7-bd05-95ac83c90621.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\fabc027a-d653-4db7-bd05-95ac83c90621.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-24T09:59:22.867Z"
+  },
+  "ff5be0e4-04fd-421e-9683-82c028239cdc": {
+    "fileId": "ff5be0e4-04fd-421e-9683-82c028239cdc",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "ff5be0e4-04fd-421e-9683-82c028239cdc.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\ff5be0e4-04fd-421e-9683-82c028239cdc.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-24T10:04:53.129Z"
   }
 }
