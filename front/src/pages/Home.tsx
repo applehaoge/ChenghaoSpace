@@ -1,10 +1,19 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import type { KeyboardEvent, ChangeEvent } from 'react';
+import type { KeyboardEvent, ChangeEvent, ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
+
+type UploadedAttachment = {
+  fileId: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  previewUrl?: string;
+  downloadUrl?: string;
+};
 
 type ChatBubble = {
   id: string;
@@ -15,15 +24,15 @@ type ChatBubble = {
   sources?: Array<{ id: string; text: string; score?: number }>;
   error?: string;
   isStreaming?: boolean;
+  attachments?: UploadedAttachment[];
 };
-
 
 type MainContentProps = {
   activeTab: string;
   setActiveTab: (tab: string) => void;
   inputText: string;
   setInputText: (value: string) => void;
-  onSendMessage?: (message: string) => void;
+  onSendMessage?: (message: string, attachments?: UploadedAttachment[]) => void;
 };
 
 type TaskConversation = {
@@ -330,7 +339,7 @@ function useFileUploader() {
               size: result.size ?? item.size,
               mimeType: result.mimeType || item.mimeType,
               fileId: result.fileId,
-              downloadUrl: result.url,
+              downloadUrl: result.downloadUrl || result.url,
             }
           : item
       )
@@ -431,10 +440,10 @@ const markdownComponents: Components = {
       {children}
     </strong>
   ),
-  code: ({ inline, className, children, ...props }) => {
+  code: ({ inline, className, children }: { inline?: boolean; className?: string; children?: ReactNode }) => {
     if (inline) {
       return (
-        <code className="px-1 py-0.5 bg-gray-100 rounded text-sm" {...props}>
+        <code className="px-1 py-0.5 bg-gray-100 rounded text-sm">
           {children}
         </code>
       );
@@ -469,7 +478,6 @@ const markdownComponents: Components = {
       <div className="relative mb-2 group">
         <pre
           className="rounded-lg bg-gray-900 text-gray-100 p-3 pr-12 overflow-auto text-sm"
-          {...props}
         >
           <code className={languageClass}>{children}</code>
         </pre>
@@ -487,7 +495,14 @@ const markdownComponents: Components = {
 };
 
 // 项目卡片组件
-function ProjectCard({ title, imageUrl, bgColor, projectId }) {
+type ProjectCardProps = {
+  title: string;
+  imageUrl: string;
+  bgColor: string;
+  projectId: string;
+};
+
+function ProjectCard({ title, imageUrl, bgColor, projectId }: ProjectCardProps) {
   const handleClick = async () => {
     try {
       // 显示加载状态
@@ -658,65 +673,71 @@ function ChatInterface({
     }
   }, [clearStreamingTimer]);
 
-  const fetchAssistantReply = useCallback(async (userMessage: string) => {
-    setIsLoading(true);
-    try {
-      const response = await aiService.sendAIRequest('聊天', userMessage, {
-        sessionId: sessionIdRef.current,
-        conversationId,
-        userMessage,
-      });
-      const text = response.answer || response.result || '';
+  const fetchAssistantReply = useCallback(
+    async (userMessage: string, messageAttachments: UploadedAttachment[]) => {
+      setIsLoading(true);
+      try {
+        const response = await aiService.sendAIRequest('聊天', userMessage, {
+          sessionId: sessionIdRef.current,
+          conversationId,
+          userMessage,
+          attachments: messageAttachments,
+        });
+        const text = response.answer || response.result || '';
 
-      const assistantMessage: ChatBubble = {
-        id: `msg_${Date.now()}_ai`,
-        content: '',
-        sender: 'ai',
-        timestamp: new Date().toISOString(),
-        provider: response.provider,
-        sources: response.sources,
-        error: response.success ? undefined : response.error,
-        isStreaming: true
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-
-      if (!response.success || !text) {
-        clearStreamingTimer(assistantMessage.id);
-        setMessages(prev =>
-          prev.map(msg =>
-            msg.id === assistantMessage.id
-              ? {
-                  ...msg,
-                  content: response.error || '抱歉，本次未获取到回复，请稍后重试。',
-                  isStreaming: false
-                }
-              : msg
-          )
-        );
-        toast.error(response.error || '内容生成失败，请稍后重试');
-        return;
-      }
-
-      startStreaming(text, assistantMessage.id);
-    } catch (error) {
-      clearStreamingTimer();
-      console.error('调用聊天接口失败:', error);
-      setMessages(prev => [
-        ...prev,
-        {
-          id: `msg_${Date.now()}_ai_error`,
-          content: '抱歉，生成过程中出现错误，请稍后重试。',
+        const assistantMessage: ChatBubble = {
+          id: `msg_${Date.now()}_ai`,
+          content: '',
           sender: 'ai',
           timestamp: new Date().toISOString(),
-          error: (error as Error)?.message
+          provider: response.provider,
+          sources: response.sources,
+          error: response.success ? undefined : response.error,
+          isStreaming: true,
+        };
+
+        setMessages(prev => [...prev, assistantMessage]);
+
+        if (!response.success || !text) {
+          clearStreamingTimer(assistantMessage.id);
+          setMessages(prev =>
+            prev.map(msg =>
+              msg.id === assistantMessage.id
+                ? {
+                    ...msg,
+                    content: response.error || '抱歉，本次未获取到回复，请稍后重试。',
+                    isStreaming: false,
+                  }
+                : msg
+            )
+          );
+          toast.error(response.error || '内容生成失败，请稍后重试');
+          return false;
         }
-      ]);
-      toast.error('调用后端接口失败');
-    } finally {
-      setIsLoading(false);
-    }
-  }, [startStreaming, clearStreamingTimer]);
+
+        startStreaming(text, assistantMessage.id);
+        return true;
+      } catch (error) {
+        clearStreamingTimer();
+        console.error('调用聊天接口失败:', error);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: `msg_${Date.now()}_ai_error`,
+            content: '抱歉，生成过程中出现错误，请稍后重试。',
+            sender: 'ai',
+            timestamp: new Date().toISOString(),
+            error: (error as Error)?.message,
+          },
+        ]);
+        toast.error('调用后端接口失败');
+        return false;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [conversationId, startStreaming, clearStreamingTimer]
+  );
 
   const handleCopy = useCallback(async (content: string) => {
     try {
@@ -791,7 +812,7 @@ function ChatInterface({
     clearStreamingTimer();
     setMessages([first]);
     setNewMessage('');
-    void fetchAssistantReply(trimmed);
+    void fetchAssistantReply(trimmed, []);
   }, [conversationId, initialMessage, fetchAssistantReply, clearStreamingTimer, resetSession, onInitialMessageHandled]);
 
   useEffect(() => {
@@ -810,16 +831,39 @@ function ChatInterface({
       return;
     }
 
+    const completedAttachments = chatAttachments
+      .filter(item => item.status === 'done' && item.fileId)
+      .map(item => ({
+        fileId: item.fileId as string,
+        name: item.name,
+        mimeType: item.mimeType,
+        size: item.size,
+        previewUrl: item.downloadUrl || item.previewUrl,
+        downloadUrl: item.downloadUrl,
+      }));
+
+    const hasInvalidMetadata = chatAttachments.some(
+      item => item.status === 'done' && !item.fileId
+    );
+    if (hasInvalidMetadata) {
+      toast.error('Attachment metadata is missing. Please re-upload the file.');
+      return;
+    }
+
     const userBubble: ChatBubble = {
       id: `msg_${Date.now()}_user`,
       content: trimmed,
       sender: 'user',
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      attachments: completedAttachments.length ? completedAttachments : undefined,
     };
     const nextConversation = [...messages, userBubble];
     setMessages(nextConversation);
     setNewMessage('');
-    await fetchAssistantReply(trimmed);
+    const succeeded = await fetchAssistantReply(trimmed, completedAttachments);
+    if (succeeded) {
+      clearChatAttachments();
+    }
   };
 
   const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -1134,7 +1178,7 @@ function MainContent({ activeTab, setActiveTab, inputText, setInputText, onSendM
   };
   
   // 处理实践分类按钮点击
-  const handlePracticeCategory = (category) => {
+  const handlePracticeCategory = (category: string) => {
     toast.info(`已切换到${category}分类`);
   };
 

@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
+import { registerUpload } from './storage/uploadRegistry.js';
 dotenv.config();
 const fastify = Fastify({ logger: true });
 const uploadLimitMb = Number(process.env.UPLOAD_MAX_SIZE_MB ?? '25');
@@ -248,6 +249,15 @@ fastify.post('/api/upload', async (request, reply) => {
             return reply.code(413).send({ success: false, error: '文件超出允许的大小限制' });
         }
         const stats = await fs.stat(destinationPath);
+        await registerUpload({
+            fileId,
+            originalName,
+            storedName,
+            storedPath: destinationPath,
+            mimeType: multipartFile.mimetype,
+            size: stats.size,
+            uploadedAt: new Date().toISOString(),
+        });
         return reply.send({
             success: true,
             fileId,
