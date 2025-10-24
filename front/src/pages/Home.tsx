@@ -276,6 +276,97 @@ function AttachmentBadge({ attachment, onRemove }: AttachmentBadgeProps) {
   );
 }
 
+type MessageAttachmentsProps = {
+  attachments: UploadedAttachment[];
+  align: 'left' | 'right';
+};
+
+function MessageAttachments({ attachments, align }: MessageAttachmentsProps) {
+  if (!attachments.length) return null;
+
+  const isRightAligned = align === 'right';
+  const nameClass = isRightAligned
+    ? 'text-sm font-medium text-white truncate'
+    : 'text-sm font-medium text-gray-900 truncate';
+  const metaClass = isRightAligned ? 'text-xs text-white/80' : 'text-xs text-gray-500';
+  const downloadClass = isRightAligned
+    ? 'text-xs font-medium text-white hover:text-white/80'
+    : 'text-xs font-medium text-blue-600 hover:text-blue-700';
+  const containerClass = isRightAligned
+    ? 'border-white/40 bg-white/20 backdrop-blur-sm'
+    : 'border-gray-200 bg-white';
+
+  return (
+    <div className={`mt-3 flex ${isRightAligned ? 'justify-end' : 'justify-start'}`}>
+      <div className="flex flex-wrap gap-3 max-w-full">
+        {attachments.map(attachment => {
+          const key = attachment.fileId || `${attachment.name}-${attachment.size}`;
+          const isImage = attachment.mimeType.toLowerCase().startsWith('image/');
+          const visual = getAttachmentVisual(attachment.mimeType, attachment.name);
+          const sizeLabel = formatFileSize(attachment.size);
+           const imageSource = attachment.previewUrl || attachment.downloadUrl;
+
+          if (isImage && imageSource) {
+            return (
+              <figure
+                key={key}
+                className="relative max-w-[240px] rounded-lg overflow-hidden border border-black/5 bg-black/5"
+              >
+                <img
+                  src={imageSource}
+                  alt={attachment.name}
+                  className="w-full h-full object-cover"
+                />
+                <figcaption className="absolute inset-x-0 bottom-0 bg-black/60 text-white text-xs px-2 py-1 flex justify-between items-center gap-2">
+                  <span className="truncate">{attachment.name}</span>
+                  <span className="opacity-80">{sizeLabel}</span>
+                </figcaption>
+                {attachment.downloadUrl ? (
+                  <a
+                    href={attachment.downloadUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="absolute top-2 right-2 inline-flex items-center justify-center rounded-full bg-black/60 text-white text-xs px-2 py-1 hover:bg-black/80 transition-colors"
+                  >
+                    <i className="fas fa-download leading-none"></i>
+                  </a>
+                ) : null}
+              </figure>
+            );
+          }
+
+          return (
+            <div
+              key={key}
+              className={`flex items-center gap-3 rounded-lg border ${containerClass} px-3 py-2 shadow-sm max-w-[280px]`}
+            >
+              <div
+                className={`flex h-12 w-12 items-center justify-center rounded-md text-white ${visual.accentClass}`}
+              >
+                <i className={`${visual.icon} text-lg`}></i>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className={nameClass}>{attachment.name}</div>
+                <div className={metaClass}>{sizeLabel}</div>
+              </div>
+              {attachment.downloadUrl ? (
+                <a
+                  href={attachment.downloadUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={downloadClass}
+                >
+                  Download
+                </a>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function useFileUploader() {
   const [attachments, setAttachments] = useState<FileAttachment[]>([]);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -915,75 +1006,81 @@ function ChatInterface({
 
       {/* 聊天内容区域 */}
       <div className="flex-1 overflow-y-auto p-5 bg-gray-50 chat-window min-h-0">
-        {messages.map(message => (
-          <div
-            key={message.id}
-            className={`flex mb-6 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            {message.sender === 'ai' && (
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
-                <i className="fas fa-robot text-blue-500"></i>
-              </div>
-            )}
-              <div className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'} group`}>
-                <div
-                  className={`relative rounded-lg ${
-                    message.sender === 'user'
-                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
-                      : 'bg-white border border-gray-200 text-gray-800'
-                  } p-4`}
-                >
-                  {message.sender === 'ai' ? (
-                    <div className="text-sm leading-relaxed space-y-2">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+        {messages.map(message => {
+          const isUser = message.sender === 'user';
+          return (
+            <div
+              key={message.id}
+              className={`mb-6 flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
+            >
+              {message.attachments && message.attachments.length > 0 ? (
+                <MessageAttachments
+                  attachments={message.attachments}
+                  align={isUser ? 'right' : 'left'}
+                />
+              ) : null}
+              <div className="flex items-start mt-2">
+                {!isUser ? (
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+                    <i className="fas fa-robot text-blue-500"></i>
+                  </div>
+                ) : null}
+                <div className={`max-w-[80%] ${isUser ? '' : 'group'}`}>
+                  <div
+                    className={`relative rounded-lg ${
+                      isUser
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                        : 'bg-white border border-gray-200 text-gray-800'
+                    } p-4`}
+                  >
+                    {isUser ? (
+                      <div className="whitespace-pre-wrap leading-relaxed text-sm">
                         {message.content}
-                      </ReactMarkdown>
-                      {message.isStreaming && (
-                        <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
-                      )}
+                      </div>
+                    ) : (
+                      <div className="text-sm leading-relaxed space-y-2">
+                        <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                          {message.content}
+                        </ReactMarkdown>
+                        {message.isStreaming && (
+                          <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {!isUser ? (
+                    <div className="flex mt-2">
+                      <button
+                        type="button"
+                        className="h-8 w-8 flex items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700 shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                        onClick={() => handleCopy(message.content)}
+                        aria-label="复制该条消息"
+                      >
+                        <i className="fas fa-copy text-base leading-none"></i>
+                      </button>
                     </div>
                   ) : (
-                    <div className="whitespace-pre-wrap leading-relaxed text-sm">
-                      {message.content}
+                    <div className="flex mt-2 justify-end">
+                      <button
+                        type="button"
+                        className="h-8 w-8 flex items-center justify-center rounded-md border border-blue-200 bg-white text-blue-600 hover:bg-blue-50 focus-visible:bg-blue-50 shadow-sm text-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                        onClick={() => handleCopy(message.content)}
+                        aria-label="复制该条消息"
+                      >
+                        <i className="fas fa-copy text-base leading-none"></i>
+                      </button>
                     </div>
                   )}
                 </div>
-                {message.sender === 'ai' && (
-                  <div className="flex mt-2">
-                    <button
-                      type="button"
-                      className="h-8 w-8 flex items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700 shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                      onClick={() => handleCopy(message.content)}
-                      aria-label="复制该条消息"
-                    >
-                      <i className="fas fa-copy text-base leading-none"></i>
-                    </button>
+                {isUser ? (
+                  <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 flex-shrink-0">
+                    <i className="fas fa-user text-gray-600"></i>
                   </div>
-                )}
-                {message.sender !== 'ai' && (
-                  <div
-                    className={`flex mt-2 ${
-                      message.sender === 'user' ? 'justify-end' : 'justify-start'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      className="h-8 w-8 flex items-center justify-center rounded-md border border-blue-200 bg-white text-blue-600 hover:bg-blue-50 focus-visible:bg-blue-50 shadow-sm text-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                      onClick={() => handleCopy(message.content)}
-                      aria-label="复制该条消息"
-                    >
-                      <i className="fas fa-copy text-base leading-none"></i>
-                    </button>
-                  </div>
-                )}
+                ) : null}
               </div>
-            {message.sender === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 flex-shrink-0 order-3">
-                <i className="fas fa-user text-gray-600"></i>
-              </div>
-            )}
-          </div>
-        ))}
+            </div>
+          );
+        })}
 
         {/* 加载状态 */}
         {isLoading && (
