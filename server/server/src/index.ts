@@ -7,6 +7,7 @@ import { randomUUID } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
+import { registerUpload } from './storage/uploadRegistry.js';
 
 dotenv.config();
 
@@ -281,6 +282,16 @@ fastify.post('/api/upload', async (request, reply) => {
     }
 
     const stats = await fs.stat(destinationPath);
+    await registerUpload({
+      fileId,
+      originalName,
+      storedName,
+      storedPath: destinationPath,
+      mimeType: multipartFile.mimetype,
+      size: stats.size,
+      uploadedAt: new Date().toISOString(),
+    });
+
     return reply.send({
       success: true,
       fileId,

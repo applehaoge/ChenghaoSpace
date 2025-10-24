@@ -1,0 +1,94 @@
+import { getUploadRecord } from '../storage/uploadRegistry.js';
+import { analyzeImage } from './imageAnalyzer.js';
+const formatBytes = (value) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0)
+        return '未知大小';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    let current = value;
+    let index = 0;
+    while (current >= 1024 && index < units.length - 1) {
+        current /= 1024;
+        index += 1;
+    }
+    const fractionDigits = current >= 10 || index === 0 ? 0 : 1;
+    return `${current.toFixed(fractionDigits)}${units[index]}`;
+};
+const createUnsupportedBlock = (index, record, reason) => {
+    const name = record.originalName || record.storedName;
+    return [
+        `附件${index}：${name}`,
+        `基础信息：${record.mimeType || '未知类型'}，大小 ${formatBytes(record.size)}`,
+        `当前暂不支持自动解析该类型（${reason}），请根据用户描述自行参考。`,
+    ].join('\n');
+};
+export const buildAttachmentContext = async (attachments) => {
+    if (!attachments.length) {
+        return { contextText: '', analyses: [], notes: [] };
+    }
+    const seenIds = new Set();
+    const contextBlocks = [];
+    const analyses = [];
+    const notes = [];
+    let index = 0;
+    for (const item of attachments) {
+        if (!item || typeof item !== 'object') {
+            notes.push('收到格式异常的附件描述，已忽略。');
+            continue;
+        }
+        const fileId = (item.fileId || '').trim();
+        if (!fileId) {
+            notes.push('附件缺少 fileId，无法关联上传记录。');
+            continue;
+        }
+        if (seenIds.has(fileId)) {
+            notes.push(`附件 ${fileId} 已处理，跳过重复引用。`);
+            continue;
+        }
+        seenIds.add(fileId);
+        const record = await getUploadRecord(fileId);
+        if (!record) {
+            notes.push(`未找到 ID 为 ${fileId} 的上传记录，可能文件已被清理。`);
+            continue;
+        }
+        index += 1;
+        if (!record.mimeType?.startsWith('image/')) {
+            contextBlocks.push(createUnsupportedBlock(index, record, '仅支持图片识别'));
+            continue;
+        }
+        try {
+            const insight = await analyzeImage(record);
+            const baseInfoParts = [
+                record.mimeType || '未知类型',
+                `大小 ${formatBytes(record.size)}`,
+            ];
+            if (insight.width && insight.height) {
+                baseInfoParts.push(`尺寸 ${insight.width}×${insight.height}`);
+            }
+            const lines = [
+                `附件${index}：${record.originalName || record.storedName}`,
+                `基础信息：${baseInfoParts.join('，')}`,
+            ];
+            if (insight.caption) {
+                lines.push(`图像描述：${insight.caption}`);
+            }
+            if (insight.warnings.length) {
+                lines.push(`注意事项：${insight.warnings.join('；')}`);
+            }
+            contextBlocks.push(lines.join('\n'));
+            analyses.push({
+                ...insight,
+                summary: insight.caption || lines.slice(1).join('；'),
+            });
+        }
+        catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            notes.push(`解析附件 ${record.originalName || record.storedName} 失败：${message}`);
+            contextBlocks.push(createUnsupportedBlock(index, record, '解析过程发生异常'));
+        }
+    }
+    return {
+        contextText: contextBlocks.join('\n\n'),
+        analyses,
+        notes,
+    };
+};
