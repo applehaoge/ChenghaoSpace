@@ -12,6 +12,7 @@
     "@fastify/ajv-compiler": "^4.0.5",
     "@fastify/error": "^4.2.0",
     "@fastify/fast-json-stringify-compiler": "^5.0.3",
+    "@fastify/multipart": "^8.3.0",
     "abstract-logging": "^2.0.1",
     "agent-base": "^7.1.4",
     "avvio": "^9.1.0",

@@ -1,8 +1,33 @@
 import Fastify from 'fastify';
 import dotenv from 'dotenv';
+import multipart from '@fastify/multipart';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
+import { createWriteStream } from 'node:fs';
+import { promises as fs } from 'node:fs';
+import { pipeline } from 'node:stream/promises';
+import { registerUpload } from './storage/uploadRegistry.js';
 dotenv.config();
 const fastify = Fastify({ logger: true });
+const uploadLimitMb = Number(process.env.UPLOAD_MAX_SIZE_MB ?? '25');
+const maxUploadBytes = Number.isFinite(uploadLimitMb) && uploadLimitMb > 0 ? uploadLimitMb * 1024 * 1024 : 25 * 1024 * 1024;
+fastify.register(multipart, {
+    limits: {
+        fileSize: maxUploadBytes,
+        files: 10,
+    },
+});
+const resolveUploadDirectory = () => {
+    const customDir = process.env.UPLOAD_DIR;
+    if (!customDir) {
+        return path.resolve(process.cwd(), 'server_data', 'uploads');
+    }
+    return path.isAbsolute(customDir) ? customDir : path.resolve(process.cwd(), customDir);
+};
+const uploadDirectory = resolveUploadDirectory();
+const ensureDirectoryExists = async (dir) => {
+    await fs.mkdir(dir, { recursive: true });
+};
 // Simple CORS handling without external plugin
 fastify.addHook('onRequest', async (request, reply) => {
     // 添加 CORS 响应头
@@ -203,6 +228,50 @@ fastify.post('/proxy/v1/chat/completions', async (request, reply) => {
     }
     catch (err) {
         return reply.code(502).send({ error: 'provider failed', detail: String(err) });
+    }
+});
+fastify.post('/api/upload', async (request, reply) => {
+    const multipartFile = await request.file();
+    if (!multipartFile) {
+        return reply.code(400).send({ success: false, error: '缺少文件' });
+    }
+    const originalName = multipartFile.filename || '未命名文件';
+    const extension = path.extname(originalName);
+    const fileId = randomUUID();
+    const storedName = `${fileId}${extension}`;
+    const destinationPath = path.join(uploadDirectory, storedName);
+    try {
+        await ensureDirectoryExists(uploadDirectory);
+        await pipeline(multipartFile.file, createWriteStream(destinationPath));
+        const streamInfo = multipartFile.file ?? {};
+        if (streamInfo.truncated) {
+            await fs.rm(destinationPath, { force: true }).catch(() => { });
+            return reply.code(413).send({ success: false, error: '文件超出允许的大小限制' });
+        }
+        const stats = await fs.stat(destinationPath);
+        await registerUpload({
+            fileId,
+            originalName,
+            storedName,
+            storedPath: destinationPath,
+            mimeType: multipartFile.mimetype,
+            size: stats.size,
+            uploadedAt: new Date().toISOString(),
+        });
+        return reply.send({
+            success: true,
+            fileId,
+            fileName: originalName,
+            mimeType: multipartFile.mimetype,
+            size: stats.size,
+            path: path.relative(process.cwd(), destinationPath).replace(/\\/g, '/'),
+            url: null,
+        });
+    }
+    catch (err) {
+        await fs.rm(destinationPath, { force: true }).catch(() => { });
+        request.log.error({ err }, '文件上传失败');
+        return reply.code(500).send({ success: false, error: '文件保存失败，请稍后重试' });
     }
 });
 // Existing embed endpoint

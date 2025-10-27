@@ -9,6 +9,15 @@ type ChatResult = {
   provider?: string;
 };
 
+type AttachmentPayload = {
+  fileId: string;
+  name: string;
+  mimeType: string;
+  size: number;
+  previewUrl?: string;
+  downloadUrl?: string;
+};
+
 type ChatRequestOptions = {
   sessionId?: string;
   conversationId?: string;
@@ -16,6 +25,18 @@ type ChatRequestOptions = {
   topK?: number;
   taskType?: string;
   extraContext?: Record<string, unknown>;
+  attachments?: AttachmentPayload[];
+};
+
+type UploadResult = {
+  success: boolean;
+  fileId?: string;
+  fileName?: string;
+  mimeType?: string;
+  size?: number;
+  url?: string;
+  downloadUrl?: string;
+  error?: string;
 };
 
 export interface AIService {
@@ -41,10 +62,11 @@ export interface AIService {
     error?: string;
   }>;
   getInspiration(): Promise<{ success: boolean; inspiration?: string; error?: string }>;
+  uploadFile(file: File): Promise<UploadResult>;
 }
 
 class AIServiceImpl implements AIService {
-  async createNewTask(taskType: string, content: string) {
+  async createNewTask(taskType: string, _content: string) {
     const taskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     return {
       success: true,
@@ -131,6 +153,38 @@ class AIServiceImpl implements AIService {
     };
   }
 
+  async uploadFile(file: File): Promise<UploadResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch(`${API_BASE}/api/upload`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `上传失败，状态码 ${res.status}`);
+      }
+
+      const data = await res.json();
+      return {
+        success: true,
+        fileId: data.fileId,
+        fileName: data.fileName || data.filename,
+        mimeType: data.mimeType,
+        size: data.size,
+        url: data.url,
+        downloadUrl: data.downloadUrl || data.url,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '上传失败';
+      console.error('上传文件失败:', error);
+      return { success: false, error: message };
+    }
+  }
+
   private async invokeChatEndpoint(query: string, extra: ChatRequestOptions = {}): Promise<ChatResult> {
     try {
       const payload: Record<string, unknown> = {
@@ -142,6 +196,9 @@ class AIServiceImpl implements AIService {
       if (extra.sessionId) payload.sessionId = extra.sessionId;
       if (extra.conversationId) payload.conversationId = extra.conversationId;
       if (extra.userMessage) payload.userMessage = extra.userMessage;
+      if (extra.attachments && extra.attachments.length > 0) {
+        payload.attachments = extra.attachments;
+      }
       if (extra.extraContext) Object.assign(payload, extra.extraContext);
 
       const res = await fetch(`${API_BASE}/api/chat`, {

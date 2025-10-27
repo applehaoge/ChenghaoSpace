@@ -1,0 +1,92 @@
+{
+  "f989a20d-8ac2-4a03-97bf-78f2670bf19b": {
+    "fileId": "f989a20d-8ac2-4a03-97bf-78f2670bf19b",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "f989a20d-8ac2-4a03-97bf-78f2670bf19b.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\f989a20d-8ac2-4a03-97bf-78f2670bf19b.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-24T04:26:51.757Z"
+  },
+  "ee3fcb31-5c2f-4700-bded-0c6dff9074b0": {
+    "fileId": "ee3fcb31-5c2f-4700-bded-0c6dff9074b0",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "ee3fcb31-5c2f-4700-bded-0c6dff9074b0.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\ee3fcb31-5c2f-4700-bded-0c6dff9074b0.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-24T08:04:06.257Z"
+  },
+  "24f391c4-19e8-40d1-9f1d-13a759160455": {
+    "fileId": "24f391c4-19e8-40d1-9f1d-13a759160455",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "24f391c4-19e8-40d1-9f1d-13a759160455.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\24f391c4-19e8-40d1-9f1d-13a759160455.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-24T09:25:37.167Z"
+  },
+  "dd8ca6f2-40d1-4025-b8d0-3a33537d1f2e": {
+    "fileId": "dd8ca6f2-40d1-4025-b8d0-3a33537d1f2e",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "dd8ca6f2-40d1-4025-b8d0-3a33537d1f2e.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\dd8ca6f2-40d1-4025-b8d0-3a33537d1f2e.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-24T09:29:25.424Z"
+  },
+  "2c867503-6f77-453d-9492-4bc56d0b0ace": {
+    "fileId": "2c867503-6f77-453d-9492-4bc56d0b0ace",
+    "originalName": "test_attachment.txt",
+    "storedName": "2c867503-6f77-453d-9492-4bc56d0b0ace.txt",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\2c867503-6f77-453d-9492-4bc56d0b0ace.txt",
+    "mimeType": "text/plain",
+    "size": 24,
+    "uploadedAt": "2025-10-24T09:32:18.667Z"
+  },
+  "d1bcf928-7d55-4499-80fd-0bf375a68888": {
+    "fileId": "d1bcf928-7d55-4499-80fd-0bf375a68888",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "d1bcf928-7d55-4499-80fd-0bf375a68888.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\d1bcf928-7d55-4499-80fd-0bf375a68888.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T05:09:56.823Z"
+  },
+  "b8547beb-838e-448e-81d6-8cee83210b60": {
+    "fileId": "b8547beb-838e-448e-81d6-8cee83210b60",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "b8547beb-838e-448e-81d6-8cee83210b60.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\b8547beb-838e-448e-81d6-8cee83210b60.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T05:28:35.865Z"
+  },
+  "b11b8685-0eb9-41ee-840e-564746945f12": {
+    "fileId": "b11b8685-0eb9-41ee-840e-564746945f12",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "b11b8685-0eb9-41ee-840e-564746945f12.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\b11b8685-0eb9-41ee-840e-564746945f12.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T06:25:47.519Z"
+  },
+  "1de99e8b-b383-46fe-aa80-6a319d2e2eea": {
+    "fileId": "1de99e8b-b383-46fe-aa80-6a319d2e2eea",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "1de99e8b-b383-46fe-aa80-6a319d2e2eea.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\1de99e8b-b383-46fe-aa80-6a319d2e2eea.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T06:30:28.192Z"
+  },
+  "19cb171a-999f-435b-8b27-528b14d19627": {
+    "fileId": "19cb171a-999f-435b-8b27-528b14d19627",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "19cb171a-999f-435b-8b27-528b14d19627.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\19cb171a-999f-435b-8b27-528b14d19627.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T06:32:58.443Z"
+  }
+}
