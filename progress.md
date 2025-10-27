@@ -1,103 +1,137 @@
-# ��Ŀ���ȼ�¼��PROGRESS.md��
-## ����
-- ��Ŀ��chenghaoSpace��ǰ����ʵ�ֻ��� UI����һ���ƻ����� RAG��
-- Ŀ�꣺��һ������������� demo���������� UI��������ǿ���ɡ��� Provider ֧�֣�OpenAI Ϊ��ѡ���Լ�����������
+项目进度记录（PROGRESS.md）
+🧩 概述
 
-## ��Ҫ������¼����ʱ�䵹��
+项目名称：ChenghaoSpace
+
+类型：AI Chat Demo（前后端自研）
+
+当前能力：聊天 UI + Doubao Provider 接入
+
+目标：一周内完成可投简历 Demo
+
+RAG 检索增强
+
+多 Provider 支持（Doubao + OpenAI）
+
+简单容器化部署（可上云）
+
+图文消息 & 附件卡片
+
+会话记忆（短期 + 向量召回 + 摘要）
+
+🚀 重要变更日志（按时间倒序）
+2025-10-27 ✅ 多会话隔离 + Streaming 升级（未完成）
+
+新增消息仓库：messagesRegistryRef，避免线程切换串线
+
+Streaming 更新绑定 session ID，防止跨会话污染 UI
+
+构建验证：pnpm run build:client
+
+2025-10-27 ✅ Loading Toast 生命周期管理
+
+使用 try/finally 确保 toast 可正确隐藏
+
+修复：失败请求导致 Spinner 卡死的体验问题
+
+2025-10-27 ✅ 页面模块化
+
+Home 页面拆分为独立模块（chat/, attachments/, home/）
+
+职责更清晰，可复用程度提升
+
+2025-10-23 ✅ Markdown 代码块复制按钮
+
+所有代码块提供独立复制按钮
+
+降级处理兼容性问题
+
+Toast 提示状态：成功 / 失败
+
+2025-10-23 ✅ 输入交互优化
+
+Enter：发送消息
+
+Shift+Enter：换行
+
+与其它输入场景不冲突
+
+2025-10-23 ✅ 会话初始化去重
+
+引入 lastConversationIdRef
+
+修复 StrictMode 双渲染导致的对话重复创建问题
+
+2025-10-22 ✅ 会话记忆持久化
+
+ConversationMemoryManager 支持文件持久化
+
+默认目录：server_data/memory
+
+下一阶段：Redis / pgvector 扩展
+
+2025-10-22 ⚠️ 自适应临时方案
+
+宽屏缩放 & 溢出保护
+
+UI 断层问题暂时规避
+
+下一阶段：响应式布局替代缩放方案
+
+2025-10-22 ✅ Provider 路由修复
+
+.env 对齐、端口占用清理
+
+/api/chat 返回 provider: doubao ✅
+
+2025-10-21 ✅ 首页 UI 迭代
+
+聊天区域卡片化
+
+历史区可折叠
+
+推荐提示展示
+
+2025-10-21 ✅ 前端接入豆包模型
+
+aiService 调通 /api/chat
+
+支持模型输出流式响应
+
+2025-10-21 ✅ Doubao Provider 适配
+
+新增 DoubaoProvider
+
+默认模型：doubao-seed-1-6-flash
+
+2025-10-20 ✅ 环境与代理配置整理
+
+.env.example 完整补齐
+
+.gitignore 屏蔽敏感密钥
+
+成功绕过 OpenAI 网络限制
+
+🔍 先前诊断摘要
+
+ETIMEDOUT: 原因为网络阻断 → 使用代理成功恢复连通性
+
+测试命令片段：
+
+curl -v http://localhost:8082/v1/models
+curl -sS -X POST -H "Content-Type: application/json" \
+  -d '{"query":"测试OpenAI连接"}' \
+  http://localhost:8302/api/chat -w '\nHTTP_STATUS:%{http_code}\n'
+
+🌐 代理配置备忘
+
+Windows 临时配置示例：
+
+$env:HTTP_PROXY='http://127.0.0.1:33210'
+$env:HTTPS_PROXY='http://127.0.0.1:33210'
+$env:ALL_PROXY='socks5://127.0.0.1:33211'
+pnpm --filter ./server dev
 
 
-（以下为未完成）
-下面是按你给的样式（先图/文件卡片，再出现文本气泡）的一套落地方案，先跟你确认方向，暂不动代码：
-
-1. 结构调整
-
-把 ChatInterface 里渲染消息的那一段拆成 ChatMessage 子组件，负责单条消息的排列。
-在 ChatMessage 内部按顺序渲染：<MessageAttachments />（仅当有附件时显示）→ 原来的文本气泡。
-MessageAttachments 根据发送方决定对齐方向（用户=右对齐、AI=左对齐），保持与气泡同一列但上下分离，保证滚动和流式文字互不干扰。
-2. 样式细节（参考你截图）
-
-图片卡片：白底、圆角、淡阴影，最大宽度 ~260–280px；img 采用 object-contain，loading="lazy"，点击放大（后续可接上 lightbox）。
-文件卡片：水平布局，左侧圆角底色图标、右侧竖排文件名+格式。背景白、灰色边框、轻阴影。整卡可点击下载/预览。
-多个附件垂直堆叠、间距 12px；移动端宽度 100%、PC 限制最大宽度避免撑开。
-3. 附件类型判断
-
-复用 AttachmentBadge 中的 MIME 类型检测逻辑，抽成共享工具（比如 detectAttachmentCategory），附件预览和上传队列共用。
-图片类型（png/jpg/gif/webp）走图片卡片，其余统一走文件卡片，额外为 PDF/Word/Excel 显示对应图标与标签。
-4. 交互补充
-
-图片点击打开全屏预览（可先放一个占位的 onClick/Lightbox Hook，为后续扩展）。
-文件卡片提供“下载”动作，鼠标悬浮有明确反馈；支持键盘导航（tabIndex + aria-label）。
-流式文本更新时仅刷新气泡内容，附件区域组件保持稳定，避免 re-render 抢占滚动条。
-5. 实现步骤
-
-新建 MessageAttachments + ChatMessage 组件（放在 components/chat/）。
-抽离并共享附件类型判断/图标映射。
-修改 ChatInterface：messages.map -> <ChatMessage message={...} .../>，把复制按钮等逻辑传下去。
-新样式写入（Tailwind class 或局部 CSS），确保主题色与现有保持一致。
-最后跑 pnpm run build:client 确认无回归。
-如果这个方案 OK，我再根据它动手实现。
-
-你能确定加的图片和文件不影响文字气泡吗？
-
-
-是的，方案里专门让附件模块和文字气泡解耦，保证互不影响：
-
-每条消息拆成 ChatMessage，内部顺序是先渲染 <MessageAttachments />，然后是原有的文字气泡。附件区域是独立容器，只依赖 message.attachments，文本仍走原来的 Markdown 流程。
-图片/文件卡片放在自己的 flex 列中，对齐方式与气泡同步，但没有嵌进气泡 DOM，因此气泡的 streaming、高度计算、复制按钮逻辑都不变。
-流式更新只会 setMessages 改写文字内容；附件数组在发送成功后固定下来，渲染组件也不会干扰后续的逐字渲染。
-样式上把附件限制在指定宽高，添加外部间距，避免撑开或覆盖气泡区域。
-这样附件展示和文字输出是并列结构，彼此不会干扰。
-
-
-### 2025-10-27 17:30 – Conversation switch isolation
-- Refactored `ChatInterface` to keep per-conversation message registries (`conversationIdRef`, `messagesRegistryRef`, `updateConversationMessages`) so async replies update the correct thread after task switching, preventing title cross-contamination.
-- Streaming updates now reference the captured conversation id; verified with `pnpm run build:client`.
-
-### 2025-10-27 16:45 – Loading toast lifecycle
-- Wrapped the “正在开启新聊天...” toast in a `try/finally` to guarantee dismissal even on request failures, fixing the lingering spinner during regular chats.
-- Confirmed behaviour via `pnpm run build:client`.
-
-### 2025-10-27 16:10 – Home page modularisation
-- Split the monolithic `front/src/pages/Home.tsx` into focused modules (`components/chat`, `components/home`, `components/attachments`, `pages/home`), turning the page into a thin orchestrator.
-- Shared types/utils extracted to `front/src/pages/home`, while uploads, sidebar, and main content became reusable components; existing UX preserved.
-- Build still succeeds (`pnpm run build:client`).
-
-### 2025-10-23 17:50 �C Markdown ����鸴�ư�ť
-- ���� `front/src/pages/Home.tsx` �� `markdownComponents.code` ����Ⱦ�߼���Ϊÿ���鼶�������������������Ͻ��������ư�ť��
-- ���Ʋ�������ʹ�� `navigator.clipboard.writeText`���ڲ�֧�ֵĻ������˻ص���ʱ `textarea`����ͨ�� `toast` ��ʾ�ɹ�/ʧ����ʾ��
-- ����ԭ���﷨�������������֣���΢���Ҳ��ڱ߾��Ա��ⰴť�ڵ����ݡ�
-
-### 2025-10-23 17:35 �C ��ҳ�����֧�ֻس�����
-- ����ҳ `MainContent` �ı������� `handleHomeKeyDown`�����û����� Enter ��δͬʱ��ס Shift ʱ��ֹĬ�ϻ��в��������з����߼���
-- �������� Shift+Enter ������Ϊ���߼�����������ҳ����򣬲�Ӱ��������塣
-
-### 2025-10-23 17:20 �C ������Ϣ������һ��
-- Ϊ `ChatInterface` ���� `lastConversationIdRef`��ȷ��ͬһ�Ự�� React StrictMode �²����ظ�ִ�г�ʼ��Ϣ�߼���
-- ���ν�������ʱ����������Ϣ���ͣ���ֹ����ظ����ص���˫������
-### 2025-10-22 15:50 ? �Ự����־û����ļ��洢��
-- ʵ�֣�Ϊ `ConversationMemoryManager` ���� `MemoryStore`��Ĭ��ע�� `FileMemoryStore`������ʷ��Ϣ��������ժҪд����̣�`server_data/memory`����
-- �Ķ������� `server/server/src/memory/storage/fileMemoryStore.ts`���ع� `conversationMemory.ts` ���첽����/�־û������� `index.ts` ����� `MEMORY_STORE_DIR` ��ʼ���洢��
-- ���ã�`server/.env.example` �� README ���� `MEMORY_STORE_DIR` ˵����Ĭ��Ŀ¼Ϊ `server_data/memory`��
-- ��ע����δ�����Ự��̭��ѹ�����ԣ���������չ�� Redis/SQLite��
-
-### 2025-10-22 14:20 ? ����˵ȱ�����������
-- �������� `front/src/pages/Home.tsx` ������ `scale` ״̬�� `useEffect`������ `window.innerWidth` �� 1~1.35 ֮���ҳ���������ţ�������������������⡣
-- ������Ϊ���������������㲢Ӧ�� `transform-origin: top center`��ȷ�����ź����ݾ�����ʾ��
-- �������� `front/src/index.css` Ϊ `body` ����ǳ�ұ������������ź����ͻأ�ױߡ�
-- ��ע���÷���Ϊ��ʱ�����������ƻ���Ϊ�ϵ㲼�֣������۵�����Ƭ��Ӧʽ����
-
-### 2025-10-22 13:35 ? ��˻ָ������Ի���·
-- �������� `server/.env` �� `server/server/.env` �в��� `PROVIDER=doubao`��ȷ��ÿ��������ָ�򶹰� Provider��
-- ����������ռ�� 8302 �˿ڵľɽ��̣�����ִ�� `pnpm run build && pnpm start`��ȷ�� `node dist/index.js` ����������
-- ��֤������ `POST http://localhost:8302/api/chat`�����ؽ�� `provider: doubao`������ָ�������
-- ��ע����ǰ�Ự������Ϊ�ڴ�洢����������Ҫ���»�����ʷ��
-
-### 2025-10-21 11:30 ? ��ҳ UI ����
-- ������۵��Ĳ������ֲ�� ChatGPT/��Ѷ�ռ䣬�� Home ҳ��Ϊ��Ƭʽ���֣�����Ի�ѡ����Ƽ���Ƭ�ȡ�
-- �Ż��Ի�����Ϣ�ܶȣ���ʷ�Ի�֧��չ��/�۵���Ԥ���Ƽ���ʾ��
-- ��֤��`pnpm build:client`
-
-### 2025-10-21 10:40 ? ǰ�˽��붹��ģ��
-- �������ع� `aiService`��ʹ `sendAIRequest`/`optimizeContent` ֱ�ӵ��� `/api/chat` ���νӶ�����˷��ء�
-- ǰ�ˣ��ع� Home ҳ�棬�������ɽ����塢����״̬����Դչʾ����ť��ͨ��ʵ�ӿڡ�
-- ��֤���ֶ�����д������ǰ�˳ɹ�չʾ�����
+✅ 密钥与代理凭据全部本地存储
+✅ 上线后改用环境密钥管理

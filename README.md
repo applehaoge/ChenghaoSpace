@@ -1,127 +1,152 @@
 ﻿# ChenghaoSpace
 
-AI demo with a Vite/React front-end (`front/`) and a Fastify back-end (`server/`). The latest iteration adds layered conversation memory so interviewers can see short-term context, rolling summaries, and semantic recall in action.
+基于 Vite/React 的前端（`front/`）与 Fastify 后端（`server/`）的 AI Demo。
+最新迭代加入**分层对话记忆系统**：可以看到短期上下文、滚动摘要与语义检索召回是如何工作的。
+
+🚧 项目正在持续开发中
+✅ 已完成：聊天对话、文件上传、AI 回答
+📌 进行中：图片显示逻辑优化、记忆系统完善
 
 ---
 
-## Project Layout
+## 项目目录结构
 
 ```text
 .
-├── front/                # React + Vite client
-│   ├── src/              # Pages, components, hooks, API helpers
-│   └── README.md         # Client-specific notes
-├── server/               # Fastify API server (ships with prebuilt dist/)
-│   ├── dist/             # Executable JavaScript entry (node dist/index.js)
-│   ├── server/src/       # TypeScript sources (memory manager, providers, etc.)
-│   └── .env.example      # Sample environment file
-├── PROCESS.md            # Migration / change log
-├── git-auto-push.bat     # Windows helper script for add/commit/push
-└── .gitignore            # Ignores node_modules, .env*, build artefacts, archives…
+├── front/                # React + Vite 客户端
+│   ├── src/              # 页面、组件、hooks、API 封装
+│   └── README.md         # 前端说明
+├── server/               # Fastify API 服务端（已包含 dist/ 可运行版）
+│   ├── dist/             # 编译后的 JS 入口（node dist/index.js）
+│   ├── server/src/       # TypeScript 源码（记忆管理、Provider等）
+│   └── .env.example      # 环境变量示例文件
+├── PROCESS.md            # 演进记录 / 变更日志
+├── git-auto-push.bat     # Windows 提交推送脚本
+└── .gitignore            # 忽略 node_modules、.env*、构建产物等
 ```
 
 ---
 
-## Conversation Memory Overview
+## 对话记忆系统概览
 
-- **Short-term buffer**: the back-end keeps the latest turns (configurable via `MEMORY_MAX_HISTORY`).
-- **Rolling summary**: every few turns (defaults to 6) the server asks the provider to condense the dialogue, keeping long-running chats concise.
-- **Vector recall**: user statements that look factual are embedded and stored; the next request retrieves the most relevant facts before generating a reply.
-- **Session tracking**: the front-end now generates a `sessionId` per chat window so the server can tie memory to a single conversation.
-- **持久化存储**: 默认写入 `server_data/memory` 目录，可通过 `MEMORY_STORE_DIR` 指定，服务重启后仍可恢复会话上下文。
-- **Config knobs** (all optional, in `server/.env`):
-  ```ini
-  MEMORY_MAX_HISTORY=8        # most recent messages injected verbatim
-  MEMORY_VECTOR_K=3           # similar facts pulled from vector store
-  MEMORY_VECTOR_LIMIT=40      # cap for stored facts per session
-  MEMORY_SUMMARY_INTERVAL=6   # how often to refresh the summary
-  MEMORY_MIN_FACT_LENGTH=16   # heuristic gate before persisting a fact
-  MEMORY_STORE_DIR=server_data/memory  # default on-disk store location
-  ```
+* **短期历史缓存**：后端保留最近几轮对话（`MEMORY_MAX_HISTORY`）
+* **滚动摘要**：每隔数条对话（默认6条）生成一次摘要，减轻上下文长度
+* **向量召回**：识别可能的事实陈述，向量化并写入磁盘，需要时检索最相关的信息
+* **会话追踪**：前端为每个聊天窗口生成 sessionId 对话上下文独立
+* **持久化存储**：默认写入 `server_data/memory`，重启服务可恢复
+* **可调参数**（可在 `server/.env` 配置）
 
-The memory manager lives in `server/server/src/memory/conversationMemory.ts` (with compiled JS under `server/dist/memory/`).
-
----
-
-## Environment Setup
-
-### 1. Install dependencies
-```bash
-pnpm install            # installs both front/ and server/ packages
-```
-
-### 2. Server configuration (`server/.env`)
 ```ini
-PROVIDER=doubao               # or openai/mock, depending on credentials
+MEMORY_MAX_HISTORY=8
+MEMORY_VECTOR_K=3
+MEMORY_VECTOR_LIMIT=40
+MEMORY_SUMMARY_INTERVAL=6
+MEMORY_MIN_FACT_LENGTH=16
+MEMORY_STORE_DIR=server_data/memory
+```
+
+记忆管理核心逻辑位于：
+`server/server/src/memory/conversationMemory.ts`
+编译版对应：
+`server/dist/memory/`
+
+---
+
+## 环境配置
+
+### 1️⃣ 安装依赖
+
+```bash
+pnpm install    # 同时安装前端/后端依赖
+```
+
+### 2️⃣ 配置后端环境变量（`server/.env`）
+
+```ini
+PROVIDER=doubao                 # 或 openai/mock
 DOUBAO_API_KEY=your-secret
 PORT=8302
-# optional proxy settings
+# 可选代理设置
 HTTP_PROXY=http://127.0.0.1:33210
 HTTPS_PROXY=http://127.0.0.1:33210
 ALL_PROXY=socks5://127.0.0.1:33211
-# optional memory tuning (see table above)
+# 可选记忆调参
 MEMORY_MAX_HISTORY=8
 MEMORY_VECTOR_K=3
 MEMORY_STORE_DIR=server_data/memory
 ```
 
-### 3. Front-end configuration (`front/.env.local`)
+### 3️⃣ 配置前端环境变量（`front/.env.local`）
+
 ```ini
 VITE_API_BASE=http://localhost:8302
 ```
 
 ---
 
-## Running the demo
+## 运行方式
 
-### Back-end
+### 后端服务
+
 ```bash
-pnpm --filter ./server install   # ensure dependencies are present
-pnpm --filter ./server dev       # build + run (node dist/index.js)
-# or: node server/dist/index.js  # if you only need the runtime
+pnpm --filter ./server install
+pnpm --filter ./server dev
+# 或直接执行编译产物
+node server/dist/index.js
 ```
-The server logs `Server running at http://localhost:8302` when ready.
 
-### Front-end
+控制台输出 `Server running at http://localhost:8302` 即启动成功。
+
+### 前端服务
+
 ```bash
 cd front
 pnpm install
-pnpm dev                         # default port 3000 (Vite will bump if taken)
+pnpm dev
 ```
-Open the displayed URL to try the new chat experience with streaming Markdown, copy buttons, and memory-aware responses.
+
+浏览器打开提示 URL，即可体验：
+✅ Markdown 流式输出
+✅ 复制按钮
+✅ 记忆增强回复
 
 ---
 
-## Troubleshooting Cheatsheet
+## 常见问题排查
 
-| Symptom | What to check |
-| --- | --- |
-| Replies fall back to “示例答案” | Provider call failed—inspect the Fastify console for Doubao errors, proxy issues, or missing API key. |
-| Front-end 404/500 | Confirm `VITE_API_BASE` still points at the correct server origin. |
-| Sensitive values in git status | `.gitignore` already excludes `.env*`; avoid forcing them with `git add --force`. |
-| Windows build script errors | `pnpm build` uses `rm`; run in a Unix shell or swap for `rimraf`. |
-
----
-
-## Git Tips
-
-- This repo is already initialised in `D:\AI_agent_project1` and pushes to `https://github.com/applehaoge/ChenghaoSpace`.
-- Secrets remain local thanks to `.gitignore` rules.
-- `git-auto-push.bat` prompts for a commit message and pushes main for you.
-- The old `chenghaoSpace/` folder stays untracked as a backup reference.
+| 问题表现                  | 排查方向                                |
+| --------------------- | ----------------------------------- |
+| 返回“示例答案”              | 后端 Provider 调用失败，检查 API Key、代理、网络   |
+| 前端 404/500            | 确认 `VITE_API_BASE` 指向正确后端地址         |
+| `.env` 出现在 git status | `.gitignore` 已排除，勿强制提交              |
+| Windows 构建报错          | `rm` 脚本需在 Unix Shell 执行或改用 `rimraf` |
 
 ---
 
-## Next Steps
+## Git 说明
 
-- If you want full TypeScript builds, point `server/tsconfig.json` at `server/server/src` and wire an npm script.
-- Hook real data/task APIs into `aiService` once the demo graduates from mock content.
-- Extend the memory manager with persistence (Redis, Postgres + pgvector, etc.) or add per-user personas.
+* 仓库路径：`D:\AI_agent_project1` → push 到 `github.com/applehaoge/ChenghaoSpace`
+* `.gitignore` 已保护 `.env*` 等敏感内容
+* `git-auto-push.bat` 自动执行 add / commit / push
+* 原有 `chenghaoSpace/` 文件夹保留作备份
 
-Enjoy the upgraded conversation flow and feel free to extend it further! 💬
+---
+
+## 后续规划
+
+* 完整 TypeScript 构建流程配置
+* 对接真实数据 / 任务型 API 替换 mock 内容
+* 扩展记忆后端（Redis/pgvector 等）
+* 支持多用户配置、人格设定
+
+欢迎体验并继续扩展对话流程！💬
 
 ---
 
 ## 工作流程约定
 
-- **每完成一个功能步骤，先更新 `progress.md`**：把当次的实现细节、遗留问题和下一步计划记录进去，再继续后续开发。
+* **每完成一个功能步骤，优先更新 `progress.md`**
+  记录实现细节 / 遗留问题 / 下一步计划
+  再继续后续开发，
+
+
