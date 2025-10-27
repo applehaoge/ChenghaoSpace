@@ -44,10 +44,9 @@ export default function Home() {
   const [scale, setScale] = useState(1);
 
   const handleCreateNewTask = useCallback(async () => {
+    const loadingToast = toast.loading('正在开启新聊天...');
     try {
-      const loadingToast = toast.loading('正在开启新聊天...');
       const response = await aiService.createNewTask('general', '');
-      toast.dismiss(loadingToast);
 
       if (response.success && response.taskId) {
         const icons = ['lightbulb', 'edit', 'file', 'clipboard', 'calendar', 'list-check', 'target'];
@@ -92,6 +91,8 @@ export default function Home() {
     } catch (error) {
       console.error('开启新聊天失败:', error);
       toast.error('开启新聊天时发生错误');
+    } finally {
+      toast.dismiss(loadingToast);
     }
   }, []);
 
