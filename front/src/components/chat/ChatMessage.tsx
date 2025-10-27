@@ -1,0 +1,185 @@
+import { useMemo } from 'react';
+import ReactMarkdown from 'react-markdown';
+import type { Components } from 'react-markdown';
+import type { ReactNode } from 'react';
+import remarkGfm from 'remark-gfm';
+import { toast } from 'sonner';
+import type { ChatBubble } from '@/pages/home/types';
+import { MessageAttachments } from './MessageAttachments';
+
+type ChatMessageProps = {
+  message: ChatBubble;
+  onCopy: (content: string) => void;
+};
+
+const markdownComponents: Components = {
+  h1: ({ children, ...props }) => (
+    <h1 className="text-lg font-semibold mb-2" {...props}>
+      {children}
+    </h1>
+  ),
+  h2: ({ children, ...props }) => (
+    <h2 className="text-base font-semibold mb-2" {...props}>
+      {children}
+    </h2>
+  ),
+  h3: ({ children, ...props }) => (
+    <h3 className="text-sm font-semibold mb-2" {...props}>
+      {children}
+    </h3>
+  ),
+  p: ({ children, ...props }) => (
+    <p className="mb-2 leading-relaxed" {...props}>
+      {children}
+    </p>
+  ),
+  ul: ({ children, ...props }) => (
+    <ul className="mb-2 list-disc pl-5 space-y-1" {...props}>
+      {children}
+    </ul>
+  ),
+  ol: ({ children, ...props }) => (
+    <ol className="mb-2 list-decimal pl-5 space-y-1" {...props}>
+      {children}
+    </ol>
+  ),
+  li: ({ children, ...props }) => (
+    <li className="leading-relaxed" {...props}>
+      {children}
+    </li>
+  ),
+  strong: ({ children, ...props }) => (
+    <strong className="font-semibold" {...props}>
+      {children}
+    </strong>
+  ),
+  code: ({
+    inline,
+    className,
+    children,
+  }: {
+    inline?: boolean;
+    className?: string;
+    children?: ReactNode;
+  }) => {
+    if (inline) {
+      return <code className="px-1 py-0.5 bg-gray-100 rounded text-sm">{children}</code>;
+    }
+
+    const raw = Array.isArray(children) ? children.join('') : String(children ?? '');
+    const codeText = raw.replace(/\s+$/, '');
+    const languageClass = typeof className === 'string' ? className : '';
+
+    const handleCopy = async () => {
+      try {
+        if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+          await navigator.clipboard.writeText(codeText);
+        } else if (typeof document !== 'undefined') {
+          const textarea = document.createElement('textarea');
+          textarea.value = codeText;
+          document.body.appendChild(textarea);
+          textarea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textarea);
+        } else {
+          throw new Error('clipboard unavailable');
+        }
+        toast.success('已复制代码');
+      } catch (error) {
+        console.error('复制代码失败:', error);
+        toast.error('复制失败，请手动复制');
+      }
+    };
+
+    return (
+      <div className="relative mb-2 group">
+        <pre className="rounded-lg bg-gray-900 text-gray-100 p-3 pr-12 overflow-auto text-sm">
+          <code className={languageClass}>{children}</code>
+        </pre>
+        <button
+          type="button"
+          className="absolute top-2 right-2 rounded-md border border-gray-700 bg-gray-800/80 text-gray-200 px-2 py-1 text-xs opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+          onClick={handleCopy}
+          aria-label="复制代码"
+        >
+          <i className="fas fa-copy"></i>
+        </button>
+      </div>
+    );
+  },
+};
+
+export function ChatMessage({ message, onCopy }: ChatMessageProps) {
+  const isUser = message.sender === 'user';
+  const attachments = message.attachments ?? [];
+
+  const alignment = useMemo(
+    () => ({
+      wrapper: isUser ? 'justify-end' : 'justify-start',
+      stack: isUser ? 'items-end' : 'items-start',
+      order: isUser ? 'order-1' : 'order-2',
+      avatarOrder: isUser ? 'order-3' : 'order-0',
+    }),
+    [isUser]
+  );
+
+  return (
+    <div className={`flex mb-6 ${alignment.wrapper}`}>
+      {!isUser && (
+        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+          <i className="fas fa-robot text-blue-500"></i>
+        </div>
+      )}
+      <div className={`max-w-[80%] ${alignment.order} flex flex-col ${alignment.stack} gap-3`}>
+        {attachments.length > 0 ? (
+          <MessageAttachments attachments={attachments} align={isUser ? 'right' : 'left'} />
+        ) : null}
+        <div className="group w-full">
+          <div
+            className={`relative rounded-lg ${
+              isUser
+                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                : 'bg-white border border-gray-200 text-gray-800'
+            } p-4`}
+          >
+            {message.sender === 'ai' ? (
+              <div className="text-sm leading-relaxed space-y-2">
+                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                  {message.content}
+                </ReactMarkdown>
+                {message.isStreaming && (
+                  <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
+                )}
+              </div>
+            ) : (
+              <div className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</div>
+            )}
+          </div>
+          <div
+            className={`flex mt-2 ${
+              isUser ? 'justify-end' : 'justify-start'
+            } opacity-0 group-hover:opacity-100 transition-opacity`}
+          >
+            <button
+              type="button"
+              className={`h-8 w-8 flex items-center justify-center rounded-md border ${
+                isUser
+                  ? 'border-blue-200 bg-white text-blue-600 hover:bg-blue-50 focus-visible:bg-blue-50'
+                  : 'border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700'
+              } shadow-sm text-sm transition-all duration-150`}
+              onClick={() => onCopy(message.content)}
+              aria-label="复制该条消息"
+            >
+              <i className="fas fa-copy text-base leading-none"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      {isUser && (
+        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 flex-shrink-0 order-3">
+          <i className="fas fa-user text-gray-600"></i>
+        </div>
+      )}
+    </div>
+  );
+}
