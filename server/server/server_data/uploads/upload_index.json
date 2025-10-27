@@ -61,5 +61,32 @@
     "mimeType": "image/jpeg",
     "size": 585937,
     "uploadedAt": "2025-10-27T05:28:35.865Z"
+  },
+  "b11b8685-0eb9-41ee-840e-564746945f12": {
+    "fileId": "b11b8685-0eb9-41ee-840e-564746945f12",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "b11b8685-0eb9-41ee-840e-564746945f12.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\b11b8685-0eb9-41ee-840e-564746945f12.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T06:25:47.519Z"
+  },
+  "1de99e8b-b383-46fe-aa80-6a319d2e2eea": {
+    "fileId": "1de99e8b-b383-46fe-aa80-6a319d2e2eea",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "1de99e8b-b383-46fe-aa80-6a319d2e2eea.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\1de99e8b-b383-46fe-aa80-6a319d2e2eea.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T06:30:28.192Z"
+  },
+  "19cb171a-999f-435b-8b27-528b14d19627": {
+    "fileId": "19cb171a-999f-435b-8b27-528b14d19627",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "19cb171a-999f-435b-8b27-528b14d19627.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\19cb171a-999f-435b-8b27-528b14d19627.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T06:32:58.443Z"
   }
 }

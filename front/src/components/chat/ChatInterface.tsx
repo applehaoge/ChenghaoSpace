@@ -8,6 +8,8 @@ import { aiService } from '@/api/aiService';
 import { AttachmentBadge, useFileUploader } from '@/components/attachments';
 import { createSessionId } from '@/pages/home/taskUtils';
 import type { ChatBubble, UploadedAttachment } from '@/pages/home/types';
+import { ChatMessage } from '@/components/chat/ChatMessage';
+
 
 export type ChatInterfaceProps = {
   conversationId: string;
@@ -292,7 +294,16 @@ export function ChatInterface({
           sources: response.sources,
           error: response.success ? undefined : response.error,
           isStreaming: true,
+          attachments: response.attachments?.map(att => ({
+            fileId: att.fileId,
+            name: att.name,
+            mimeType: att.mimeType,
+            size: att.size,
+            previewUrl: att.previewUrl || att.downloadUrl,
+            downloadUrl: att.downloadUrl,
+          })) ?? undefined,
         };
+
 
         updateConversationMessages(requestConversationId, prev => [...prev, assistantMessage]);
 
@@ -516,77 +527,83 @@ export function ChatInterface({
       </div>
 
       <div className="flex-1 overflow-y-auto p-5 bg-gray-50 chat-window min-h-0">
-        {messages.map(message => (
-          <div
-            key={message.id}
-            className={`flex mb-6 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
-            {message.sender === 'ai' && (
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
-                <i className="fas fa-robot text-blue-500"></i>
-              </div>
-            )}
+          {messages.map(message => (
             <div
-              className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'} group`}
+              key={message.id}
+              className={`flex mb-6 ${message.sender === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <div
-                className={`relative rounded-lg ${
-                  message.sender === 'user'
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
-                    : 'bg-white border border-gray-200 text-gray-800'
-                } p-4`}
-              >
-                {message.sender === 'ai' ? (
-                  <div className="text-sm leading-relaxed space-y-2">
-                    <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                      {message.content}
-                    </ReactMarkdown>
-                    {message.isStreaming && (
-                      <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
-                    )}
-                  </div>
-                ) : (
-                  <div className="whitespace-pre-wrap leading-relaxed text-sm">
-                    {message.content}
-                  </div>
-                )}
-              </div>
+              {/* AI 头像 */}
               {message.sender === 'ai' && (
-                <div className="flex mt-2">
-                  <button
-                    type="button"
-                    className="h-8 w-8 flex items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700 shadow-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
-                    onClick={() => handleCopy(message.content)}
-                    aria-label="复制该条消息"
-                  >
-                    <i className="fas fa-copy text-base leading-none"></i>
-                  </button>
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+                  <i className="fas fa-robot text-blue-500"></i>
                 </div>
               )}
-              {message.sender !== 'ai' && (
+
+              {/* 右侧内容区（头像除外） */}
+              <div
+                className={`max-w-[80%] ${message.sender === 'user' ? 'order-1' : 'order-2'} group flex flex-col gap-3`}
+              >
+
+                {/* ✅ 新增：附件展示，与气泡独立，不影响 Streaming */}
+                {message.attachments?.length ? (
+                  <MessageAttachments
+                    attachments={message.attachments}
+                    align={message.sender === 'user' ? 'right' : 'left'}
+                  />
+                ) : null}
+
+                {/* ✅ 气泡区域 */}
+                <div
+                  className={`relative rounded-lg ${
+                    message.sender === 'user'
+                      ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                      : 'bg-white border border-gray-200 text-gray-800'
+                  } p-4`}
+                >
+                  {message.sender === 'ai' ? (
+                    <div className="text-sm leading-relaxed space-y-2">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                        {message.content}
+                      </ReactMarkdown>
+                      {message.isStreaming && (
+                        <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</div>
+                  )}
+                </div>
+
+                {/* ✅复制按钮 */}
                 <div
                   className={`flex mt-2 ${
                     message.sender === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
+                  } opacity-0 group-hover:opacity-100 transition-opacity`}
                 >
                   <button
                     type="button"
-                    className="h-8 w-8 flex items-center justify-center rounded-md border border-blue-200 bg-white text-blue-600 hover:bg-blue-50 focus-visible:bg-blue-50 shadow-sm text-sm transition-all duration-150 opacity-0 group-hover:opacity-100 focus-visible:opacity-100"
+                    className={`h-8 w-8 flex items-center justify-center rounded-md border ${
+                      message.sender === 'user'
+                        ? 'border-blue-200 bg-white text-blue-600 hover:bg-blue-50'
+                        : 'border-gray-200 bg-white text-gray-500 hover:text-gray-700'
+                    } shadow-sm transition-all duration-150`}
                     onClick={() => handleCopy(message.content)}
                     aria-label="复制该条消息"
                   >
                     <i className="fas fa-copy text-base leading-none"></i>
                   </button>
                 </div>
+              </div>
+
+              {/* 用户头像 */}
+              {message.sender === 'user' && (
+                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 flex-shrink-0 order-3">
+                  <i className="fas fa-user text-gray-600"></i>
+                </div>
               )}
             </div>
-            {message.sender === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 flex-shrink-0 order-3">
-                <i className="fas fa-user text-gray-600"></i>
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+
 
         {isLoading && (
           <div className="flex justify-start mb-6">
