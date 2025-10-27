@@ -6,7 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
 import { AttachmentBadge, useFileUploader } from '@/components/attachments';
-import { createSessionId, normalizeMessages } from '@/pages/home/taskUtils';
+import { createSessionId } from '@/pages/home/taskUtils';
 import type { ChatBubble, UploadedAttachment } from '@/pages/home/types';
 
 export type ChatInterfaceProps = {
@@ -152,6 +152,11 @@ export function ChatInterface({
   const streamingTimersRef = useRef<Record<string, number>>({});
   const sessionIdRef = useRef<string>(sessionId ?? '');
   const lastConversationIdRef = useRef<string | null>(null);
+  const conversationIdRef = useRef(conversationId);
+  const messagesRegistryRef = useRef<Record<string, ChatBubble[]>>({
+    [conversationId]: initialMessages,
+  });
+  const currentMessagesRef = useRef<ChatBubble[]>(initialMessages);
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -172,6 +177,15 @@ export function ChatInterface({
     adjustTextareaHeight();
   }, [newMessage, adjustTextareaHeight]);
 
+  useEffect(() => {
+    conversationIdRef.current = conversationId;
+  }, [conversationId]);
+
+  useEffect(() => {
+    messagesRegistryRef.current[conversationId] = messages;
+    currentMessagesRef.current = messages;
+  }, [conversationId, messages]);
+
   const clearStreamingTimer = useCallback((id?: string) => {
     if (id) {
       const timer = streamingTimersRef.current[id];
@@ -185,6 +199,28 @@ export function ChatInterface({
     streamingTimersRef.current = {};
   }, []);
 
+  const updateConversationMessages = useCallback(
+    (
+      targetConversationId: string,
+      updater: (prev: ChatBubble[]) => ChatBubble[]
+    ) => {
+      const base =
+        targetConversationId === conversationIdRef.current
+          ? currentMessagesRef.current
+          : messagesRegistryRef.current[targetConversationId] ?? [];
+      const snapshot = [...base];
+      const nextMessages = updater(snapshot);
+      messagesRegistryRef.current[targetConversationId] = nextMessages;
+      if (targetConversationId === conversationIdRef.current) {
+        setMessages(nextMessages);
+        currentMessagesRef.current = nextMessages;
+      }
+      onConversationUpdate(targetConversationId, nextMessages);
+      return nextMessages;
+    },
+    [onConversationUpdate]
+  );
+
   const resetSession = useCallback(() => {
     const next = createSessionId();
     sessionIdRef.current = next;
@@ -192,12 +228,14 @@ export function ChatInterface({
   }, [conversationId, onSessionChange]);
 
   const startStreaming = useCallback(
-    (fullText: string, messageId: string) => {
+    (fullText: string, messageId: string, targetConversationId: string) => {
       clearStreamingTimer(messageId);
 
       if (!fullText) {
-        setMessages(prev =>
-          prev.map(msg => (msg.id === messageId ? { ...msg, content: '', isStreaming: false } : msg))
+        updateConversationMessages(targetConversationId, prev =>
+          prev.map(msg =>
+            msg.id === messageId ? { ...msg, content: '', isStreaming: false } : msg
+          )
         );
         return;
       }
@@ -211,7 +249,7 @@ export function ChatInterface({
         const nextContent = fullText.slice(0, index);
         const finished = index >= totalLength;
 
-        setMessages(prev =>
+        updateConversationMessages(targetConversationId, prev =>
           prev.map(msg =>
             msg.id === messageId ? { ...msg, content: nextContent, isStreaming: !finished } : msg
           )
@@ -229,16 +267,17 @@ export function ChatInterface({
         streamingTimersRef.current[messageId] = timer;
       }
     },
-    [clearStreamingTimer]
+    [clearStreamingTimer, updateConversationMessages]
   );
 
   const fetchAssistantReply = useCallback(
     async (userMessage: string, messageAttachments: UploadedAttachment[]) => {
       setIsLoading(true);
+      const requestConversationId = conversationId;
       try {
         const response = await aiService.sendAIRequest('聊天', userMessage, {
           sessionId: sessionIdRef.current,
-          conversationId,
+          conversationId: requestConversationId,
           userMessage,
           attachments: messageAttachments,
         });
@@ -255,11 +294,11 @@ export function ChatInterface({
           isStreaming: true,
         };
 
-        setMessages(prev => [...prev, assistantMessage]);
+        updateConversationMessages(requestConversationId, prev => [...prev, assistantMessage]);
 
         if (!response.success || !text) {
           clearStreamingTimer(assistantMessage.id);
-          setMessages(prev =>
+          updateConversationMessages(requestConversationId, prev =>
             prev.map(msg =>
               msg.id === assistantMessage.id
                 ? {
@@ -274,12 +313,12 @@ export function ChatInterface({
           return false;
         }
 
-        startStreaming(text, assistantMessage.id);
+        startStreaming(text, assistantMessage.id, requestConversationId);
         return true;
       } catch (error) {
         clearStreamingTimer();
         console.error('调用聊天接口失败:', error);
-        setMessages(prev => [
+        updateConversationMessages(requestConversationId, prev => [
           ...prev,
           {
             id: `msg_${Date.now()}_ai_error`,
@@ -295,7 +334,7 @@ export function ChatInterface({
         setIsLoading(false);
       }
     },
-    [conversationId, startStreaming, clearStreamingTimer]
+    [conversationId, startStreaming, clearStreamingTimer, updateConversationMessages]
   );
 
   const handleCopy = useCallback(async (content: string) => {
@@ -307,10 +346,6 @@ export function ChatInterface({
       toast.error('复制失败，请手动复制');
     }
   }, []);
-
-  useEffect(() => {
-    onConversationUpdate(conversationId, normalizeMessages(messages));
-  }, [conversationId, messages, onConversationUpdate]);
 
   useEffect(() => {
     scrollToBottom();
@@ -329,7 +364,9 @@ export function ChatInterface({
 
     lastConversationIdRef.current = conversationId;
     clearStreamingTimer();
+    messagesRegistryRef.current[conversationId] = initialMessages;
     setMessages(initialMessages);
+    currentMessagesRef.current = initialMessages;
     setNewMessage('');
     lastInitialMessageRef.current = { conversationId, message: null };
   }, [conversationId, clearStreamingTimer, initialMessages]);
@@ -369,7 +406,7 @@ export function ChatInterface({
       timestamp: new Date().toISOString(),
     };
     clearStreamingTimer();
-    setMessages([first]);
+    updateConversationMessages(conversationId, () => [first]);
     setNewMessage('');
     void fetchAssistantReply(trimmed, []);
   }, [
@@ -379,6 +416,7 @@ export function ChatInterface({
     clearStreamingTimer,
     resetSession,
     onInitialMessageHandled,
+    updateConversationMessages,
   ]);
 
   useEffect(() => {
@@ -423,8 +461,7 @@ export function ChatInterface({
       timestamp: new Date().toISOString(),
       attachments: completedAttachments.length ? completedAttachments : undefined,
     };
-    const nextConversation = [...messages, userBubble];
-    setMessages(nextConversation);
+    updateConversationMessages(conversationId, prev => [...prev, userBubble]);
     setNewMessage('');
     const succeeded = await fetchAssistantReply(trimmed, completedAttachments);
     if (succeeded) {
