@@ -43,5 +43,23 @@
     "mimeType": "text/plain",
     "size": 24,
     "uploadedAt": "2025-10-24T09:32:18.667Z"
+  },
+  "d1bcf928-7d55-4499-80fd-0bf375a68888": {
+    "fileId": "d1bcf928-7d55-4499-80fd-0bf375a68888",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "d1bcf928-7d55-4499-80fd-0bf375a68888.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\d1bcf928-7d55-4499-80fd-0bf375a68888.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T05:09:56.823Z"
+  },
+  "b8547beb-838e-448e-81d6-8cee83210b60": {
+    "fileId": "b8547beb-838e-448e-81d6-8cee83210b60",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "b8547beb-838e-448e-81d6-8cee83210b60.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\b8547beb-838e-448e-81d6-8cee83210b60.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-27T05:28:35.865Z"
   }
 }
