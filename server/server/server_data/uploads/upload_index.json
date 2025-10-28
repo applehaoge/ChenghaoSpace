@@ -160,5 +160,14 @@
     "mimeType": "image/jpeg",
     "size": 234437,
     "uploadedAt": "2025-10-28T06:22:38.738Z"
+  },
+  "641c9188-b0de-4dfd-ba88-2cae34ab92e6": {
+    "fileId": "641c9188-b0de-4dfd-ba88-2cae34ab92e6",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "641c9188-b0de-4dfd-ba88-2cae34ab92e6.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\641c9188-b0de-4dfd-ba88-2cae34ab92e6.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-28T08:18:11.980Z"
   }
 }

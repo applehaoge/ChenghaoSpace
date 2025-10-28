@@ -1,152 +1,40 @@
-﻿# ChenghaoSpace
+# ChenghaoSpace
 
-基于 Vite/React 的前端（`front/`）与 Fastify 后端（`server/`）的 AI Demo。
-最新迭代加入**分层对话记忆系统**：可以看到短期上下文、滚动摘要与语义检索召回是如何工作的。
+ChenghaoSpace 是一个结合 Fastify 后端与 Vite + React 前端的 AI 对话 Demo，当前提供多会话管理、会话记忆、文件上传与附件上下文分析等能力，适合演示企业级 AI 辅助工作流的基本形态。
 
-🚧 项目正在持续开发中
-✅ 已完成：聊天对话、文件上传、AI 回答
-📌 进行中：图片显示逻辑优化、记忆系统完善
+## 目录结构
 
----
+- front/：Vite + React 前端代码（页面、组件、hooks、API 封装）
+- server/：Fastify 后端服务（TypeScript，包含 provider、memory、upload 模块）
+- server_data/：会话与上传文件的默认持久化目录
+- PROCESS.md：前后端对接过程记录
+- progress.md：每日进度与手动验证清单
 
-## 项目目录结构
+## 核心能力
 
-```text
-.
-├── front/                # React + Vite 客户端
-│   ├── src/              # 页面、组件、hooks、API 封装
-│   └── README.md         # 前端说明
-├── server/               # Fastify API 服务端（已包含 dist/ 可运行版）
-│   ├── dist/             # 编译后的 JS 入口（node dist/index.js）
-│   ├── server/src/       # TypeScript 源码（记忆管理、Provider等）
-│   └── .env.example      # 环境变量示例文件
-├── PROCESS.md            # 演进记录 / 变更日志
-├── git-auto-push.bat     # Windows 提交推送脚本
-└── .gitignore            # 忽略 node_modules、.env*、构建产物等
-```
+1. 多会话隔离：前端维护任务列表与 sessionId，实现历史对话归档与切换。
+2. 会话记忆体系：后端支持短期上下文、向量检索与自动摘要，方便模型保留长期事实。
+3. 附件解析：文件上传后生成上下文片段，当前支持图片基础分析并可扩展到更多类型。
+4. 流式响应体验：前端气泡以流式方式渲染回答，同时处理超时、失败等公共效果。
+5. 本地持久化：会话、记忆、上传记录默认写入 server_data/，便于离线演示与追踪。
 
----
+## 快速开始
 
-## 对话记忆系统概览
+1. 安装依赖：在仓库根目录执行 pnpm install，必要时再执行 pnpm --filter ./server build。
+2. 配置后端：在 server/.env 内设置 provider 与密钥，可参考 server/.env.example。
+3. 配置前端：在 front/.env.local 指定后端地址，例如 VITE_API_BASE=http://localhost:8302。
+4. 启动服务： pnpm --filter ./server dev 启动后端，进入 front 目录执行 pnpm dev 启动前端。
 
-* **短期历史缓存**：后端保留最近几轮对话（`MEMORY_MAX_HISTORY`）
-* **滚动摘要**：每隔数条对话（默认6条）生成一次摘要，减轻上下文长度
-* **向量召回**：识别可能的事实陈述，向量化并写入磁盘，需要时检索最相关的信息
-* **会话追踪**：前端为每个聊天窗口生成 sessionId 对话上下文独立
-* **持久化存储**：默认写入 `server_data/memory`，重启服务可恢复
-* **可调参数**（可在 `server/.env` 配置）
+## 开发约定
 
-```ini
-MEMORY_MAX_HISTORY=8
-MEMORY_VECTOR_K=3
-MEMORY_VECTOR_LIMIT=40
-MEMORY_SUMMARY_INTERVAL=6
-MEMORY_MIN_FACT_LENGTH=16
-MEMORY_STORE_DIR=server_data/memory
-```
-
-记忆管理核心逻辑位于：
-`server/server/src/memory/conversationMemory.ts`
-编译版对应：
-`server/dist/memory/`
-
----
-
-## 环境配置
-
-### 1️⃣ 安装依赖
-
-```bash
-pnpm install    # 同时安装前端/后端依赖
-```
-
-### 2️⃣ 配置后端环境变量（`server/.env`）
-
-```ini
-PROVIDER=doubao                 # 或 openai/mock
-DOUBAO_API_KEY=your-secret
-PORT=8302
-# 可选代理设置
-HTTP_PROXY=http://127.0.0.1:33210
-HTTPS_PROXY=http://127.0.0.1:33210
-ALL_PROXY=socks5://127.0.0.1:33211
-# 可选记忆调参
-MEMORY_MAX_HISTORY=8
-MEMORY_VECTOR_K=3
-MEMORY_STORE_DIR=server_data/memory
-```
-
-### 3️⃣ 配置前端环境变量（`front/.env.local`）
-
-```ini
-VITE_API_BASE=http://localhost:8302
-```
-
----
-
-## 运行方式
-
-### 后端服务
-
-```bash
-pnpm --filter ./server install
-pnpm --filter ./server dev
-# 或直接执行编译产物
-node server/dist/index.js
-```
-
-控制台输出 `Server running at http://localhost:8302` 即启动成功。
-
-### 前端服务
-
-```bash
-cd front
-pnpm install
-pnpm dev
-```
-
-浏览器打开提示 URL，即可体验：
-✅ Markdown 流式输出
-✅ 复制按钮
-✅ 记忆增强回复
-
----
-
-## 常见问题排查
-
-| 问题表现                  | 排查方向                                |
-| --------------------- | ----------------------------------- |
-| 返回“示例答案”              | 后端 Provider 调用失败，检查 API Key、代理、网络   |
-| 前端 404/500            | 确认 `VITE_API_BASE` 指向正确后端地址         |
-| `.env` 出现在 git status | `.gitignore` 已排除，勿强制提交              |
-| Windows 构建报错          | `rm` 脚本需在 Unix Shell 执行或改用 `rimraf` |
-
----
-
-## Git 说明
-
-* 仓库路径：`D:\AI_agent_project1` → push 到 `github.com/applehaoge/ChenghaoSpace`
-* `.gitignore` 已保护 `.env*` 等敏感内容
-* `git-auto-push.bat` 自动执行 add / commit / push
-* 原有 `chenghaoSpace/` 文件夹保留作备份
-
----
+- 新能力默认通过 progress.md 记录验证步骤，便于回溯。
+- 优化现有功能时保持接口与交互兼容，不破坏既有体验。
+- 代码新增默认使用 TypeScript，并遵循 ESLint + Prettier 约定。
 
 ## 后续规划
 
-* 完整 TypeScript 构建流程配置
-* 对接真实数据 / 任务型 API 替换 mock 内容
-* 扩展记忆后端（Redis/pgvector 等）
-* 支持多用户配置、人格设定
+- 引入更加细粒度的测试用例，覆盖多会话、附件与记忆链路。
+- 接入更多模型提供商，并抽象 provider 能力以便扩展。
+- 优化当前缩放式布局，替换为真正的响应式适配方案。
 
-欢迎体验并继续扩展对话流程！💬
-
----
-
-## 工作流程约定
-
-* **每完成一个功能步骤，优先更新 `progress.md`**
-  记录实现细节 / 遗留问题 / 下一步计划
-  再继续后续开发，
-
-
+欢迎提供建议或贡献代码，一起把 Demo 打磨到可投简历的水平。
