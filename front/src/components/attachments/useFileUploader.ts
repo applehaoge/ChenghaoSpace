@@ -68,19 +68,32 @@ export function useFileUploader(): UseFileUploaderResult {
     }
 
     setAttachments(prev =>
-      prev.map(item =>
-        item.id === attachmentId
-          ? {
-              ...item,
-              status: 'done',
-              name: result.fileName || item.name,
-              size: result.size ?? item.size,
-              mimeType: result.mimeType || item.mimeType,
-              fileId: result.fileId,
-              downloadUrl: result.downloadUrl || result.url,
-            }
-          : item
-      )
+      prev.map(item => {
+        if (item.id !== attachmentId) return item;
+
+        const remoteUrl = result.downloadUrl || result.url;
+        const next = {
+          ...item,
+          status: 'done' as const,
+          name: result.fileName || item.name,
+          size: result.size ?? item.size,
+          mimeType: result.mimeType || item.mimeType,
+          fileId: result.fileId,
+          downloadUrl: remoteUrl ?? item.downloadUrl,
+          publicPath: result.publicPath ?? item.publicPath,
+        };
+
+        if (remoteUrl && file.type.startsWith('image/')) {
+          if (item.previewUrl && item.previewUrl.startsWith('blob:') && item.previewUrl !== remoteUrl) {
+            URL.revokeObjectURL(item.previewUrl);
+          }
+          next.previewUrl = remoteUrl;
+        } else if (!next.previewUrl && remoteUrl) {
+          next.previewUrl = remoteUrl;
+        }
+
+        return next;
+      })
     );
     toast.success(`${file.name} 上传成功`);
   }, []);

@@ -151,5 +151,14 @@
     "mimeType": "image/png",
     "size": 328621,
     "uploadedAt": "2025-10-28T03:24:35.370Z"
+  },
+  "15a42355-5631-49c4-9379-e0396c1365b4": {
+    "fileId": "15a42355-5631-49c4-9379-e0396c1365b4",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "15a42355-5631-49c4-9379-e0396c1365b4.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\15a42355-5631-49c4-9379-e0396c1365b4.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-28T06:22:38.738Z"
   }
 }

@@ -4,7 +4,7 @@ import multipart from '@fastify/multipart';
 import fetch from 'node-fetch';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-import { createWriteStream } from 'node:fs';
+import { createReadStream, createWriteStream, existsSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { registerUpload } from './storage/uploadRegistry.js';
@@ -26,7 +26,16 @@ fastify.register(multipart, {
 const resolveUploadDirectory = () => {
   const customDir = process.env.UPLOAD_DIR;
   if (!customDir) {
-    return path.resolve(process.cwd(), 'server_data', 'uploads');
+    const cwd = process.cwd();
+    const primary = path.resolve(cwd, 'server_data', 'uploads');
+    if (existsSync(primary)) {
+      return primary;
+    }
+    const legacy = path.resolve(cwd, 'server', 'server_data', 'uploads');
+    if (existsSync(legacy)) {
+      return legacy;
+    }
+    return primary;
   }
   return path.isAbsolute(customDir) ? customDir : path.resolve(process.cwd(), customDir);
 };
@@ -292,6 +301,13 @@ fastify.post('/api/upload', async (request, reply) => {
       uploadedAt: new Date().toISOString(),
     });
 
+    const publicPath = `/uploads/${storedName}`;
+    const hostHeader =
+      (request.headers['x-forwarded-host'] as string | undefined) || (request.headers.host as string | undefined);
+    const protoHeader =
+      (request.headers['x-forwarded-proto'] as string | undefined) || (request.protocol as string | undefined) || 'http';
+    const absoluteUrl = hostHeader ? `${protoHeader}://${hostHeader}${publicPath}` : publicPath;
+
     return reply.send({
       success: true,
       fileId,
@@ -299,13 +315,54 @@ fastify.post('/api/upload', async (request, reply) => {
       mimeType: multipartFile.mimetype,
       size: stats.size,
       path: path.relative(process.cwd(), destinationPath).replace(/\\/g, '/'),
-      url: null,
+      url: absoluteUrl,
+      downloadUrl: absoluteUrl,
+      publicPath,
     });
   } catch (err) {
     await fs.rm(destinationPath, { force: true }).catch(() => {});
     request.log.error({ err }, '文件上传失败');
     return reply.code(500).send({ success: false, error: '文件保存失败，请稍后重试' });
   }
+});
+
+const mimeTypeMap: Record<string, string> = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+  '.pdf': 'application/pdf',
+};
+
+fastify.get('/uploads/:fileName', async (request, reply) => {
+  const { fileName } = request.params as { fileName: string };
+  const normalized = path.normalize(fileName).replace(/^(\.\.(\/|\\|$))+/, '');
+  const uploadRoots = [path.resolve(uploadDirectory)];
+  const legacyRoot = path.resolve(process.cwd(), 'server', 'server_data', 'uploads');
+
+  if (legacyRoot.toLowerCase() !== uploadRoots[0].toLowerCase() && existsSync(legacyRoot)) {
+    uploadRoots.push(legacyRoot);
+  }
+
+  for (const root of uploadRoots) {
+    const candidatePath = path.resolve(root, normalized);
+    if (!candidatePath.toLowerCase().startsWith(root.toLowerCase())) {
+      continue;
+    }
+    try {
+      await fs.access(candidatePath);
+      const ext = path.extname(candidatePath).toLowerCase();
+      const mimeType = mimeTypeMap[ext] ?? 'application/octet-stream';
+      reply.type(mimeType);
+      return reply.send(createReadStream(candidatePath));
+    } catch {
+      continue;
+    }
+  }
+
+  return reply.code(404).send({ error: 'File not found' });
 });
 
 // Existing embed endpoint

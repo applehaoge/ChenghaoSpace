@@ -1,4 +1,56 @@
-import type { ChatBubble, TaskConversation } from './types';
+import type { ChatBubble, TaskConversation, UploadedAttachment } from './types';
+
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://localhost:8302';
+
+const toAbsoluteUrl = (raw?: string | null) => {
+  if (!raw) return undefined;
+  if (/^(blob:|data:)/i.test(raw)) return raw;
+  if (/^https?:\/\//i.test(raw)) return raw;
+  if (raw.startsWith('//')) {
+    return `http:${raw}`;
+  }
+  try {
+    return new URL(raw, API_BASE).toString();
+  } catch (error) {
+    console.warn('无法解析附件 URL，保留原值:', raw, error);
+    return raw;
+  }
+};
+
+const normalizeAttachment = (attachment: UploadedAttachment): UploadedAttachment => {
+  const existingDownload = toAbsoluteUrl(attachment.downloadUrl) || toAbsoluteUrl(attachment.previewUrl);
+  let resolvedUrl = existingDownload;
+
+  if (!resolvedUrl && attachment.fileId) {
+    const name = attachment.name || '';
+    const match = name.match(/(\.[a-zA-Z0-9]+)$/);
+    const extension = match ? match[1].toLowerCase() : '';
+    if (extension) {
+      resolvedUrl = `${API_BASE}/uploads/${attachment.fileId}${extension}`;
+    }
+  }
+
+  if (!resolvedUrl && attachment.publicPath) {
+    resolvedUrl = toAbsoluteUrl(attachment.publicPath);
+  }
+
+  if (!resolvedUrl && attachment.fileId) {
+    resolvedUrl = `${API_BASE}/uploads/${attachment.fileId}`;
+  }
+
+  const next: UploadedAttachment = {
+    ...attachment,
+    downloadUrl: resolvedUrl || attachment.downloadUrl,
+  };
+
+  if (resolvedUrl) {
+    if (!next.previewUrl || next.previewUrl.startsWith('blob:')) {
+      next.previewUrl = resolvedUrl;
+    }
+  }
+
+  return next;
+};
 
 export const TASK_STORAGE_KEY = 'chspace_tasks_v1';
 
@@ -10,6 +62,9 @@ export const normalizeMessages = (messages: ChatBubble[]): ChatBubble[] =>
     ...message,
     timestamp: message.timestamp || new Date().toISOString(),
     isStreaming: message.isStreaming ? false : message.isStreaming,
+    attachments: Array.isArray(message.attachments)
+      ? message.attachments.map(normalizeAttachment)
+      : message.attachments,
   }));
 
 export const loadStoredTasks = (): TaskConversation[] => {

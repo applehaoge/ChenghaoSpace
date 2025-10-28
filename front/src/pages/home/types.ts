@@ -5,6 +5,7 @@ export type UploadedAttachment = {
   size: number;
   previewUrl?: string;
   downloadUrl?: string;
+  publicPath?: string;
 };
 
 export type ChatBubble = {

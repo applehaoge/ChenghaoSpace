@@ -201,6 +201,7 @@ export function ChatInterface({
             size: att.size,
             previewUrl: att.previewUrl || att.downloadUrl,
             downloadUrl: att.downloadUrl || att.previewUrl,
+            publicPath: att.publicPath,
           })) ?? undefined,
         };
 
@@ -355,6 +356,7 @@ export function ChatInterface({
         size: item.size,
         previewUrl: item.previewUrl || item.downloadUrl,
         downloadUrl: item.downloadUrl || item.previewUrl,
+        publicPath: item.publicPath,
       }));
 
     const hasInvalidMetadata = chatAttachments.some(

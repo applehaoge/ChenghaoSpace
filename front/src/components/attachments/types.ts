@@ -10,4 +10,5 @@ export type FileAttachment = {
   previewUrl?: string;
   fileId?: string;
   downloadUrl?: string;
+  publicPath?: string;
 };
