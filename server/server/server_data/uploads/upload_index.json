@@ -106,5 +106,23 @@
     "mimeType": "image/jpeg",
     "size": 585937,
     "uploadedAt": "2025-10-28T02:38:53.594Z"
+  },
+  "05bd2b9c-f243-4ce1-81fb-2303a65f3d71": {
+    "fileId": "05bd2b9c-f243-4ce1-81fb-2303a65f3d71",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "05bd2b9c-f243-4ce1-81fb-2303a65f3d71.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\05bd2b9c-f243-4ce1-81fb-2303a65f3d71.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-28T03:10:32.770Z"
+  },
+  "c4692c62-c4ee-4518-96a4-184dfb408f38": {
+    "fileId": "c4692c62-c4ee-4518-96a4-184dfb408f38",
+    "originalName": "00001-871264734-score_9,score_8_up,score_7_up,8k,red background,1girl,solo,,ruanyi0712,floral print,white kimono,obijime,_lora_0712 kimono_v1_po.png",
+    "storedName": "c4692c62-c4ee-4518-96a4-184dfb408f38.png",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\c4692c62-c4ee-4518-96a4-184dfb408f38.png",
+    "mimeType": "image/png",
+    "size": 1099305,
+    "uploadedAt": "2025-10-28T03:14:19.329Z"
   }
 }

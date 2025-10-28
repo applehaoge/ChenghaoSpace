@@ -121,6 +121,8 @@ export function ChatMessage({
 }: ChatMessageProps) {
   const isUser = message.sender === 'user';
   const attachments = message.attachments ?? EMPTY_ATTACHMENTS;
+  const hasTextContent = typeof message.content === 'string' && message.content.trim().length > 0;
+  const showBubble = hasTextContent || Boolean(message.isStreaming);
 
   const alignment = useMemo(
     () => ({
@@ -154,46 +156,54 @@ export function ChatMessage({
       )}
       <div className={`max-w-[80%] ${alignment.order} flex flex-col ${alignment.stack} gap-3`}>
         {attachmentsNode}
-        <div className="group w-full">
+        {showBubble ? (
           <div
-            className={`relative rounded-lg ${
-              isUser
-                ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
-                : 'bg-white border border-gray-200 text-gray-800'
-            } p-4`}
+            className={`group flex flex-col gap-2 max-w-full ${
+              isUser ? 'self-end items-end' : 'self-start items-start'
+            }`}
           >
-            {message.sender === 'ai' ? (
-              <div className="text-sm leading-relaxed space-y-2">
-                <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                  {message.content}
-                </ReactMarkdown>
-                {message.isStreaming && (
-                  <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
-                )}
-              </div>
-            ) : (
-              <div className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</div>
-            )}
-          </div>
-          <div
-            className={`flex mt-2 ${
-              isUser ? 'justify-end' : 'justify-start'
-            } opacity-0 group-hover:opacity-100 transition-opacity`}
-          >
-            <button
-              type="button"
-              className={`h-8 w-8 flex items-center justify-center rounded-md border ${
+            <div
+              className={`relative inline-flex max-w-full rounded-lg ${
                 isUser
-                  ? 'border-blue-200 bg-white text-blue-600 hover:bg-blue-50 focus-visible:bg-blue-50'
-                  : 'border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700'
-              } shadow-sm text-sm transition-all duration-150`}
-              onClick={() => onCopy(message.content)}
-              aria-label="复制该条消息"
+                  ? 'bg-gradient-to-r from-blue-500 to-indigo-500 text-white'
+                  : 'bg-white border border-gray-200 text-gray-800'
+              } p-4`}
             >
-              <i className="fas fa-copy text-base leading-none"></i>
-            </button>
+              {message.sender === 'ai' ? (
+                <div className="text-sm leading-relaxed space-y-2">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                    {message.content}
+                  </ReactMarkdown>
+                  {message.isStreaming && (
+                    <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
+                  )}
+                </div>
+              ) : (
+                <div className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</div>
+              )}
+            </div>
+            {hasTextContent ? (
+              <div
+                className={`flex mt-2 ${
+                  isUser ? 'justify-end self-end' : 'justify-start self-start'
+                } opacity-0 group-hover:opacity-100 transition-opacity`}
+              >
+                <button
+                  type="button"
+                  className={`h-8 w-8 flex items-center justify-center rounded-md border ${
+                    isUser
+                      ? 'border-blue-200 bg-white text-blue-600 hover:bg-blue-50 focus-visible:bg-blue-50'
+                      : 'border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700'
+                  } shadow-sm text-sm transition-all duration-150`}
+                  onClick={() => onCopy(message.content)}
+                  aria-label="复制该条消息"
+                >
+                  <i className="fas fa-copy text-base leading-none"></i>
+                </button>
+              </div>
+            ) : null}
           </div>
-        </div>
+        ) : null}
       </div>
       {isUser && (
         <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center ml-2 flex-shrink-0 order-3">
