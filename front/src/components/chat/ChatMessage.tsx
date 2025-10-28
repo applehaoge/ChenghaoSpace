@@ -4,12 +4,16 @@ import type { Components } from 'react-markdown';
 import type { ReactNode } from 'react';
 import remarkGfm from 'remark-gfm';
 import { toast } from 'sonner';
-import type { ChatBubble } from '@/pages/home/types';
+import type { ChatBubble, UploadedAttachment } from '@/pages/home/types';
 import { MessageAttachments } from './MessageAttachments';
+
+const EMPTY_ATTACHMENTS: UploadedAttachment[] = [];
 
 type ChatMessageProps = {
   message: ChatBubble;
   onCopy: (content: string) => void;
+  onAttachmentPreview?: (attachment: UploadedAttachment) => void;
+  onAttachmentDownload?: (attachment: UploadedAttachment) => void;
 };
 
 const markdownComponents: Components = {
@@ -109,9 +113,14 @@ const markdownComponents: Components = {
   },
 };
 
-export function ChatMessage({ message, onCopy }: ChatMessageProps) {
+export function ChatMessage({
+  message,
+  onCopy,
+  onAttachmentPreview,
+  onAttachmentDownload,
+}: ChatMessageProps) {
   const isUser = message.sender === 'user';
-  const attachments = message.attachments ?? [];
+  const attachments = message.attachments ?? EMPTY_ATTACHMENTS;
 
   const alignment = useMemo(
     () => ({
@@ -123,6 +132,19 @@ export function ChatMessage({ message, onCopy }: ChatMessageProps) {
     [isUser]
   );
 
+  const attachmentsNode = useMemo(
+    () =>
+      attachments.length > 0 ? (
+        <MessageAttachments
+          attachments={attachments}
+          align={isUser ? 'right' : 'left'}
+          onPreview={onAttachmentPreview}
+          onDownload={onAttachmentDownload}
+        />
+      ) : null,
+    [attachments, isUser, onAttachmentPreview, onAttachmentDownload]
+  );
+
   return (
     <div className={`flex mb-6 ${alignment.wrapper}`}>
       {!isUser && (
@@ -131,9 +153,7 @@ export function ChatMessage({ message, onCopy }: ChatMessageProps) {
         </div>
       )}
       <div className={`max-w-[80%] ${alignment.order} flex flex-col ${alignment.stack} gap-3`}>
-        {attachments.length > 0 ? (
-          <MessageAttachments attachments={attachments} align={isUser ? 'right' : 'left'} />
-        ) : null}
+        {attachmentsNode}
         <div className="group w-full">
           <div
             className={`relative rounded-lg ${

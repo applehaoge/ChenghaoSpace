@@ -8,13 +8,43 @@ import {
 type MessageAttachmentsProps = {
   attachments: UploadedAttachment[];
   align: 'left' | 'right';
+  onPreview?: (attachment: UploadedAttachment) => void;
+  onDownload?: (attachment: UploadedAttachment) => void;
 };
 
-export function MessageAttachments({ attachments, align }: MessageAttachmentsProps) {
+export function MessageAttachments({
+  attachments,
+  align,
+  onPreview,
+  onDownload,
+}: MessageAttachmentsProps) {
   if (!attachments.length) return null;
 
   const containerAlignment =
     align === 'right' ? 'items-end text-right' : 'items-start text-left';
+  const itemAlignmentClass = align === 'right' ? 'self-end' : 'self-start';
+
+  const handlePreview = (attachment: UploadedAttachment) => {
+    if (onPreview) {
+      onPreview(attachment);
+      return;
+    }
+    const targetUrl = attachment.previewUrl || attachment.downloadUrl;
+    if (targetUrl && typeof window !== 'undefined') {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const handleDownload = (attachment: UploadedAttachment) => {
+    if (onDownload) {
+      onDownload(attachment);
+      return;
+    }
+    const targetUrl = attachment.downloadUrl || attachment.previewUrl;
+    if (targetUrl && typeof window !== 'undefined') {
+      window.open(targetUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <div className={`flex flex-col gap-3 w-full ${containerAlignment}`}>
@@ -23,42 +53,49 @@ export function MessageAttachments({ attachments, align }: MessageAttachmentsPro
         const visual = getAttachmentVisual(attachment.mimeType, attachment.name);
         const href = attachment.downloadUrl || attachment.previewUrl;
         const sizeText = attachment.size ? formatFileSize(attachment.size) : undefined;
-
-        if (category === 'image' && attachment.previewUrl) {
-          return (
-            <div
-              key={attachment.fileId || attachment.downloadUrl || attachment.previewUrl || attachment.name}
-              className="w-full max-w-[280px] rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden"
-            >
-              <img
-                src={attachment.previewUrl}
-                alt={attachment.name}
-                className="w-full h-full max-h-[340px] object-contain bg-gray-50"
-                loading="lazy"
-              />
-            </div>
-          );
-        }
-
-        const card = (
-          <div
-            className="w-full max-w-[280px] rounded-2xl border border-gray-200 bg-white shadow-sm px-4 py-3 flex items-center gap-3 hover:shadow-md transition-shadow"
-          >
+        const sharedCardClass =
+          'w-full max-w-[280px] rounded-2xl border border-gray-200 bg-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-shadow hover:shadow-md cursor-pointer';
+        const cardBody = (
+          <div className="px-4 py-3 flex items-center gap-3 text-left">
             <div
               className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white ${visual.accentClass} flex-shrink-0`}
             >
               <i className={`${visual.icon} text-lg`}></i>
             </div>
-            <div className="min-w-0 flex-1 text-left">
+            <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-gray-800 truncate">{attachment.name}</div>
               <div className="text-xs text-gray-500 flex items-center gap-2">
                 <span>{visual.label}</span>
-                {sizeText ? <span>· {sizeText}</span> : null}
+                {sizeText ? (
+                  <>
+                    <span aria-hidden="true">·</span>
+                    <span>{sizeText}</span>
+                  </>
+                ) : null}
               </div>
             </div>
             <i className="fas fa-arrow-up-right-from-square text-gray-400"></i>
           </div>
         );
+
+        if (category === 'image' && attachment.previewUrl) {
+          return (
+            <button
+              type="button"
+              key={attachment.fileId || attachment.downloadUrl || attachment.previewUrl || attachment.name}
+              onClick={() => handlePreview(attachment)}
+              className={`${sharedCardClass} ${itemAlignmentClass} overflow-hidden`}
+              aria-label={`预览图片 ${attachment.name}`}
+            >
+              <img
+                src={attachment.previewUrl}
+                alt={attachment.name}
+                className="w-full h-full max-h-[340px] object-contain"
+                loading="lazy"
+              />
+            </button>
+          );
+        }
 
         if (href) {
           return (
@@ -67,9 +104,12 @@ export function MessageAttachments({ attachments, align }: MessageAttachmentsPro
               href={href}
               target="_blank"
               rel="noopener noreferrer"
-              className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 rounded-2xl"
+              download={attachment.name}
+              onClick={() => onDownload?.(attachment)}
+              className={`${sharedCardClass} ${itemAlignmentClass}`}
+              aria-label={`下载或预览 ${attachment.name}`}
             >
-              {card}
+              {cardBody}
             </a>
           );
         }
@@ -77,9 +117,19 @@ export function MessageAttachments({ attachments, align }: MessageAttachmentsPro
         return (
           <div
             key={attachment.fileId || attachment.name}
-            className="w-full max-w-[280px]"
+            className={`${sharedCardClass} ${itemAlignmentClass}`}
+            role="button"
+            tabIndex={0}
+            onClick={() => handleDownload(attachment)}
+            onKeyDown={event => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                handleDownload(attachment);
+              }
+            }}
+            aria-label={`查看附件 ${attachment.name}`}
           >
-            {card}
+            {cardBody}
           </div>
         );
       })}

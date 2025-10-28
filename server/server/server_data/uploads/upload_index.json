@@ -88,5 +88,23 @@
     "mimeType": "image/jpeg",
     "size": 585937,
     "uploadedAt": "2025-10-27T06:32:58.443Z"
+  },
+  "f8a59434-7d30-440b-b85c-35bb8b89327d": {
+    "fileId": "f8a59434-7d30-440b-b85c-35bb8b89327d",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "f8a59434-7d30-440b-b85c-35bb8b89327d.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\f8a59434-7d30-440b-b85c-35bb8b89327d.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-28T02:38:15.200Z"
+  },
+  "9a82bc3f-5947-4b13-a7aa-f01dc2cb8ea9": {
+    "fileId": "9a82bc3f-5947-4b13-a7aa-f01dc2cb8ea9",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "9a82bc3f-5947-4b13-a7aa-f01dc2cb8ea9.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\9a82bc3f-5947-4b13-a7aa-f01dc2cb8ea9.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-28T02:38:53.594Z"
   }
 }
