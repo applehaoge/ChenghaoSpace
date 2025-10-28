@@ -174,7 +174,7 @@ export function useConversationController({
       setIsLoading(true);
       const requestConversationId = conversationIdRef.current;
       try {
-        const response = await aiService.sendAIRequest('\u804a\u5929', userMessage, {
+        const response = await aiService.sendAIRequest('聊天', userMessage, {
           sessionId: sessionIdRef.current,
           conversationId: requestConversationId,
           userMessage,
@@ -211,17 +211,13 @@ export function useConversationController({
               msg.id === assistantMessage.id
                 ? {
                     ...msg,
-                    content:
-                      response.error ||
-                      '\u62b1\u6b49\uff0c\u6682\u65f6\u65e0\u6cd5\u83b7\u53d6\u56de\u590d\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002',
+                    content: response.error || '抱歉，暂时无法获取回复，请稍后再试。',
                     isStreaming: false,
                   }
                 : msg
             )
           );
-          toast.error(
-            response.error || '\u83b7\u53d6\u56de\u590d\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5'
-          );
+          toast.error(response.error || '获取回复失败，请稍后再试');
           return false;
         }
 
@@ -229,21 +225,20 @@ export function useConversationController({
         return true;
       } catch (error) {
         clearStreamingTimer();
-        console.error('\u8c03\u7528\u5bf9\u8bdd\u63a5\u53e3\u5931\u8d25:', error);
+        console.error('调用对话接口失败:', error);
         updateConversationMessages(requestConversationId, prev =>
           prev.map(msg =>
             msg.isStreaming && msg.sender === 'ai'
               ? {
                   ...msg,
-                  content:
-                    '\u62b1\u6b49\uff0c\u8c03\u7528\u63a5\u53e3\u65f6\u51fa\u73b0\u5f02\u5e38\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002',
+                  content: '抱歉，调用接口时出现异常，请稍后再试。',
                   isStreaming: false,
                   error: (error as Error)?.message,
                 }
               : msg
           )
         );
-        toast.error('\u8c03\u7528\u540e\u7aef\u63a5\u53e3\u5931\u8d25');
+        toast.error('调用后端接口失败');
         return false;
       } finally {
         setIsLoading(false);
@@ -275,10 +270,10 @@ export function useConversationController({
   const handleCopy = useCallback(async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      toast.success('\u5df2\u590d\u5236\u5230\u526a\u5207\u677f');
+      toast.success('已复制到剪贴板');
     } catch (error) {
-      console.error('\u590d\u5236\u5931\u8d25:', error);
-      toast.error('\u590d\u5236\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u590d\u5236');
+      console.error('复制失败:', error);
+      toast.error('复制失败，请手动复制');
     }
   }, []);
 

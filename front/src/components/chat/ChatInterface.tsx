@@ -86,15 +86,15 @@ export function ChatInterface({
     const trimmed = composerValue.trim();
     if (!trimmed || isLoading) return;
     if (chatHasUploading) {
-      toast.info('\u8bf7\u7b49\u5f85\u6587\u4ef6\u4e0a\u4f20\u5b8c\u6210');
+      toast.info('请等待文件上传完成');
       return;
     }
     if (chatAttachments.some(item => item.status === 'error')) {
-      toast.error('\u8bf7\u5148\u79fb\u9664\u4e0a\u4f20\u5931\u8d25\u7684\u9644\u4ef6');
+      toast.error('请先移除上传失败的附件');
       return;
     }
     if (hasAttachmentMetadataIssue) {
-      toast.error('\u9644\u4ef6\u4fe1\u606f\u4e0d\u5b8c\u6574\uff0c\u8bf7\u91cd\u65b0\u4e0a\u4f20\u6587\u4ef6');
+      toast.error('附件信息不完整，请重新上传文件');
       return;
     }
 
@@ -118,7 +118,7 @@ export function ChatInterface({
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
         if (chatHasUploading) {
-          toast.info('\u8bf7\u7b49\u5f85\u6587\u4ef6\u4e0a\u4f20\u5b8c\u6210');
+          toast.info('请等待文件上传完成');
           return;
         }
         void handleSendMessage();
@@ -140,7 +140,7 @@ export function ChatInterface({
           <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" onClick={onBack}>
             <i className="fas fa-arrow-left text-gray-500"></i>
           </button>
-          <h2 className="text-lg font-medium text-gray-800">{title || 'AI\u5bf9\u8bdd\u52a9\u624b'}</h2>
+          <h2 className="text-lg font-medium text-gray-800">{title || 'AI对话助手'}</h2>
         </div>
         <div className="flex items-center gap-3">
           <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
@@ -219,7 +219,7 @@ export function ChatInterface({
             onKeyDown={handleKeyPress}
             onInput={adjustTextareaHeight}
             className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-            placeholder="\u6211\u60f3\u8bf4\u7684\u662f..."
+            placeholder="我想说的是…"
             rows={2}
             style={{ minHeight: 56, maxHeight: 220 }}
           />

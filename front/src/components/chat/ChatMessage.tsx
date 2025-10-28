@@ -88,10 +88,10 @@ const markdownComponents: Components = {
         } else {
           throw new Error('clipboard unavailable');
         }
-        toast.success('\u5df2\u590d\u5236\u4ee3\u7801');
+        toast.success('已复制代码');
       } catch (error) {
-        console.error('\u590d\u5236\u4ee3\u7801\u5931\u8d25:', error);
-        toast.error('\u590d\u5236\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u590d\u5236');
+        console.error('复制代码失败:', error);
+        toast.error('复制失败，请手动复制');
       }
     };
 
@@ -104,7 +104,7 @@ const markdownComponents: Components = {
           type="button"
           className="absolute top-2 right-2 rounded-md border border-gray-700 bg-gray-800/80 text-gray-200 px-2 py-1 text-xs opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
           onClick={handleCopy}
-          aria-label="\u590d\u5236\u4ee3\u7801"
+          aria-label="复制代码"
         >
           <i className="fas fa-copy"></i>
         </button>
@@ -196,7 +196,7 @@ export function ChatMessage({
                       : 'border-gray-200 bg-white text-gray-500 hover:text-gray-700 focus-visible:text-gray-700'
                   } shadow-sm text-sm transition-all duration-150`}
                   onClick={() => onCopy(message.content)}
-                  aria-label="\u590d\u5236\u8be5\u6761\u6d88\u606f"
+                  aria-label="复制该条消息"
                 >
                   <i className="fas fa-copy text-base leading-none"></i>
                 </button>
