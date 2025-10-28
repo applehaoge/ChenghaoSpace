@@ -24,12 +24,15 @@ export function MessageAttachments({
     align === 'right' ? 'items-end text-right' : 'items-start text-left';
   const itemAlignmentClass = align === 'right' ? 'self-end' : 'self-start';
 
+  const resolveUrl = (attachment: UploadedAttachment) =>
+    attachment.downloadUrl || attachment.previewUrl;
+
   const handlePreview = (attachment: UploadedAttachment) => {
     if (onPreview) {
       onPreview(attachment);
       return;
     }
-    const targetUrl = attachment.previewUrl || attachment.downloadUrl;
+    const targetUrl = resolveUrl(attachment);
     if (targetUrl && typeof window !== 'undefined') {
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
@@ -40,7 +43,7 @@ export function MessageAttachments({
       onDownload(attachment);
       return;
     }
-    const targetUrl = attachment.downloadUrl || attachment.previewUrl;
+    const targetUrl = resolveUrl(attachment);
     if (targetUrl && typeof window !== 'undefined') {
       window.open(targetUrl, '_blank', 'noopener,noreferrer');
     }
@@ -51,7 +54,7 @@ export function MessageAttachments({
       {attachments.map(attachment => {
         const category = detectAttachmentCategory(attachment.mimeType, attachment.name);
         const visual = getAttachmentVisual(attachment.mimeType, attachment.name);
-        const href = attachment.downloadUrl || attachment.previewUrl;
+        const href = resolveUrl(attachment);
         const sizeText = attachment.size ? formatFileSize(attachment.size) : undefined;
         const sharedCardClass =
           'w-full max-w-[280px] rounded-2xl border border-gray-200 bg-white shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 transition-shadow hover:shadow-md cursor-pointer';
@@ -78,17 +81,19 @@ export function MessageAttachments({
           </div>
         );
 
-        if (category === 'image' && attachment.previewUrl) {
+        const imageUrl = category === 'image' ? attachment.previewUrl || attachment.downloadUrl : null;
+
+        if (imageUrl) {
           return (
             <button
               type="button"
-              key={attachment.fileId || attachment.downloadUrl || attachment.previewUrl || attachment.name}
+              key={attachment.fileId || href || attachment.name}
               onClick={() => handlePreview(attachment)}
               className={`${sharedCardClass} ${itemAlignmentClass} overflow-hidden`}
-              aria-label={`预览图片 ${attachment.name}`}
+              aria-label={`Preview image ${attachment.name}`}
             >
               <img
-                src={attachment.previewUrl}
+                src={imageUrl}
                 alt={attachment.name}
                 className="w-full h-full max-h-[340px] object-contain"
                 loading="lazy"
@@ -107,7 +112,7 @@ export function MessageAttachments({
               download={attachment.name}
               onClick={() => onDownload?.(attachment)}
               className={`${sharedCardClass} ${itemAlignmentClass}`}
-              aria-label={`下载或预览 ${attachment.name}`}
+              aria-label={`Open ${attachment.name}`}
             >
               {cardBody}
             </a>

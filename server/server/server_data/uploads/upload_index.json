@@ -124,5 +124,32 @@
     "mimeType": "image/png",
     "size": 1099305,
     "uploadedAt": "2025-10-28T03:14:19.329Z"
+  },
+  "263e353d-b0df-4b05-9c8d-14758398a56e": {
+    "fileId": "263e353d-b0df-4b05-9c8d-14758398a56e",
+    "originalName": "all.txt",
+    "storedName": "263e353d-b0df-4b05-9c8d-14758398a56e.txt",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\263e353d-b0df-4b05-9c8d-14758398a56e.txt",
+    "mimeType": "text/plain",
+    "size": 16550893,
+    "uploadedAt": "2025-10-28T03:15:31.751Z"
+  },
+  "d21170bc-e538-4fc6-8686-5d2017369723": {
+    "fileId": "d21170bc-e538-4fc6-8686-5d2017369723",
+    "originalName": "AI产品计划书.docx",
+    "storedName": "d21170bc-e538-4fc6-8686-5d2017369723.docx",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\d21170bc-e538-4fc6-8686-5d2017369723.docx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "size": 12828,
+    "uploadedAt": "2025-10-28T03:15:37.544Z"
+  },
+  "17aa9ad7-1478-485e-a26c-39a8191fbc05": {
+    "fileId": "17aa9ad7-1478-485e-a26c-39a8191fbc05",
+    "originalName": "1.png",
+    "storedName": "17aa9ad7-1478-485e-a26c-39a8191fbc05.png",
+    "storedPath": "D:\\AI_agent_project1\\server\\server\\server_data\\uploads\\17aa9ad7-1478-485e-a26c-39a8191fbc05.png",
+    "mimeType": "image/png",
+    "size": 328621,
+    "uploadedAt": "2025-10-28T03:24:35.370Z"
   }
 }

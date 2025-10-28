@@ -200,7 +200,7 @@ export function ChatInterface({
             mimeType: att.mimeType,
             size: att.size,
             previewUrl: att.previewUrl || att.downloadUrl,
-            downloadUrl: att.downloadUrl,
+            downloadUrl: att.downloadUrl || att.previewUrl,
           })) ?? undefined,
         };
 
@@ -353,8 +353,8 @@ export function ChatInterface({
         name: item.name,
         mimeType: item.mimeType,
         size: item.size,
-        previewUrl: item.downloadUrl || item.previewUrl,
-        downloadUrl: item.downloadUrl,
+        previewUrl: item.previewUrl || item.downloadUrl,
+        downloadUrl: item.downloadUrl || item.previewUrl,
       }));
 
     const hasInvalidMetadata = chatAttachments.some(
