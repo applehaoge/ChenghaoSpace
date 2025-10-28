@@ -191,15 +191,8 @@ export function useConversationController({
           sources: response.sources,
           error: response.success ? undefined : response.error,
           isStreaming: true,
-          attachments: response.attachments?.map(att => ({
-            fileId: att.fileId,
-            name: att.name,
-            mimeType: att.mimeType,
-            size: att.size,
-            previewUrl: att.previewUrl || att.downloadUrl,
-            downloadUrl: att.downloadUrl || att.previewUrl,
-            publicPath: att.publicPath,
-          })),
+          // AI 回复只显示文字，不重复附带用户上传的文件
+          attachments: undefined,
         };
 
         updateConversationMessages(requestConversationId, prev => [...prev, assistantMessage]);
