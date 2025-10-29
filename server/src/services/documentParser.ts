@@ -1,5 +1,6 @@
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
+import { TextDecoder } from 'node:util';
 import type { StoredUploadRecord } from '../storage/uploadRegistry.js';
 
 const DEFAULT_MAX_CHARS = 6000;
@@ -43,7 +44,8 @@ const decodeTextBuffer = (buffer: Buffer) => {
       return buffer.toString('utf16le');
     }
     if (bom === 'feff') {
-      return buffer.slice(2).toString('utf16be');
+      const decoder = new TextDecoder('utf-16be');
+      return decoder.decode(buffer.slice(2));
     }
   }
   if (buffer.length >= 3) {
@@ -175,4 +177,3 @@ export const parseDocumentAttachment = async (
       throw new Error('未能识别的文档类型');
   }
 };
-

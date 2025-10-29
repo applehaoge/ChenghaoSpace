@@ -178,6 +178,7 @@ const serializeAttachmentAnalyses = (analyses) => analyses.map(analysis => ({
     previewUrl: analysis.previewUrl ?? analysis.publicPath ?? undefined,
     downloadUrl: analysis.downloadUrl ?? analysis.publicPath ?? undefined,
     publicPath: analysis.publicPath,
+    document: analysis.document,
 }));
 const processChatRequest = async (body = {}, request) => {
     const taskType = body.taskType || 'general';

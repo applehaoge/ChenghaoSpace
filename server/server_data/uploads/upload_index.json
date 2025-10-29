@@ -214,5 +214,32 @@
     "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "size": 12828,
     "uploadedAt": "2025-10-29T14:03:52.308Z"
+  },
+  "0210597f-59ef-4a26-9fd1-66dcc1947d8a": {
+    "fileId": "0210597f-59ef-4a26-9fd1-66dcc1947d8a",
+    "originalName": "AI产品计划书.docx",
+    "storedName": "0210597f-59ef-4a26-9fd1-66dcc1947d8a.docx",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\0210597f-59ef-4a26-9fd1-66dcc1947d8a.docx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "size": 12828,
+    "uploadedAt": "2025-10-29T14:06:50.800Z"
+  },
+  "25f94082-9b9d-4eff-94b3-d09dc925efe6": {
+    "fileId": "25f94082-9b9d-4eff-94b3-d09dc925efe6",
+    "originalName": "C++夏令营  2025.07.10-24考勤.xlsx",
+    "storedName": "25f94082-9b9d-4eff-94b3-d09dc925efe6.xlsx",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\25f94082-9b9d-4eff-94b3-d09dc925efe6.xlsx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "size": 12666,
+    "uploadedAt": "2025-10-29T14:07:29.469Z"
+  },
+  "c0b40c71-170b-4762-971a-80d03c9f7a12": {
+    "fileId": "c0b40c71-170b-4762-971a-80d03c9f7a12",
+    "originalName": "C++夏令营  2025.07.10-24考勤.xlsx",
+    "storedName": "c0b40c71-170b-4762-971a-80d03c9f7a12.xlsx",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\c0b40c71-170b-4762-971a-80d03c9f7a12.xlsx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "size": 12666,
+    "uploadedAt": "2025-10-29T14:08:45.517Z"
   }
 }
