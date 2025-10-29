@@ -25,5 +25,23 @@
     "mimeType": "image/jpeg",
     "size": 234437,
     "uploadedAt": "2025-10-29T06:05:09.149Z"
+  },
+  "e5d7002c-7684-4ad5-9950-0a5e2d300646": {
+    "fileId": "e5d7002c-7684-4ad5-9950-0a5e2d300646",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "e5d7002c-7684-4ad5-9950-0a5e2d300646.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\e5d7002c-7684-4ad5-9950-0a5e2d300646.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-29T06:25:47.324Z"
+  },
+  "e27bec05-30ca-4321-92e1-cf3dfddbea87": {
+    "fileId": "e27bec05-30ca-4321-92e1-cf3dfddbea87",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "e27bec05-30ca-4321-92e1-cf3dfddbea87.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\e27bec05-30ca-4321-92e1-cf3dfddbea87.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-29T06:26:10.850Z"
   }
 }
