@@ -74,3 +74,6 @@
   pnpm --dir server dev
   `
 - 密钥与代理凭据仅保留在本地，部署时改用环境变量托管。
+- **2025-10-29 Doubao connectivity smoke test**
+  - Added server/scripts/test-doubao-image.mjs to verify doubao-seed-1-6-flash reads image prompts without touching app code
+  - Confirmed connectivity and successful image caption response using local base64 upload sample
