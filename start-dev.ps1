@@ -14,7 +14,7 @@ Start-Process powershell -ArgumentList @(
     '-NoProfile',
     '-NoExit',
     '-Command',
-    "Set-Location -LiteralPath '$serverDir'; pnpm --filter ./server dev"
+    "pnpm --dir '$serverDir' dev"
 )
 
 Start-Process powershell -ArgumentList @(

@@ -1,0 +1,29 @@
+{
+  "f13bc8e6-5e5a-441e-8ccc-6b2344e56c30": {
+    "fileId": "f13bc8e6-5e5a-441e-8ccc-6b2344e56c30",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "f13bc8e6-5e5a-441e-8ccc-6b2344e56c30.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\f13bc8e6-5e5a-441e-8ccc-6b2344e56c30.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-29T06:05:00.481Z"
+  },
+  "a8ec89ca-0fc0-46ad-b4f8-fd76d50d3f91": {
+    "fileId": "a8ec89ca-0fc0-46ad-b4f8-fd76d50d3f91",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "a8ec89ca-0fc0-46ad-b4f8-fd76d50d3f91.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\a8ec89ca-0fc0-46ad-b4f8-fd76d50d3f91.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-29T06:05:09.149Z"
+  },
+  "48d2ccb7-835a-447c-aa51-560217bcf7d9": {
+    "fileId": "48d2ccb7-835a-447c-aa51-560217bcf7d9",
+    "originalName": "1 - 副本.jpg",
+    "storedName": "48d2ccb7-835a-447c-aa51-560217bcf7d9.jpg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\48d2ccb7-835a-447c-aa51-560217bcf7d9.jpg",
+    "mimeType": "image/jpeg",
+    "size": 234437,
+    "uploadedAt": "2025-10-29T06:05:09.149Z"
+  }
+}

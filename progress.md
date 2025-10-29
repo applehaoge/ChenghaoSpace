@@ -7,11 +7,11 @@
 - 目标：一周内完成可投简历 Demo（RAG、双 Provider、容器化部署、图文消息、持久记忆）
 
 ## 🚀 重要变更日志（倒序）
-- **2025-10-29 平铺后端目录 + 单元测试接入 + AI 协作指引**
+- **2025-10-29 平铺后端目录 + 单元测试接入 + 协作规范**
   - 将 `server/server/src` 平铺为 `server/src`，清理历史构建产物
   - 更新构建脚本与依赖，`pnpm --filter ./server build` 通过
-  - 引入 Vitest，新增 `pnpm --filter ./server test`，补写 `fsHelpers` 单测
-  - README 增补 AI 协作提示词模板与自检流程，规范后续开发
+  - 引入 Vitest，新增 `pnpm --filter ./server test`，补写 `fsHelpers` 与 `attachmentContext` 单测
+  - README 增补 AI 协作提示词、手动验证清单，明确自检流程
 - **2025-10-28 附件上下文与上传持久化**
   - Fastify 增加 `/uploads/:fileName` 静态路由，统一生成下载地址
   - 前端上传钩子保存远端 URL，刷新后图片仍能展示

@@ -66,13 +66,13 @@ export const buildAttachmentContext = async (attachments) => {
             }
             const lines = [
                 `附件${index}：${record.originalName || record.storedName}`,
-                `基础信息：${baseInfoParts.join('，')}`,
+                `基础信息：${baseInfoParts.join('、')}`,
             ];
             if (insight.caption) {
                 lines.push(`图像描述：${insight.caption}`);
             }
             if (insight.warnings.length) {
-                lines.push(`注意事项：${insight.warnings.join('；')}`);
+                lines.push(`注意事项：${insight.warnings.join('、')}`);
             }
             contextBlocks.push(lines.join('\n'));
             analyses.push({

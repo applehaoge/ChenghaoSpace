@@ -34,8 +34,8 @@ const formatBytes = (value?: number | null) => {
 const createUnsupportedBlock = (index: number, record: StoredUploadRecord, reason: string) => {
   const name = record.originalName || record.storedName;
   return [
-    `附件${index}：${name}`,
-    `基础信息：${record.mimeType || '未知类型'}，大小 ${formatBytes(record.size)}`,
+    `附件${index}�?{name}`,
+    `基础信息�?{record.mimeType || '未知类型'}，大�?${formatBytes(record.size)}`,
     `当前暂不支持自动解析该类型（${reason}），请根据用户描述自行参考。`,
   ].join('\n');
 };
@@ -55,13 +55,13 @@ export const buildAttachmentContext = async (
   let index = 0;
   for (const item of attachments) {
     if (!item || typeof item !== 'object') {
-      notes.push('收到格式异常的附件描述，已忽略。');
+      notes.push('收到格式异常的附件描述，已忽略�?);
       continue;
     }
 
     const fileId = (item.fileId || '').trim();
     if (!fileId) {
-      notes.push('附件缺少 fileId，无法关联上传记录。');
+      notes.push('附件缺少 fileId，无法关联上传记录�?);
       continue;
     }
 
@@ -73,13 +73,13 @@ export const buildAttachmentContext = async (
 
     const record = await getUploadRecord(fileId);
     if (!record) {
-      notes.push(`未找到 ID 为 ${fileId} 的上传记录，可能文件已被清理。`);
+      notes.push(`未找�?ID �?${fileId} 的上传记录，可能文件已被清理。`);
       continue;
     }
 
     index += 1;
     if (!record.mimeType?.startsWith('image/')) {
-      contextBlocks.push(createUnsupportedBlock(index, record, '仅支持图片识别'));
+      contextBlocks.push(createUnsupportedBlock(index, record, '仅支持图片识�?));
       continue;
     }
 
@@ -94,25 +94,25 @@ export const buildAttachmentContext = async (
       }
 
       const lines = [
-        `附件${index}：${record.originalName || record.storedName}`,
-        `基础信息：${baseInfoParts.join('、')}`,
+        `附件${index}�?{record.originalName || record.storedName}`,
+        `基础信息�?{baseInfoParts.join('�?)}`,
       ];
 
       if (insight.caption) {
-        lines.push(`图像描述：${insight.caption}`);
+        lines.push(`图像描述�?{insight.caption}`);
       }
       if (insight.warnings.length) {
-        lines.push(`注意事项：${insight.warnings.join('、')}`);
+        lines.push(`注意事项�?{insight.warnings.join('�?)}`);
       }
 
       contextBlocks.push(lines.join('\n'));
       analyses.push({
         ...insight,
-        summary: insight.caption || lines.slice(1).join('；'),
+        summary: insight.caption || lines.slice(1).join('�?),
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      notes.push(`解析附件 ${record.originalName || record.storedName} 失败：${message}`);
+      notes.push(`解析附件 ${record.originalName || record.storedName} 失败�?{message}`);
       contextBlocks.push(createUnsupportedBlock(index, record, '解析过程发生异常'));
     }
   }
@@ -123,3 +123,4 @@ export const buildAttachmentContext = async (
     notes,
   };
 };
+
