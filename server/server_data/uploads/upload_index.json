@@ -196,5 +196,23 @@
     "mimeType": "image/jpeg",
     "size": 585937,
     "uploadedAt": "2025-10-29T09:44:27.253Z"
+  },
+  "cae59b34-1f7d-42f7-8e04-43e0a9c48781": {
+    "fileId": "cae59b34-1f7d-42f7-8e04-43e0a9c48781",
+    "originalName": "AI产品计划书.docx",
+    "storedName": "cae59b34-1f7d-42f7-8e04-43e0a9c48781.docx",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\cae59b34-1f7d-42f7-8e04-43e0a9c48781.docx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "size": 12828,
+    "uploadedAt": "2025-10-29T13:58:06.485Z"
+  },
+  "1655fb29-f235-4606-8475-042b1e3816ee": {
+    "fileId": "1655fb29-f235-4606-8475-042b1e3816ee",
+    "originalName": "AI产品计划书.docx",
+    "storedName": "1655fb29-f235-4606-8475-042b1e3816ee.docx",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\1655fb29-f235-4606-8475-042b1e3816ee.docx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "size": 12828,
+    "uploadedAt": "2025-10-29T14:03:52.308Z"
   }
 }

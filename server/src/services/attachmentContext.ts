@@ -1,6 +1,6 @@
 import { getUploadRecord, type StoredUploadRecord } from '../storage/uploadRegistry.js';
 import { analyzeAttachmentImage } from './doubaoImageService.js';
-import type { ImageInsight } from './imageAnalyzer.js';
+import { parseDocumentAttachment, isSupportedDocument } from './documentParser.js';
 
 export type ChatAttachmentInput = {
   fileId?: string;
@@ -9,9 +9,26 @@ export type ChatAttachmentInput = {
   size?: number;
 };
 
-export type AttachmentAnalysis = ImageInsight & {
+export type AttachmentAnalysis = {
+  fileId: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
   summary: string;
+  caption?: string;
+  provider?: string;
+  warnings: string[];
+  width?: number;
+  height?: number;
+  usage?: Record<string, unknown>;
   publicPath?: string;
+  downloadUrl?: string;
+  previewUrl?: string;
+  document?: {
+    excerpt: string;
+    wordCount: number;
+    metadata: Record<string, unknown>;
+  };
 };
 
 export type AttachmentContextResult = {
@@ -38,8 +55,116 @@ const createUnsupportedBlock = (index: number, record: StoredUploadRecord, reaso
   return [
     `附件${index}：${name}`,
     `基础信息：${record.mimeType || '未知类型'}，大小 ${formatBytes(record.size)}`,
-    `当前暂不支持自动解析该类型（${reason}），请根据用户描述自行参考。`,
+    `当前暂不支持自动解析该类型（${reason}），请结合用户说明自行参考。`,
   ].join('\n');
+};
+
+const createImageAnalysis = async (
+  record: StoredUploadRecord,
+  index: number,
+  contextBlocks: string[],
+  analyses: AttachmentAnalysis[],
+  notes: string[]
+) => {
+  const baseInfoParts = [
+    record.mimeType || '未知类型',
+    `大小 ${formatBytes(record.size)}`,
+  ];
+
+  try {
+    const insight = await analyzeAttachmentImage(record, {
+      prompt: `请描述这张图片（文件名：${record.originalName || record.storedName}），重点说明场景、关键元素、文字信息以及潜在风险提示。`,
+    });
+
+    const lines = [
+      `附件${index}：${record.originalName || record.storedName}`,
+      `基础信息：${baseInfoParts.join('，')}`,
+    ];
+
+    if (insight.width && insight.height) {
+      lines.push(`图像尺寸：${insight.width}×${insight.height}`);
+    }
+    if (insight.caption) {
+      lines.push(`图像描述：${insight.caption}`);
+    }
+    if (insight.warnings.length) {
+      lines.push(`注意事项：${insight.warnings.join('；')}`);
+    }
+
+    contextBlocks.push(lines.join('\n'));
+    const publicPath = `/uploads/${record.storedName}`;
+    analyses.push({
+      fileId: insight.fileId,
+      originalName: insight.originalName,
+      mimeType: insight.mimeType,
+      size: insight.size,
+      summary: insight.caption || lines.slice(1).join('，'),
+      caption: insight.caption,
+      provider: insight.provider,
+      warnings: insight.warnings,
+      width: insight.width,
+      height: insight.height,
+      usage: insight.usage,
+      publicPath,
+      downloadUrl: publicPath,
+      previewUrl: insight.previewUrl || publicPath,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    notes.push(`解析图片 ${record.originalName || record.storedName} 失败：${message}`);
+    contextBlocks.push(createUnsupportedBlock(index, record, '图像解析过程发生异常'));
+  }
+};
+
+const createDocumentAnalysis = async (
+  record: StoredUploadRecord,
+  index: number,
+  contextBlocks: string[],
+  analyses: AttachmentAnalysis[],
+  notes: string[]
+) => {
+  const baseInfoParts = [
+    record.mimeType || '未知类型',
+    `大小 ${formatBytes(record.size)}`,
+  ];
+
+  try {
+    const parseResult = await parseDocumentAttachment(record);
+    const lines = [
+      `附件${index}：${record.originalName || record.storedName}`,
+      `基础信息：${baseInfoParts.join('，')}`,
+    ];
+
+    if (parseResult.excerpt) {
+      lines.push(`文档内容摘要：${parseResult.excerpt}`);
+    } else {
+      lines.push('文档内容摘要：暂无可用文本。');
+    }
+
+    if (parseResult.warnings.length) {
+      lines.push(`注意事项：${parseResult.warnings.join('；')}`);
+    }
+
+    contextBlocks.push(lines.join('\n'));
+    analyses.push({
+      fileId: record.fileId,
+      originalName: record.originalName,
+      mimeType: record.mimeType,
+      size: record.size,
+      summary: parseResult.excerpt || lines.slice(1).join('，'),
+      caption: parseResult.excerpt,
+      warnings: parseResult.warnings,
+      document: {
+        excerpt: parseResult.excerpt,
+        wordCount: parseResult.wordCount,
+        metadata: parseResult.metadata,
+      },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    notes.push(`解析文档 ${record.originalName || record.storedName} 失败：${message}`);
+    contextBlocks.push(createUnsupportedBlock(index, record, '文档解析过程发生异常'));
+  }
 };
 
 export const buildAttachmentContext = async (
@@ -80,49 +205,17 @@ export const buildAttachmentContext = async (
     }
 
     index += 1;
-    if (!record.mimeType?.startsWith('image/')) {
-      contextBlocks.push(createUnsupportedBlock(index, record, '仅支持图片识别'));
+    if (record.mimeType?.startsWith('image/')) {
+      await createImageAnalysis(record, index, contextBlocks, analyses, notes);
       continue;
     }
 
-    try {
-      const insight = await analyzeAttachmentImage(record, {
-        prompt: `请描述这张图片（文件名：${record.originalName || record.storedName}），重点说明场景、关键元素、文字信息以及潜在风险提示。`,
-      });
-      const baseInfoParts = [
-        record.mimeType || '未知类型',
-        `大小 ${formatBytes(record.size)}`,
-      ];
-      if (insight.width && insight.height) {
-        baseInfoParts.push(`尺寸 ${insight.width}×${insight.height}`);
-      }
-
-      const lines = [
-        `附件${index}：${record.originalName || record.storedName}`,
-        `基础信息：${baseInfoParts.join('，')}`,
-      ];
-
-      if (insight.caption) {
-        lines.push(`图像描述：${insight.caption}`);
-      }
-      if (insight.warnings.length) {
-        lines.push(`注意事项：${insight.warnings.join('；')}`);
-      }
-
-      contextBlocks.push(lines.join('\n'));
-      const publicPath = `/uploads/${record.storedName}`;
-      analyses.push({
-        ...insight,
-        summary: insight.caption || lines.slice(1).join('，'),
-        publicPath,
-        downloadUrl: publicPath,
-        previewUrl: insight.previewUrl || (record.mimeType?.startsWith('image/') ? publicPath : undefined),
-      });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      notes.push(`解析附件 ${record.originalName || record.storedName} 失败：${message}`);
-      contextBlocks.push(createUnsupportedBlock(index, record, '解析过程发生异常'));
+    if (isSupportedDocument(record)) {
+      await createDocumentAnalysis(record, index, contextBlocks, analyses, notes);
+      continue;
     }
+
+    contextBlocks.push(createUnsupportedBlock(index, record, '目前仅支持图片及常见文档解析'));
   }
 
   return {

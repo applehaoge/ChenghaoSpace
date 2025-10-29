@@ -29,7 +29,9 @@
     "formdata-polyfill": "^4.0.10",
     "https-proxy-agent": "^7.0.6",
     "langchain": "^0.3.36",
+    "mammoth": "^1.8.0",
     "node-fetch": "3.3.2",
+    "pdf-parse": "^1.1.1",
     "openai": "^6.4.0",
     "pino": "^10.1.0",
     "process-warning": "^5.0.0",
@@ -42,6 +44,7 @@
   "devDependencies": {
     "@fastify/cors": "^11.1.0",
     "@types/image-size": "^0.8.0",
+    "@types/pdf-parse": "^1.1.4",
     "@types/node": "^24.9.1",
     "@types/node-fetch": "^2.6.13",
     "@types/pino": "^7.0.5",
