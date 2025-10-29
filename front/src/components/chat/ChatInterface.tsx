@@ -88,7 +88,7 @@ export function ChatInterface({
 
   const handleSendMessage = useCallback(async () => {
     const trimmed = composerValue.trim();
-    if (!trimmed || isLoading) return;
+    if ((!trimmed && completedAttachments.length === 0) || isLoading) return;
     if (chatHasUploading) {
       toast.info('请等待文件上传完成');
       return;
@@ -134,8 +134,9 @@ export function ChatInterface({
     [chatHasUploading, handleSendMessage]
   );
 
+  const hasSendableAttachments = chatAttachments.some(item => item.status === 'done' && item.fileId);
   const disableSend =
-    !composerValue.trim() ||
+    (!composerValue.trim() && !hasSendableAttachments) ||
     isLoading ||
     chatHasUploading ||
     chatAttachments.some(item => item.status === 'error');

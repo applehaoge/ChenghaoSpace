@@ -250,7 +250,7 @@ export function useConversationController({
   const sendMessage = useCallback(
     async (content: string, attachments: UploadedAttachment[]) => {
       const trimmed = content.trim();
-      if (!trimmed) return false;
+      if (!trimmed && attachments.length === 0) return false;
 
       const userBubble: ChatBubble = {
         id: `msg_${Date.now()}_user`,
