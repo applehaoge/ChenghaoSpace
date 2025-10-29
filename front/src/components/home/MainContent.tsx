@@ -32,6 +32,7 @@ export function MainContent({
     fileInputRef: homeFileInputRef,
     handleInputChange: handleHomeFileInputChange,
     removeAttachment: removeHomeAttachment,
+    clearAttachments: clearHomeAttachments,
   } = useFileUploader();
 
   const adjustHomeTextareaHeight = useCallback(() => {
@@ -79,11 +80,36 @@ export function MainContent({
       return;
     }
 
-    onSendMessage?.(trimmed);
+    const completedAttachments = homeAttachments
+      .filter(item => item.status === 'done' && item.fileId)
+      .map(item => {
+        const remoteUrl = item.downloadUrl || item.previewUrl;
+        const previewUrl = item.previewUrl && !item.previewUrl.startsWith('blob:')
+          ? item.previewUrl
+          : remoteUrl;
+        return {
+          fileId: item.fileId as string,
+          name: item.name,
+          mimeType: item.mimeType,
+          size: item.size,
+          previewUrl: previewUrl || undefined,
+          downloadUrl: remoteUrl || undefined,
+          publicPath: item.publicPath,
+        };
+      });
+
+    const hasInvalidMetadata = homeAttachments.some(item => item.status === 'done' && !item.fileId);
+    if (hasInvalidMetadata) {
+      toast.error('附件信息不完整，请重新上传文件');
+      return;
+    }
+
+    onSendMessage?.(trimmed, completedAttachments);
     setInputText('');
+    clearHomeAttachments();
   };
 
-  const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       handleSend();

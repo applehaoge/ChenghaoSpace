@@ -3,7 +3,7 @@
 ChenghaoSpace 是一个结合 Fastify 后端与 Vite + React 前端的 AI 对话 Demo，当前实现了多会话管理、会话记忆、文件上传与附件上下文分析等能力，适合演示企业级 AI 辅助工作流的基本形态。项目自 2025 年 10 月17日启动后持续迭代，目前已经完成聊天核心链路、附件上下文、会话记忆及基础测试流程。
 
 ## 目录结构
-- ront/：Vite + React 前端代码（页面、组件、hooks、API 封装）
+- front/：Vite + React 前端代码（页面、组件、hooks、API 封装）
 - server/：Fastify 后端服务（TypeScript，包含 provider、memory、services、utils 等模块）
 - server_data/：会话与上传文件的默认持久化目录
 - PROCESS.md：前后端协作过程记录
@@ -19,12 +19,12 @@ ChenghaoSpace 是一个结合 Fastify 后端与 Vite + React 前端的 AI 对话
 ## 快速开始
 1. 安装依赖：在仓库根目录执行 pnpm install，必要时再执行 pnpm --dir server build。
 2. 配置后端：在 server/.env 中设置 provider 与密钥，可参考 server/.env.example。
-3. 配置前端：在 ront/.env.local 指定后端地址，例如 VITE_API_BASE=http://localhost:8302。
+3. 配置前端：在 front/.env.local 指定后端地址，例如 VITE_API_BASE=http://localhost:8302。
 4. 启动服务：
-   `ash
+   ```bash
    pnpm --dir server dev   # 启动后端
    cd front && pnpm dev    # 启动前端
-   `
+   ```
    如需同时启动前后端，可直接执行仓库根目录下的 start-dev.bat（内部调用 start-dev.ps1，会自动设置 MEMORY_STORE_DIR）。
 
 ## 脚本说明
@@ -50,12 +50,12 @@ ChenghaoSpace 是一个结合 Fastify 后端与 Vite + React 前端的 AI 对话
    - 在请求 AI 之前，先把现有行为与预期改动写进提示词。
 2. **生成阶段**
    - 参考模版粘贴到对话窗口：
-     `
+     ```text
      需求：<描述要实现的功能或修复>
      允许修改文件：<列出确切路径>
      禁止：不要调整其它文件；保持 existing tests 通过；不要改变接口签名
      验证步骤：pnpm --dir server test && pnpm --dir front smoke
-     `
+     ```
    - 收到 AI 代码后，逐行核对关键逻辑，再按模版里的命令运行自动化验证。
 3. **验收阶段**
    - 必跑命令：pnpm --dir server test、pnpm --dir front smoke。

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
 import { ChatInterface } from '@/components/chat/ChatInterface';
+import type { UploadedAttachment } from '@/pages/home/types';
 import {
   MainContent,
   Sidebar,
@@ -26,6 +27,7 @@ export default function Home() {
   const [inputText, setInputText] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [initialChatMessage, setInitialChatMessage] = useState('');
+  const [initialChatAttachments, setInitialChatAttachments] = useState<UploadedAttachment[]>([]);
   const [tasks, setTasks] = useState<TaskConversation[]>(() => {
     const stored = loadStoredTasks();
     if (stored.length) {
@@ -81,6 +83,7 @@ export default function Home() {
 
         setActiveTaskId(newTaskId);
         setInitialChatMessage('');
+        setInitialChatAttachments([]);
         setShowChat(false);
 
         toast.success(response.message || '新聊天开启成功');
@@ -203,11 +206,13 @@ export default function Home() {
     [activeTaskId]
   );
 
-  const handleStartConversationFromPrompt = useCallback((message: string) => {
+  const handleStartConversationFromPrompt = useCallback((message: string, attachments: UploadedAttachment[] = []) => {
     const trimmed = message.trim();
     if (!trimmed) {
       return;
     }
+
+    setInitialChatAttachments(attachments);
 
     const newTaskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const now = new Date().toISOString();
@@ -293,9 +298,11 @@ export default function Home() {
             initialMessage={initialChatMessage}
             initialMessages={activeTask.messages}
             sessionId={activeTask.sessionId}
+            initialAttachments={initialChatAttachments}
             onBack={() => {
               setShowChat(false);
               setInitialChatMessage('');
+              setInitialChatAttachments([]);
             }}
             onConversationUpdate={handleConversationUpdate}
             onSessionChange={handleSessionChange}

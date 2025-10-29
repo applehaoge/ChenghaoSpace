@@ -12,6 +12,7 @@ export type ChatInterfaceProps = {
   initialMessage: string;
   initialMessages: ChatBubble[];
   sessionId?: string;
+  initialAttachments?: UploadedAttachment[];
   onBack: () => void;
   onConversationUpdate: (conversationId: string, messages: ChatBubble[]) => void;
   onSessionChange: (conversationId: string, sessionId: string) => void;
@@ -24,6 +25,7 @@ export function ChatInterface({
   initialMessage,
   initialMessages,
   sessionId,
+  initialAttachments,
   onBack,
   onConversationUpdate,
   onSessionChange,
@@ -44,6 +46,7 @@ export function ChatInterface({
     initialMessage,
     initialMessages,
     sessionId,
+    initialAttachments,
     onConversationUpdate,
     onSessionChange,
     onInitialMessageHandled,

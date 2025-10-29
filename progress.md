@@ -2,17 +2,19 @@
 
 ## 🧩 概述
 - 项目名称：ChenghaoSpace
-- 类型：AI Chat Demo（自研前后端）
+- 类型：AI Chat Demo（前后端自研）
 - 当前能力：聊天 UI、Doubao Provider 接入、附件上下文、会话记忆
-- 目标：一周内完成可投简历 Demo（RAG、双 Provider、容器化部署、图文消息、持久记忆）
+- 目标：一周内完成可投简历的 Demo（RAG、双 Provider、容器化部署、图文消息、持久记忆）
 
 ## 🚀 重要变更日志（倒序）
 - **2025-10-29 平铺后端目录 + 单元测试扩展 + 协作规范**
   - 将 server/server/src 平铺为 server/src，清理历史构建产物
   - 更新构建脚本，pnpm --dir server build / pnpm --dir server test 均已通过
-  - 引入 Vitest，新增 sHelpers、ttachmentContext 以及前端 iService 单元测试
+  - 引入 Vitest，新增 sHelpers、ttachmentContext 与前端 iService 单元测试
   - 新增 smoke.ps1 与 pnpm --dir front smoke 脚本，沉淀最小化自检流程
   - README 增补 AI 提示词、手动验证清单及脚本说明
+  - 修复发送后附件卡片延迟消失的问题（发送失败时自动恢复附件）
+  - 修复首页上传消息在聊天界面不显示附件卡片的问题，支持初始消息的附件同步展示
 - **2025-10-28 附件上下文与上传持久化**
   - Fastify 增加 /uploads/:fileName 静态路由，统一生成下载地址
   - 前端上传钩子保存远端 URL，刷新后图片仍能展示
@@ -27,7 +29,7 @@
   - Home 页面拆分为 chat/、ttachments/、home/ 模块
   - 职责更聚焦，复用性提升
 - **2025-10-23 Markdown 代码块复制按钮**
-  - 为所有代码块提供独立复制按钮，兼容无 Clipboard API 场景
+  - 所有代码块提供独立复制按钮，兼容无 Clipboard API 场景
   - Toast 提示成功 / 失败
 - **2025-10-23 输入交互优化**
   - Enter 发送消息，Shift+Enter 换行

@@ -10,6 +10,7 @@ type UseConversationControllerParams = {
   initialMessage: string;
   initialMessages: ChatBubble[];
   sessionId?: string;
+  initialAttachments?: UploadedAttachment[];
   onConversationUpdate: (conversationId: string, messages: ChatBubble[]) => void;
   onSessionChange: (conversationId: string, sessionId: string) => void;
   onInitialMessageHandled?: () => void;
@@ -32,6 +33,7 @@ export function useConversationController({
   initialMessage,
   initialMessages,
   sessionId,
+  initialAttachments,
   onConversationUpdate,
   onSessionChange,
   onInitialMessageHandled,
@@ -47,6 +49,7 @@ export function useConversationController({
     conversationId: null,
     message: null,
   });
+  const initialAttachmentsRef = useRef<UploadedAttachment[]>(initialAttachments ?? []);
   const sessionIdRef = useRef<string>(sessionId ?? '');
   const conversationIdRef = useRef(conversationId);
   const lastConversationIdRef = useRef<string | null>(null);
@@ -82,6 +85,10 @@ export function useConversationController({
   useEffect(() => {
     adjustTextareaHeight();
   }, [composerValue, adjustTextareaHeight]);
+
+  useEffect(() => {
+    initialAttachmentsRef.current = initialAttachments ?? [];
+  }, [initialAttachments]);
 
   const clearStreamingTimer = useCallback((id?: string) => {
     if (id) {
@@ -321,17 +328,21 @@ export function useConversationController({
     onInitialMessageHandled?.();
     resetSession();
 
+    const attachmentsForInitial = initialAttachmentsRef.current;
+    initialAttachmentsRef.current = [];
+
     const first: ChatBubble = {
       id: `msg_${Date.now()}_user`,
       content: trimmed,
       sender: 'user',
       timestamp: new Date().toISOString(),
+      attachments: attachmentsForInitial.length ? attachmentsForInitial : undefined,
     };
 
     clearStreamingTimer();
     updateConversationMessages(conversationId, () => [first]);
     setComposerValue('');
-    void fetchAssistantReply(trimmed, []);
+    void fetchAssistantReply(trimmed, attachmentsForInitial);
   }, [
     conversationId,
     initialMessage,

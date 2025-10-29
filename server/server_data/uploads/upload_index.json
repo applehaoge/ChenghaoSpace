@@ -115,5 +115,23 @@
     "mimeType": "application/x-zip-compressed",
     "size": 161193,
     "uploadedAt": "2025-10-29T06:45:08.696Z"
+  },
+  "418c18dc-bf34-4b2f-ad61-95b009e6b530": {
+    "fileId": "418c18dc-bf34-4b2f-ad61-95b009e6b530",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "418c18dc-bf34-4b2f-ad61-95b009e6b530.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\418c18dc-bf34-4b2f-ad61-95b009e6b530.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-29T07:11:55.255Z"
+  },
+  "a93f4d3b-892b-47fb-b7d3-6037d8b3bad4": {
+    "fileId": "a93f4d3b-892b-47fb-b7d3-6037d8b3bad4",
+    "originalName": "0741593d81b87eb3cf7f4e400910dfe00249a2a7301cb7fe37bda436363ee850.png",
+    "storedName": "a93f4d3b-892b-47fb-b7d3-6037d8b3bad4.png",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\a93f4d3b-892b-47fb-b7d3-6037d8b3bad4.png",
+    "mimeType": "image/png",
+    "size": 789604,
+    "uploadedAt": "2025-10-29T07:12:09.020Z"
   }
 }
