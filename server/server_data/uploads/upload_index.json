@@ -187,5 +187,14 @@
     "mimeType": "image/jpeg",
     "size": 585937,
     "uploadedAt": "2025-10-29T09:37:49.177Z"
+  },
+  "2c2bb269-389e-4a9e-b2db-14afdf05ab5a": {
+    "fileId": "2c2bb269-389e-4a9e-b2db-14afdf05ab5a",
+    "originalName": "066972c980792594153e315e22e93187.jpeg",
+    "storedName": "2c2bb269-389e-4a9e-b2db-14afdf05ab5a.jpeg",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\2c2bb269-389e-4a9e-b2db-14afdf05ab5a.jpeg",
+    "mimeType": "image/jpeg",
+    "size": 585937,
+    "uploadedAt": "2025-10-29T09:44:27.253Z"
   }
 }

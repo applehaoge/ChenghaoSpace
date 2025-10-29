@@ -199,6 +199,26 @@ export function useConversationController({
           });
         }
 
+        const warningMessages = responseAttachments.reduce<string[]>((accumulator, attachment) => {
+          if (Array.isArray(attachment.warnings)) {
+            attachment.warnings
+              .map(item => (typeof item === 'string' ? item.trim() : ''))
+              .filter((item): item is string => item.length > 0)
+              .forEach(message => {
+                if (!accumulator.includes(message)) {
+                  accumulator.push(message);
+                }
+              });
+          }
+          return accumulator;
+        }, []);
+
+        warningMessages.forEach((message, idx) => {
+          toast.warning(message, {
+            id: `attachment-warning-${requestConversationId}-${idx}`,
+          });
+        });
+
         const assistantMessage: ChatBubble = {
           id: `msg_${Date.now()}_ai`,
           content: '',
@@ -208,7 +228,7 @@ export function useConversationController({
           sources: response.sources,
           error: response.success ? undefined : response.error,
           isStreaming: true,
-          attachments: responseAttachments.length ? responseAttachments : undefined,
+          attachments: undefined,
           attachmentNotes: attachmentNotes.length ? attachmentNotes : undefined,
         };
 
