@@ -57,6 +57,7 @@ export function ChatInterface({
     handleInputChange: handleChatFileInputChange,
     removeAttachment: removeChatAttachment,
     clearAttachments: clearChatAttachments,
+    restoreAttachments: restoreChatAttachments,
   } = useFileUploader();
 
   useEffect(() => {
@@ -98,9 +99,11 @@ export function ChatInterface({
       return;
     }
 
+    const attachmentsSnapshot = chatAttachments.map(item => ({ ...item }));
+    clearChatAttachments();
     const succeeded = await sendMessage(trimmed, completedAttachments);
-    if (succeeded) {
-      clearChatAttachments();
+    if (!succeeded) {
+      restoreChatAttachments(attachmentsSnapshot);
     }
   }, [
     chatAttachments,
@@ -110,6 +113,7 @@ export function ChatInterface({
     composerValue,
     hasAttachmentMetadataIssue,
     isLoading,
+    restoreChatAttachments,
     sendMessage,
   ]);
 
@@ -243,3 +247,5 @@ export function ChatInterface({
     </main>
   );
 }
+
+

@@ -12,6 +12,7 @@ type UseFileUploaderResult = {
   handleInputChange: (event: ChangeEvent<HTMLInputElement>) => void;
   removeAttachment: (id: string) => void;
   clearAttachments: () => void;
+  restoreAttachments: (items: FileAttachment[]) => void;
 };
 
 export function useFileUploader(): UseFileUploaderResult {
@@ -52,6 +53,10 @@ export function useFileUploader(): UseFileUploaderResult {
       });
       return [];
     });
+  }, []);
+
+  const restoreAttachments = useCallback((items: FileAttachment[]) => {
+    setAttachments(items.map(item => ({ ...item })));
   }, []);
 
   const startUpload = useCallback(async (attachmentId: string, file: File) => {
@@ -148,5 +153,6 @@ export function useFileUploader(): UseFileUploaderResult {
     handleInputChange,
     removeAttachment,
     clearAttachments,
+    restoreAttachments,
   };
 }
