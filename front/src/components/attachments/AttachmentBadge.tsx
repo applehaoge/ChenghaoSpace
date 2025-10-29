@@ -1,5 +1,5 @@
 import type { FileAttachment } from './types';
-import { formatFileSize, getAttachmentVisual } from './utils';
+import { formatFileSize, getAttachmentVisual, detectAttachmentCategory } from './utils';
 
 type AttachmentBadgeProps = {
   attachment: FileAttachment;
@@ -8,13 +8,15 @@ type AttachmentBadgeProps = {
 
 export function AttachmentBadge({ attachment, onRemove }: AttachmentBadgeProps) {
   const visual = getAttachmentVisual(attachment.mimeType, attachment.name);
+  const category = detectAttachmentCategory(attachment.mimeType, attachment.name);
   const isErrored = attachment.status === 'error';
   const isUploading = attachment.status === 'uploading';
+  const showPreviewImage = category === 'image' && Boolean(attachment.previewUrl) && !isErrored;
 
   return (
     <div className="flex items-center gap-3 pr-3 pl-2 py-2 rounded-2xl border border-gray-200 bg-white shadow-sm max-w-full">
       <div className="relative flex-shrink-0">
-        {attachment.previewUrl && !isErrored ? (
+        {showPreviewImage ? (
           <div className="w-12 h-12 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 flex items-center justify-center">
             <img
               src={attachment.previewUrl}
@@ -43,7 +45,7 @@ export function AttachmentBadge({ attachment, onRemove }: AttachmentBadgeProps) 
           <span>{formatFileSize(attachment.size)}</span>
           <span>·</span>
           <span>
-            {isUploading ? '上传中...' : isErrored ? attachment.error || '上传失败' : '上传完成'}
+            {isUploading ? '上传中…' : isErrored ? attachment.error || '上传失败' : '上传完成'}
           </span>
         </div>
       </div>

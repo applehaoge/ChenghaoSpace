@@ -79,5 +79,41 @@
     "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "size": 12828,
     "uploadedAt": "2025-10-29T06:39:09.084Z"
+  },
+  "426159ce-f8b3-47e8-9402-fd1a86306e31": {
+    "fileId": "426159ce-f8b3-47e8-9402-fd1a86306e31",
+    "originalName": "AGENTS.md",
+    "storedName": "426159ce-f8b3-47e8-9402-fd1a86306e31.md",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\426159ce-f8b3-47e8-9402-fd1a86306e31.md",
+    "mimeType": "application/octet-stream",
+    "size": 2992,
+    "uploadedAt": "2025-10-29T06:44:45.744Z"
+  },
+  "e7a97e19-bedf-46d9-8c09-d21aadc98acb": {
+    "fileId": "e7a97e19-bedf-46d9-8c09-d21aadc98acb",
+    "originalName": "BandicamPortable.exe",
+    "storedName": "e7a97e19-bedf-46d9-8c09-d21aadc98acb.exe",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\e7a97e19-bedf-46d9-8c09-d21aadc98acb.exe",
+    "mimeType": "application/x-msdownload",
+    "size": 300170,
+    "uploadedAt": "2025-10-29T06:44:50.200Z"
+  },
+  "cb334860-eb24-4333-b027-e2eca75609bb": {
+    "fileId": "cb334860-eb24-4333-b027-e2eca75609bb",
+    "originalName": "创想.png",
+    "storedName": "cb334860-eb24-4333-b027-e2eca75609bb.png",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\cb334860-eb24-4333-b027-e2eca75609bb.png",
+    "mimeType": "image/png",
+    "size": 173689,
+    "uploadedAt": "2025-10-29T06:45:01.343Z"
+  },
+  "9d65cf2e-8ee3-4f73-bbe9-0cf4d53834a6": {
+    "fileId": "9d65cf2e-8ee3-4f73-bbe9-0cf4d53834a6",
+    "originalName": "04081516.zip",
+    "storedName": "9d65cf2e-8ee3-4f73-bbe9-0cf4d53834a6.zip",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\9d65cf2e-8ee3-4f73-bbe9-0cf4d53834a6.zip",
+    "mimeType": "application/x-zip-compressed",
+    "size": 161193,
+    "uploadedAt": "2025-10-29T06:45:08.696Z"
   }
 }
