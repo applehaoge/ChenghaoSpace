@@ -18,6 +18,10 @@ export type ImageInsight = {
   caption?: string;
   provider?: string;
   warnings: string[];
+  publicPath?: string;
+  downloadUrl?: string;
+  previewUrl?: string;
+  usage?: Record<string, unknown>;
 };
 
 const formatBytes = (value: number) => {

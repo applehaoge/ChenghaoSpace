@@ -2,14 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../storage/uploadRegistry.js', () => ({
     getUploadRecord: vi.fn(),
 }));
-vi.mock('./imageAnalyzer.js', () => ({
-    analyzeImage: vi.fn(),
+vi.mock('./doubaoImageService.js', () => ({
+    analyzeAttachmentImage: vi.fn(),
 }));
 import { buildAttachmentContext } from './attachmentContext.js';
 import { getUploadRecord } from '../storage/uploadRegistry.js';
-import { analyzeImage } from './imageAnalyzer.js';
+import { analyzeAttachmentImage } from './doubaoImageService.js';
 const mockedGetUploadRecord = vi.mocked(getUploadRecord);
-const mockedAnalyzeImage = vi.mocked(analyzeImage);
+const mockedAnalyzeAttachmentImage = vi.mocked(analyzeAttachmentImage);
 afterEach(() => {
     vi.resetAllMocks();
 });
@@ -24,7 +24,7 @@ describe('buildAttachmentContext', () => {
             size: 2048,
             uploadedAt: new Date().toISOString(),
         });
-        mockedAnalyzeImage.mockResolvedValueOnce({
+        mockedAnalyzeAttachmentImage.mockResolvedValueOnce({
             fileId: 'img-1',
             originalName: '产品截图.png',
             mimeType: 'image/png',
@@ -33,19 +33,25 @@ describe('buildAttachmentContext', () => {
             warnings: [],
             width: 800,
             height: 600,
+            provider: 'doubao',
+            publicPath: '/uploads/img-1.png',
+            downloadUrl: '/uploads/img-1.png',
         });
         const result = await buildAttachmentContext([
             { fileId: 'img-1', mimeType: 'image/png', size: 2048 },
         ]);
         expect(result.notes).toHaveLength(0);
         expect(result.contextText).toContain('附件1：产品截图.png');
-        expect(result.contextText).toContain('基础信息：image/png、大小 2.0KB、尺寸 800×600');
+        expect(result.contextText).toContain('基础信息：image/png，大小 2.0KB，尺寸 800×600');
         expect(result.contextText).toContain('图像描述：界面包含按钮与列表');
         expect(result.analyses).toHaveLength(1);
         expect(result.analyses[0]).toMatchObject({
             summary: '界面包含按钮与列表',
             width: 800,
             height: 600,
+            provider: 'doubao',
+            publicPath: '/uploads/img-1.png',
+            downloadUrl: '/uploads/img-1.png',
         });
     });
     it('records notes for missing or unsupported attachments', async () => {
@@ -66,7 +72,7 @@ describe('buildAttachmentContext', () => {
             { fileId: 'doc-1' }, // 重复引用
         ]);
         expect(result.contextText).toContain('附件1：说明文档.pdf');
-        expect(result.contextText).toContain('当前暂不支持自动解析该类型');
+        expect(result.contextText).toContain('当前暂不支持自动解析该类型（仅支持图片识别）');
         expect(result.analyses).toHaveLength(0);
         expect(result.notes).toEqual([
             '未找到 ID 为 missing 的上传记录，可能文件已被清理。',

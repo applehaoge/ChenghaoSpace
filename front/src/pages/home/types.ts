@@ -6,6 +6,13 @@ export type UploadedAttachment = {
   previewUrl?: string;
   downloadUrl?: string;
   publicPath?: string;
+  caption?: string;
+  summary?: string;
+  warnings?: string[];
+  analysisProvider?: string;
+  usage?: Record<string, unknown>;
+  width?: number;
+  height?: number;
 };
 
 export type ChatBubble = {
@@ -18,6 +25,7 @@ export type ChatBubble = {
   error?: string;
   isStreaming?: boolean;
   attachments?: UploadedAttachment[];
+  attachmentNotes?: string[];
 };
 
 export type TaskConversation = {

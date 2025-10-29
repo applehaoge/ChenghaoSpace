@@ -1,5 +1,5 @@
 import { getUploadRecord } from '../storage/uploadRegistry.js';
-import { analyzeImage } from './imageAnalyzer.js';
+import { analyzeAttachmentImage } from './doubaoImageService.js';
 const formatBytes = (value) => {
     if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0)
         return '未知大小';
@@ -56,7 +56,9 @@ export const buildAttachmentContext = async (attachments) => {
             continue;
         }
         try {
-            const insight = await analyzeImage(record);
+            const insight = await analyzeAttachmentImage(record, {
+                prompt: `请描述这张图片（文件名：${record.originalName || record.storedName}），重点说明场景、关键元素、文字信息以及潜在风险提示。`,
+            });
             const baseInfoParts = [
                 record.mimeType || '未知类型',
                 `大小 ${formatBytes(record.size)}`,
@@ -66,22 +68,26 @@ export const buildAttachmentContext = async (attachments) => {
             }
             const lines = [
                 `附件${index}：${record.originalName || record.storedName}`,
-                `基础信息：${baseInfoParts.join('、')}`,
+                `基础信息：${baseInfoParts.join('，')}`,
             ];
             if (insight.caption) {
                 lines.push(`图像描述：${insight.caption}`);
             }
             if (insight.warnings.length) {
-                lines.push(`注意事项：${insight.warnings.join('、')}`);
+                lines.push(`注意事项：${insight.warnings.join('；')}`);
             }
             contextBlocks.push(lines.join('\n'));
+            const publicPath = `/uploads/${record.storedName}`;
             analyses.push({
                 ...insight,
-                summary: insight.caption || lines.slice(1).join('；'),
+                summary: insight.caption || lines.slice(1).join('，'),
+                publicPath,
+                downloadUrl: publicPath,
+                previewUrl: insight.previewUrl || (record.mimeType?.startsWith('image/') ? publicPath : undefined),
             });
         }
-        catch (err) {
-            const message = err instanceof Error ? err.message : String(err);
+        catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
             notes.push(`解析附件 ${record.originalName || record.storedName} 失败：${message}`);
             contextBlocks.push(createUnsupportedBlock(index, record, '解析过程发生异常'));
         }

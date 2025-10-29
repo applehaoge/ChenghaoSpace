@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { UploadedAttachment } from '@/pages/home/types';
 import {
   detectAttachmentCategory,
@@ -82,15 +83,22 @@ export function MessageAttachments({
         );
 
         const imageUrl = category === 'image' ? attachment.previewUrl || attachment.downloadUrl : null;
+        const warnings = Array.isArray(attachment.warnings)
+          ? attachment.warnings
+              .map(item => (typeof item === 'string' ? item.trim() : ''))
+              .filter(item => item.length > 0)
+          : [];
+        const description = attachment.caption || attachment.summary;
+        const providerLabel = attachment.analysisProvider;
 
+        let mainControl: ReactNode;
         if (imageUrl) {
-          return (
+          mainControl = (
             <button
               type="button"
-              key={attachment.fileId || href || attachment.name}
               onClick={() => handlePreview(attachment)}
-              className={`${sharedCardClass} ${itemAlignmentClass} overflow-hidden`}
-              aria-label={`Preview image ${attachment.name}`}
+              className={`${sharedCardClass} overflow-hidden`}
+              aria-label={`预览图片 ${attachment.name}`}
             >
               <img
                 src={imageUrl}
@@ -100,41 +108,74 @@ export function MessageAttachments({
               />
             </button>
           );
-        }
-
-        if (href) {
-          return (
+        } else if (href) {
+          mainControl = (
             <a
-              key={attachment.fileId || href || attachment.name}
               href={href}
               target="_blank"
               rel="noopener noreferrer"
               download={attachment.name}
               onClick={() => onDownload?.(attachment)}
-              className={`${sharedCardClass} ${itemAlignmentClass}`}
-              aria-label={`Open ${attachment.name}`}
+              className={sharedCardClass}
+              aria-label={`打开附件 ${attachment.name}`}
             >
               {cardBody}
             </a>
           );
+        } else {
+          mainControl = (
+            <div
+              className={sharedCardClass}
+              role="button"
+              tabIndex={0}
+              onClick={() => handleDownload(attachment)}
+              onKeyDown={event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault();
+                  handleDownload(attachment);
+                }
+              }}
+              aria-label={`查看附件 ${attachment.name}`}
+            >
+              {cardBody}
+            </div>
+          );
         }
 
+        const cardKey = attachment.fileId || href || attachment.name;
+
         return (
-          <div
-            key={attachment.fileId || attachment.name}
-            className={`${sharedCardClass} ${itemAlignmentClass}`}
-            role="button"
-            tabIndex={0}
-            onClick={() => handleDownload(attachment)}
-            onKeyDown={event => {
-              if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                handleDownload(attachment);
-              }
-            }}
-            aria-label={`查看附件 ${attachment.name}`}
-          >
-            {cardBody}
+          <div key={cardKey} className={`${itemAlignmentClass} flex flex-col gap-2 max-w-[280px]`}>
+            {mainControl}
+            {description ? (
+              <div
+                className={`text-xs leading-relaxed text-gray-700 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 whitespace-pre-wrap ${
+                  align === 'right' ? 'text-right' : 'text-left'
+                }`}
+              >
+                {description}
+              </div>
+            ) : null}
+            {warnings.length ? (
+              <div
+                className={`text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 space-y-1 ${
+                  align === 'right' ? 'text-right' : 'text-left'
+                }`}
+              >
+                {warnings.map((warning, idx) => (
+                  <p key={`${cardKey}-warning-${idx}`}>{warning}</p>
+                ))}
+              </div>
+            ) : null}
+            {providerLabel ? (
+              <div
+                className={`text-[10px] uppercase tracking-wide text-gray-500 ${
+                  align === 'right' ? 'text-right self-end' : 'text-left self-start'
+                }`}
+              >
+                识别来源：{providerLabel}
+              </div>
+            ) : null}
           </div>
         );
       })}

@@ -29,7 +29,15 @@ type ChatResult = {
     previewUrl?: string;
     downloadUrl?: string;
     publicPath?: string;
+    caption?: string;
+    summary?: string;
+    warnings?: string[];
+    analysisProvider?: string;
+    usage?: Record<string, unknown>;
+    width?: number;
+    height?: number;
   }>;
+  attachmentNotes?: string[];
 };
 
 type AttachmentPayload = {
@@ -266,6 +274,26 @@ class AIServiceImpl implements AIService {
                   : Number.isFinite(Number(att.size))
                     ? Number(att.size)
                     : undefined;
+              const caption = typeof att.caption === 'string' ? att.caption : undefined;
+              const summary = typeof att.summary === 'string' ? att.summary : undefined;
+              const warnings = Array.isArray(att.warnings)
+                ? att.warnings
+                    .map((item: unknown) => (typeof item === 'string' ? item.trim() : ''))
+                    .filter((item: string) => item.length > 0)
+                : undefined;
+              const analysisProvider =
+                typeof att.analysisProvider === 'string'
+                  ? att.analysisProvider
+                  : typeof att.provider === 'string'
+                    ? att.provider
+                    : undefined;
+              const usage =
+                att.usage && typeof att.usage === 'object'
+                  ? (att.usage as Record<string, unknown>)
+                  : undefined;
+              const width = typeof att.width === 'number' ? att.width : undefined;
+              const height = typeof att.height === 'number' ? att.height : undefined;
+
               return {
                 fileId,
                 name: att.name ?? att.fileName ?? '附件',
@@ -274,9 +302,21 @@ class AIServiceImpl implements AIService {
                 previewUrl: preview,
                 downloadUrl: download,
                 publicPath: att.publicPath,
+                caption,
+                summary,
+                warnings,
+                analysisProvider,
+                usage,
+                width,
+                height,
               };
             })
             .filter(Boolean) as ChatResult['attachments'])
+        : undefined;
+      const attachmentNotes = Array.isArray(data.attachmentNotes)
+        ? data.attachmentNotes
+            .map((item: unknown) => (typeof item === 'string' ? item.trim() : ''))
+            .filter((item: string) => item.length > 0)
         : undefined;
       return {
         success: true,
@@ -285,6 +325,7 @@ class AIServiceImpl implements AIService {
         sources: data.sources || [],
         provider: data.provider,
         attachments,
+        attachmentNotes,
       };
     } catch (error) {
       const message = error instanceof Error ? error.message : '调用后端接口失败';

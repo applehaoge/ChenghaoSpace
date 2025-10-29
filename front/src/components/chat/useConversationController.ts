@@ -188,6 +188,16 @@ export function useConversationController({
           attachments: messageAttachments,
         });
         const text = response.answer || response.result || '';
+        const responseAttachments = response.attachments ?? [];
+        const attachmentNotes = response.attachmentNotes ?? [];
+
+        if (attachmentNotes.length) {
+          attachmentNotes.forEach((note, idx) => {
+            toast.info(note, {
+              id: `attachment-note-${requestConversationId}-${idx}`,
+            });
+          });
+        }
 
         const assistantMessage: ChatBubble = {
           id: `msg_${Date.now()}_ai`,
@@ -198,8 +208,8 @@ export function useConversationController({
           sources: response.sources,
           error: response.success ? undefined : response.error,
           isStreaming: true,
-          // AI 回复只显示文字，不重复附带用户上传的文件
-          attachments: undefined,
+          attachments: responseAttachments.length ? responseAttachments : undefined,
+          attachmentNotes: attachmentNotes.length ? attachmentNotes : undefined,
         };
 
         updateConversationMessages(requestConversationId, prev => [...prev, assistantMessage]);

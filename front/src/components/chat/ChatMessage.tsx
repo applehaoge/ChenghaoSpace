@@ -123,6 +123,22 @@ export function ChatMessage({
   const attachments = message.attachments ?? EMPTY_ATTACHMENTS;
   const hasTextContent = typeof message.content === 'string' && message.content.trim().length > 0;
   const showBubble = hasTextContent || Boolean(message.isStreaming);
+  const attachmentNotesNode = useMemo(() => {
+    if (!message.attachmentNotes || message.attachmentNotes.length === 0) return null;
+    return (
+      <div
+        className={`max-w-full rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs leading-relaxed px-3 py-2 ${
+          isUser ? 'self-end text-right' : 'self-start text-left'
+        }`}
+      >
+        {message.attachmentNotes.map((note, index) => (
+          <p key={`${message.id}-note-${index}`} className="mb-1 last:mb-0">
+            {note}
+          </p>
+        ))}
+      </div>
+    );
+  }, [isUser, message.attachmentNotes, message.id]);
 
   const alignment = useMemo(
     () => ({
@@ -156,6 +172,7 @@ export function ChatMessage({
       )}
       <div className={`max-w-[80%] ${alignment.order} flex flex-col ${alignment.stack} gap-3`}>
         {attachmentsNode}
+        {attachmentNotesNode}
         {showBubble ? (
           <div
             className={`group flex flex-col gap-2 max-w-full ${

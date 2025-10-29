@@ -6,11 +6,28 @@
 - 当前能力：聊天 UI、Doubao Provider 接入、附件上下文、会话记忆
 - 目标：一周内完成可投简历的 Demo（RAG、双 Provider、容器化部署、图文消息、持久记忆）
 
+
+
+现在的诉求是：把 doubao-seed-1-6-flash 模型正式接入当前项目，让后端能把用户上传的图片送给模型识别并返回文字描述，而现在这块功能还没打通。
+
+可以分成这些步骤来实现：
+
+梳理输入输出约束：确认前端上传的附件在后端是怎样存储的（例如保存路径、支持的 MIME），以及希望返回给前端的图片描述/警告字段格式。
+封装 Doubao 图片分析服务：在 server/src/services 下新增一个专门调用 Doubao 的图像识别模块（可参考现有 imageAnalyzer.ts 结构），负责把图片转成合适的 image_url（或 base64 data URL）并调用 chat/completions 接口。
+扩展 provider factory：在 providers/doubaoProvider.ts 里补充一个处理图片的入口，或新增 DoubaoImageService，从环境变量读取模型、API base，并复用 proxy 逻辑。
+暴露后端接口：在 Fastify 路由里扩展 /api/upload 或新增 /api/image-insight，在附件扫码流程里调用新服务，把生成的 caption、usage 信息保存到数据库/内存并返回给前端。
+前端接入展示：在 front/src/components/chat/ChatInterface.tsx 等处监听后端返回的图片描述，渲染在附件卡片或 AI 回复里，同时确保 Toast/提示文案覆盖失败场景。
+补充测试与文档：为新服务写 Vitest 单测（mock fetch），并在 progress.md、README.md 更新新的自检步骤，确保 pnpm --dir server test 与 pnpm --dir front smoke 都通过。
+按这个顺序做，就能把“模型识别图片”这条链路稳妥接入现有项目。
+
+那你一步一步去做，每做一步都要测试通过了再做下一步（企业是否要留下单测？？），不得改动无关功能，无关代码
+
+
 ## 🚀 重要变更日志（倒序）
 - **2025-10-29 平铺后端目录 + 单元测试扩展 + 协作规范**
   - 将 server/server/src 平铺为 server/src，清理历史构建产物
   - 更新构建脚本，pnpm --dir server build / pnpm --dir server test 均已通过
-  - 引入 Vitest，新增 sHelpers、ttachmentContext 与前端 iService 单元测试
+  - 引入 Vitest，新增 sHelpers、 ttachmentContext 与前端  iService 单元测试
   - 新增 smoke.ps1 与 pnpm --dir front smoke 脚本，沉淀最小化自检流程
   - README 增补 AI 提示词、手动验证清单及脚本说明
   - 修复发送后附件卡片延迟消失的问题（发送失败时自动恢复附件）
@@ -26,7 +43,7 @@
   - 使用 	ry/finally 确保 toast 正确关闭
   - 修复失败请求导致 Spinner 卡死的问题
 - **2025-10-27 页面模块化调整**
-  - Home 页面拆分为 chat/、ttachments/、home/ 模块
+  - Home 页面拆分为 chat/、 ttachments/、home/ 模块
   - 职责更聚焦，复用性提升
 - **2025-10-23 Markdown 代码块复制按钮**
   - 所有代码块提供独立复制按钮，兼容无 Clipboard API 场景
@@ -47,7 +64,7 @@
 - **2025-10-21 首页 UI 迭代**
   - 聊天区域卡片化、历史区可折叠、推荐提示展示
 - **2025-10-21 前端接入豆包模型**
-  - iService 调用 /api/chat
+  -  iService 调用 /api/chat
   - 支持模型输出流式响应
 - **2025-10-21 Doubao Provider 适配**
   - 新增 DoubaoProvider，默认模型 doubao-seed-1-6-flash
@@ -77,3 +94,8 @@
 - **2025-10-29 Doubao connectivity smoke test**
   - Added server/scripts/test-doubao-image.mjs to verify doubao-seed-1-6-flash reads image prompts without touching app code
   - Confirmed connectivity and successful image caption response using local base64 upload sample
+- **2025-10-30 豆包图像描述接入**
+  - 新增 server/src/services/doubaoImageService.ts，封装豆包图像识别并回落到 OpenAI 元数据。
+  - 扩展 processChatRequest 解析附件上下文，返回 caption、warnings、usage 等信息。
+  - 前端同步展示图像描述与警告，补充 toast 提示及附件卡片样式。
+  - 测试：pnpm --dir server test；pnpm --dir front build:client。

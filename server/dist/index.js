@@ -7,6 +7,7 @@ import { createReadStream, createWriteStream, existsSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { registerUpload } from './storage/uploadRegistry.js';
+import { buildAttachmentContext, } from './services/attachmentContext.js';
 dotenv.config();
 const fastify = Fastify({ logger: true });
 const uploadLimitMb = Number(process.env.UPLOAD_MAX_SIZE_MB ?? '25');
@@ -93,12 +94,10 @@ const keywordSearch = (query, topK = 3) => {
 const buildDocumentContext = (hits) => {
     if (!hits.length)
         return '';
-    return hits
-        .map((hit, index) => `资料${index + 1}：${hit.text}`)
-        .join('\n\n');
+    return hits.map((hit, index) => `资料${index + 1}：${hit.text}`).join('\n\n');
 };
 const formatHistory = (history) => history.map(msg => `${msg.role === 'user' ? '用户' : '助手'}：${msg.content}`).join('\n');
-const buildPromptFromMemory = (memoryContext, docContext, userMessage) => {
+const buildPromptFromMemory = (memoryContext, docContext, attachmentContext, userMessage) => {
     const sections = [
         '你是一位专业且可靠的中文 AI 助手，请结合记忆与提供的参考资料回答用户问题。',
     ];
@@ -106,10 +105,16 @@ const buildPromptFromMemory = (memoryContext, docContext, userMessage) => {
         sections.push(`会话摘要：\n${memoryContext.summary}`);
     }
     if (memoryContext.relevantFacts.length) {
-        sections.push(`相关长期记忆：\n${memoryContext.relevantFacts.map((fact, idx) => `${idx + 1}. ${fact}`).join('\n')}`);
+        const factsText = memoryContext.relevantFacts
+            .map((fact, idx) => `${idx + 1}. ${fact}`)
+            .join('\n');
+        sections.push(`相关长期记忆：\n${factsText}`);
     }
     if (docContext) {
         sections.push(`参考资料：\n${docContext}`);
+    }
+    if (attachmentContext) {
+        sections.push(`附件信息：\n${attachmentContext}`);
     }
     if (memoryContext.recentHistory.length) {
         sections.push(`最近对话：\n${formatHistory(memoryContext.recentHistory)}`);
@@ -117,6 +122,63 @@ const buildPromptFromMemory = (memoryContext, docContext, userMessage) => {
     sections.push(`用户当前问题：\n${userMessage}`);
     return sections.join('\n\n');
 };
+const sanitizeAttachmentInputs = (raw) => {
+    if (!Array.isArray(raw))
+        return [];
+    const results = [];
+    for (const item of raw) {
+        if (!item || typeof item !== 'object')
+            continue;
+        const candidate = item;
+        const fileIdRaw = candidate.fileId ?? candidate.id;
+        const fileId = typeof fileIdRaw === 'string'
+            ? fileIdRaw.trim()
+            : typeof fileIdRaw === 'number'
+                ? String(fileIdRaw)
+                : '';
+        if (!fileId)
+            continue;
+        const sizeRaw = candidate.size ?? candidate.fileSize;
+        let size;
+        if (typeof sizeRaw === 'number') {
+            size = Number.isFinite(sizeRaw) ? sizeRaw : undefined;
+        }
+        else if (typeof sizeRaw === 'string') {
+            const numeric = Number(sizeRaw);
+            size = Number.isFinite(numeric) ? numeric : undefined;
+        }
+        const fileName = typeof candidate.fileName === 'string'
+            ? candidate.fileName
+            : typeof candidate.name === 'string'
+                ? candidate.name
+                : undefined;
+        const mimeType = typeof candidate.mimeType === 'string' ? candidate.mimeType : undefined;
+        results.push({
+            fileId,
+            fileName,
+            mimeType,
+            size,
+        });
+    }
+    return results;
+};
+const serializeAttachmentAnalyses = (analyses) => analyses.map(analysis => ({
+    fileId: analysis.fileId,
+    name: analysis.originalName || analysis.fileId,
+    originalName: analysis.originalName,
+    mimeType: analysis.mimeType,
+    size: analysis.size,
+    caption: analysis.caption,
+    summary: analysis.summary,
+    warnings: analysis.warnings,
+    provider: analysis.provider,
+    usage: analysis.usage,
+    width: analysis.width,
+    height: analysis.height,
+    previewUrl: analysis.previewUrl ?? analysis.publicPath ?? undefined,
+    downloadUrl: analysis.downloadUrl ?? analysis.publicPath ?? undefined,
+    publicPath: analysis.publicPath,
+}));
 const processChatRequest = async (body = {}, request) => {
     const taskType = body.taskType || 'general';
     const sessionId = body.sessionId || body.conversationId || `session-${Date.now()}`;
@@ -126,11 +188,18 @@ const processChatRequest = async (body = {}, request) => {
     if (!userMessage) {
         return { status: 400, payload: { error: '缺少用户输入' } };
     }
+    const attachmentsInput = sanitizeAttachmentInputs(body.attachments);
+    const attachmentContext = attachmentsInput.length > 0
+        ? await buildAttachmentContext(attachmentsInput)
+        : { contextText: '', analyses: [], notes: [] };
+    const serializedAttachments = serializeAttachmentAnalyses(attachmentContext.analyses);
+    const attachmentContextText = attachmentContext.contextText;
+    const attachmentNotes = attachmentContext.notes;
     if (taskType === '聊天') {
         const searchRes = keywordSearch(userMessage, topK);
         const docContext = buildDocumentContext(searchRes);
         const memoryContext = await memoryManager.prepareContext(sessionId, userMessage);
-        const prompt = buildPromptFromMemory(memoryContext, docContext, userMessage);
+        const prompt = buildPromptFromMemory(memoryContext, docContext, attachmentContextText, userMessage);
         try {
             const res = await provider.chat({ prompt, systemPrompt: 'You are a helpful assistant.' });
             const answer = res.text;
@@ -141,6 +210,8 @@ const processChatRequest = async (body = {}, request) => {
                     answer,
                     sources: searchRes,
                     provider: res.metadata?.provider || 'unknown',
+                    attachments: serializedAttachments.length ? serializedAttachments : undefined,
+                    attachmentNotes: attachmentNotes.length ? attachmentNotes : undefined,
                     memory: {
                         sessionId,
                         summary: memoryContext.summary,
@@ -156,30 +227,60 @@ const processChatRequest = async (body = {}, request) => {
             const fallbackContextParts = [];
             if (docContext)
                 fallbackContextParts.push(docContext);
+            if (attachmentContextText)
+                fallbackContextParts.push(attachmentContextText);
             if (memoryContext.summary)
                 fallbackContextParts.push(memoryContext.summary);
-            if (memoryContext.relevantFacts.length)
+            if (memoryContext.relevantFacts.length) {
                 fallbackContextParts.push(memoryContext.relevantFacts.join('；'));
+            }
             const fallbackBasis = fallbackContextParts.join(' / ') || '暂无有效记忆';
-            const fallback = `（模拟回退）基于记忆与资料：${fallbackBasis.substring(0, 120)}... 对问题 "${userMessage}" 的回答是：示例答案。`;
+            const fallback = `（模拟回退）基于已有资料 ${fallbackBasis.substring(0, 120)}... 对问题 "${userMessage}" 的回答是：示例答案。`;
             return {
                 status: 200,
-                payload: { answer: fallback, sources: searchRes, warning: 'provider.chat failed, used fallback', memory: { sessionId } },
+                payload: {
+                    answer: fallback,
+                    sources: searchRes,
+                    warning: 'provider.chat failed, used fallback',
+                    attachments: serializedAttachments.length ? serializedAttachments : undefined,
+                    attachmentNotes: attachmentNotes.length ? attachmentNotes : undefined,
+                    memory: { sessionId },
+                },
             };
         }
     }
     const query = rawQuery || userMessage;
     const searchRes = keywordSearch(query, topK);
-    const context = buildDocumentContext(searchRes);
-    const prompt = `根据以下上下文回答用户问题：\n${context}\n\n问题: ${query}`;
+    const docContext = buildDocumentContext(searchRes);
+    const attachmentSection = attachmentContextText ? `\n\n附件信息：\n${attachmentContextText}` : '';
+    const prompt = `请根据以下资料回答用户问题：\n${docContext}${attachmentSection}\n\n问题: ${query}`;
     try {
         const res = await provider.chat({ prompt, systemPrompt: 'You are a helpful assistant.' });
         const answer = res.text;
-        return { status: 200, payload: { answer, sources: searchRes, provider: res.metadata?.provider || 'unknown' } };
+        return {
+            status: 200,
+            payload: {
+                answer,
+                sources: searchRes,
+                provider: res.metadata?.provider || 'unknown',
+                attachments: serializedAttachments.length ? serializedAttachments : undefined,
+                attachmentNotes: attachmentNotes.length ? attachmentNotes : undefined,
+            },
+        };
     }
     catch (err) {
-        const fallback = `（模拟回退）基于检索到的内容：${context.substring(0, 120)}... 对问题 "${query}" 的回答是：示例答案。`;
-        return { status: 200, payload: { answer: fallback, sources: searchRes, warning: 'provider.chat failed, used fallback' } };
+        const fallbackBasis = [docContext, attachmentContextText].filter(Boolean).join(' / ') || '暂无有效资料';
+        const fallback = `（模拟回退）基于资料 ${fallbackBasis.substring(0, 120)}... 对问题 "${query}" 的回答是：示例答案。`;
+        return {
+            status: 200,
+            payload: {
+                answer: fallback,
+                sources: searchRes,
+                warning: 'provider.chat failed, used fallback',
+                attachments: serializedAttachments.length ? serializedAttachments : undefined,
+                attachmentNotes: attachmentNotes.length ? attachmentNotes : undefined,
+            },
+        };
     }
 };
 fastify.get('/health', async () => ({ ok: true }));
