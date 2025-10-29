@@ -86,7 +86,7 @@ export default function Home() {
         setInitialChatAttachments([]);
         setShowChat(false);
 
-        toast.success(response.message || '新聊天开启成功');
+        toast.success(response.message || '新聊天开启成功', { id: 'create-chat-success' });
         console.log('新聊天ID:', response.taskId);
       } else {
         toast.error(response.message || '开启新聊天失败');

@@ -100,30 +100,33 @@ export function useFileUploader(): UseFileUploaderResult {
         return next;
       })
     );
-    toast.success(`${file.name} 上传成功`);
+    toast.success(`${file.name} 上传成功`, { id: `upload-success-${result.fileId || attachmentId}` });
   }, []);
 
   const queueFiles = useCallback(
     (files: File[]) => {
       if (!files.length) return;
-      setAttachments(prev => {
-        const nextItems = [...prev];
-        files.forEach(file => {
-          const id = `att_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-          const previewUrl = file.type.startsWith('image/')
-            ? URL.createObjectURL(file)
-            : undefined;
-          nextItems.push({
+
+      const tasks = files.map(file => {
+        const id = `att_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+        const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined;
+        return {
+          attachment: {
             id,
             name: file.name,
             size: file.size,
             mimeType: file.type || 'application/octet-stream',
-            status: 'uploading',
+            status: 'uploading' as const,
             previewUrl,
-          });
-          void startUpload(id, file);
-        });
-        return nextItems;
+          },
+          file,
+        };
+      });
+
+      setAttachments(prev => [...prev, ...tasks.map(task => task.attachment)]);
+
+      tasks.forEach(task => {
+        void startUpload(task.attachment.id, task.file);
       });
     },
     [startUpload]
