@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "pnpm run build && node dist/index.js",
     "start": "node dist/index.js",
-    "build": "tsc"
+    "build": "tsc",
+    "test": "vitest run"
   },
   "dependencies": {
     "@fastify/ajv-compiler": "^4.0.5",
@@ -40,11 +41,14 @@
   },
   "devDependencies": {
     "@fastify/cors": "^11.1.0",
+    "@types/image-size": "^0.8.0",
     "@types/node": "^24.9.1",
     "@types/node-fetch": "^2.6.13",
     "@types/pino": "^7.0.5",
+    "image-size": "^2.0.2",
     "ts-node-dev": "^2.0.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.4"
   },
   "packageManager": "pnpm@10.18.2+sha512.9fb969fa749b3ade6035e0f109f0b8a60b5d08a1a87fdf72e337da90dcc93336e2280ca4e44f2358a649b83c17959e9993e777c2080879f3801e6f0d999ad3dd"
 }
