@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { KeyboardEvent } from 'react';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
@@ -165,8 +165,8 @@ export function MainContent({
           <span className="text-blue-500">智能助手</span>，一键生成
         </h1>
         <div className="hidden md:block">
-          <div className="flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
-            <i className="fas fa-lightbulb mr-1"></i>
+          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
+            <i className="fas fa-lightbulb"></i>
             <span>今日灵感：{inspiration}</span>
           </div>
         </div>
@@ -195,7 +195,7 @@ export function MainContent({
         ))}
       </div>
 
-      <div className="flex flex-1 flex-col gap-10 px-4 pb-12 sm:px-6 lg:px-12 2xl:px-16">
+      <div className="flex flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-12 2xl:px-16">
         <section
           className="mx-auto w-full rounded-xl border border-gray-100 bg-white px-5 py-6 shadow-sm sm:px-6 lg:px-8 2xl:px-10"
           style={{ maxWidth: 'clamp(760px, 68vw, 1280px)' }}
@@ -275,7 +275,7 @@ export function MainContent({
         </section>
 
         <section
-          className="mx-auto flex w-full flex-1 flex-col justify-between rounded-3xl border border-gray-100/70 bg-white/80 px-5 py-6 shadow-sm ring-1 ring-gray-100/60 backdrop-blur sm:px-6 lg:px-8 2xl:px-10"
+          className="mx-auto w-full rounded-3xl border border-gray-100/70 bg-white/80 px-5 py-6 shadow-sm ring-1 ring-gray-100/60 backdrop-blur sm:px-6 lg:px-8 2xl:px-10"
           style={{ maxWidth: 'clamp(820px, 70vw, 1320px)' }}
         >
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 lg:px-6">
@@ -312,7 +312,7 @@ export function MainContent({
             </div>
           </div>
 
-          <div className="grid flex-1 grid-cols-[repeat(auto-fit,minmax(240px,1fr))] content-start gap-4 justify-items-center pb-4 2xl:gap-6">
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 justify-items-center 2xl:gap-6">
             <ProjectCard
               title="AI智能写作助手"
               imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"

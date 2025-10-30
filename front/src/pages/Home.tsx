@@ -239,20 +239,21 @@ export default function Home() {
     transform: `scale(${scale})`,
     transformOrigin: 'top center',
     width: `${scaledSize}%`,
+    height: baseScaledHeight,
     minHeight: baseScaledHeight,
-    ...(isChatting ? { height: baseScaledHeight } : {}),
-    transition: 'transform 0.3s ease, width 0.3s ease, min-height 0.3s ease',
+    transition: 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
   } as const;
 
-  const layoutClass = isChatting
-    ? 'h-screen overflow-hidden'
-    : 'min-h-screen overflow-x-hidden overflow-y-auto';
+const layoutClass = isChatting ? 'h-screen overflow-hidden' : 'h-screen overflow-x-hidden';
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
       <div
         className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
-        style={scaleStyle}
+        style={{
+          ...scaleStyle,
+          overflowY: isChatting ? 'hidden' : 'auto',
+        }}
       >
         <div className="flex-shrink-0">
           <Sidebar
