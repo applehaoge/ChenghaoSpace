@@ -235,25 +235,23 @@ export default function Home() {
 
   const scaledSize = Number((100 / scale).toFixed(3));
   const baseScaledHeight = `${scaledSize}vh`;
-  const scaleStyle = {
+  const homeScaleStyle = {
     transform: `scale(${scale})`,
     transformOrigin: 'top center',
     width: `${scaledSize}%`,
     height: baseScaledHeight,
     minHeight: baseScaledHeight,
+    overflowY: 'auto',
     transition: 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
   } as const;
 
-const layoutClass = isChatting ? 'h-screen overflow-hidden' : 'h-screen overflow-x-hidden';
+  const layoutClass = isChatting ? 'h-screen overflow-hidden' : 'h-screen overflow-x-hidden';
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
       <div
         className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
-        style={{
-          ...scaleStyle,
-          overflowY: isChatting ? 'hidden' : 'auto',
-        }}
+        style={isChatting ? { width: '100%', minHeight: '100vh' } : homeScaleStyle}
       >
         <div className="flex-shrink-0">
           <Sidebar
