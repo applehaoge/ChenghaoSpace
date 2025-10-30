@@ -153,7 +153,7 @@ const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
   };
 
   const handlePracticeCategory = (category: string) => {
-    toast.info(`已切换到${category}分类`);
+    toast.info(`已切换到 ${category} 分类`);
   };
 
   const disableHomeSend =
@@ -162,20 +162,20 @@ const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     homeAttachments.some(item => item.status === 'error');
 
   return (
-    <main className="flex-1 bg-white border-l border-gray-100">
-      <div className="flex items-center justify-between pt-8 pb-6 px-8 relative">
+    <main className="flex-1 min-w-0 border-l border-gray-100 bg-white">
+      <div className="relative flex items-center justify-between px-6 pt-8 pb-6 sm:px-8 lg:px-12 2xl:px-16">
         <h1 className="text-2xl font-bold text-gray-800">
           <span className="text-blue-500">智能助手</span>，一键生成
         </h1>
         <div className="hidden md:block">
-          <div className="bg-blue-50 px-4 py-2 rounded-full text-sm text-blue-700 flex items-center">
+          <div className="flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
             <i className="fas fa-lightbulb mr-1"></i>
             <span>今日灵感: {inspiration}</span>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-center gap-3 mb-8 flex-wrap">
+      <div className="mb-8 flex flex-wrap justify-center gap-3 px-4 sm:px-6 lg:px-12 2xl:px-16">
         {tabs.map(tab => (
           <button
             key={tab}
@@ -197,7 +197,10 @@ const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
         ))}
       </div>
 
-      <div className="max-w-[800px] mx-auto p-6 bg-white rounded-xl border border-gray-100 mb-10 shadow-sm">
+      <div
+        className="mx-auto mb-10 w-full rounded-xl border border-gray-100 bg-white px-5 py-6 shadow-sm sm:px-6 lg:px-8 2xl:px-10"
+        style={{ maxWidth: 'clamp(760px, 68vw, 1280px)' }}
+      >
         <div className="flex items-start mb-4 gap-2.5">
           <span className="px-2 py-1 bg-blue-50 text-blue-500 rounded-full text-xs font-medium">
             {activeTab}
@@ -261,24 +264,27 @@ const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
         />
       </div>
 
-      <div className="max-w-[800px] mx-auto px-5 pb-10">
-        <div className="flex justify-between items-center mb-5 bg-gradient-to-r from-blue-50 to-indigo-50 p-3 rounded-lg">
-          <h3 className="text-lg font-bold text-gray-800 m-0">最佳实践</h3>
-          <div className="flex">
+      <div
+        className="mx-auto w-full px-5 pb-12 sm:px-6 lg:px-8 2xl:px-10"
+        style={{ maxWidth: 'clamp(820px, 70vw, 1320px)' }}
+      >
+        <div className="mb-5 flex items-center justify-between rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 lg:px-6">
+          <h3 className="m-0 text-lg font-bold text-gray-800">最佳实践</h3>
+          <div className="flex flex-wrap gap-1 text-sm">
             <button
-              className="px-3 py-1 bg-transparent border-none text-gray-700 text-sm hover:text-blue-600 transition-colors"
+              className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
               onClick={() => handlePracticeCategory('网页宣发')}
             >
               网页宣发
             </button>
             <button
-              className="px-3 py-1 bg-transparent border-none text-gray-700 text-sm hover:text-blue-600 transition-colors"
+              className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
               onClick={() => handlePracticeCategory('教育工具')}
             >
               教育工具
             </button>
             <button
-              className="px-3 py-1 bg-transparent border-none text-gray-700 text-sm hover:text-blue-600 transition-colors"
+              className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
               onClick={() => handlePracticeCategory('趣味游戏')}
             >
               趣味游戏
@@ -286,7 +292,7 @@ const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 justify-items-center 2xl:gap-6">
           <ProjectCard
             title="AI智能写作助手"
             imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"

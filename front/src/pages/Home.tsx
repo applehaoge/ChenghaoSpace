@@ -18,8 +18,8 @@ import {
 } from '@/pages/home/taskUtils';
 import type { ChatBubble, TaskConversation } from '@/pages/home/types';
 
-const MAX_SCALE = 1.35;
 const BASE_WIDTH = 1440;
+const MAX_SCALE = 1.6;
 
 const TASK_ICON_CANDIDATES = ['lightbulb', 'edit', 'file', 'clipboard', 'calendar', 'list-check', 'target'];
 const TASK_COLOR_CANDIDATES = ['blue-500', 'green-500', 'indigo-500', 'purple-500', 'pink-500', 'red-500', 'orange-500'];
@@ -80,6 +80,18 @@ export default function Home() {
       console.error('保存任务记录失败:', error);
     }
   }, [tasks]);
+
+  useEffect(() => {
+    const updateScale = () => {
+      const width = typeof window !== 'undefined' ? window.innerWidth : BASE_WIDTH;
+      const nextScale = width > BASE_WIDTH ? Math.min(width / BASE_WIDTH, MAX_SCALE) : 1;
+      setScale(Number(nextScale.toFixed(3)));
+    };
+
+    updateScale();
+    window.addEventListener('resize', updateScale);
+    return () => window.removeEventListener('resize', updateScale);
+  }, []);
 
   const handleConversationUpdate = useCallback(
     (conversationId: string, nextMessages: ChatBubble[]) => {
@@ -206,18 +218,6 @@ export default function Home() {
     setShowChat(true);
   }, []);
 
-  useEffect(() => {
-    const updateScale = () => {
-      const width = typeof window !== 'undefined' ? window.innerWidth : BASE_WIDTH;
-      const nextScale = width > BASE_WIDTH ? Math.min(width / BASE_WIDTH, MAX_SCALE) : 1;
-      setScale(Number(nextScale.toFixed(3)));
-    };
-
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
-  }, []);
-
   const activeTask = tasks.find(task => task.id === activeTaskId) || null;
   const isChatting = showChat && Boolean(activeTask);
   const sidebarTasks: SidebarTask[] = tasks.map(task => {
@@ -252,13 +252,15 @@ export default function Home() {
         className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
         style={scaleStyle}
       >
-        <Sidebar
-          onCreateNewTask={handleCreateNewTask}
-          tasks={sidebarTasks}
-          activeTaskId={activeTaskId}
-          onSelectTask={handleSelectTask}
-          onDeleteTask={handleDeleteTask}
-        />
+        <div className="flex-shrink-0">
+          <Sidebar
+            onCreateNewTask={handleCreateNewTask}
+            tasks={sidebarTasks}
+            activeTaskId={activeTaskId}
+            onSelectTask={handleSelectTask}
+            onDeleteTask={handleDeleteTask}
+          />
+        </div>
 
         {isChatting && activeTask ? (
           <ChatInterface
