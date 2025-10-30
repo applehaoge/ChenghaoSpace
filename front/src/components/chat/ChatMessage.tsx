@@ -170,7 +170,7 @@ export function ChatMessage({
           <i className="fas fa-robot text-blue-500"></i>
         </div>
       )}
-      <div className={`max-w-[80%] ${alignment.order} flex flex-col ${alignment.stack} gap-3`}>
+      <div className={`max-w-full ${alignment.order} flex flex-col ${alignment.stack} gap-3 sm:max-w-[82%] xl:max-w-[75%] 2xl:max-w-[70%]`}>
         {attachmentsNode}
         {attachmentNotesNode}
         {showBubble ? (
@@ -187,7 +187,7 @@ export function ChatMessage({
               } p-4`}
             >
               {message.sender === 'ai' ? (
-                <div className="text-sm leading-relaxed space-y-2">
+                <div className="text-base leading-relaxed space-y-2">
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                     {message.content}
                   </ReactMarkdown>
@@ -196,7 +196,7 @@ export function ChatMessage({
                   )}
                 </div>
               ) : (
-                <div className="whitespace-pre-wrap leading-relaxed text-sm">{message.content}</div>
+                <div className="whitespace-pre-wrap leading-relaxed text-base">{message.content}</div>
               )}
             </div>
             {hasTextContent ? (

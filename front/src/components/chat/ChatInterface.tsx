@@ -141,112 +141,120 @@ export function ChatInterface({
     chatHasUploading ||
     chatAttachments.some(item => item.status === 'error');
 
+  const contentStyle = { width: '100%', maxWidth: 'clamp(960px, calc(100vw - 360px), 1800px)' } as const;
+
   return (
     <main className="flex-1 bg-white border-l border-gray-100 flex flex-col min-h-0">
-      <div className="sticky top-0 z-10 flex items-center justify-between p-5 border-b border-gray-100 bg-white">
-        <div className="flex items-center gap-3">
-          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" onClick={onBack}>
-            <i className="fas fa-arrow-left text-gray-500"></i>
-          </button>
-          <h2 className="text-lg font-medium text-gray-800">{title || 'AI对话助手'}</h2>
-        </div>
-        <div className="flex items-center gap-3">
-          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <i className="fas fa-clock-rotate-left text-gray-500"></i>
-          </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <i className="fas fa-share-nodes text-gray-500"></i>
-          </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <i className="fas fa-file-export text-gray-500"></i>
-          </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <i className="fas fa-ellipsis text-gray-500"></i>
-          </button>
+      <div className="sticky top-0 z-10 border-b border-gray-100 bg-white px-5 py-5">
+        <div className="mx-auto flex w-full items-center justify-between gap-3" style={contentStyle}>
+          <div className="flex items-center gap-3">
+            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" onClick={onBack}>
+              <i className="fas fa-arrow-left text-gray-500"></i>
+            </button>
+            <h2 className="text-lg font-medium text-gray-800">{title || 'AI对话助手'}</h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <i className="fas fa-clock-rotate-left text-gray-500"></i>
+            </button>
+            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <i className="fas fa-share-nodes text-gray-500"></i>
+            </button>
+            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <i className="fas fa-file-export text-gray-500"></i>
+            </button>
+            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <i className="fas fa-ellipsis text-gray-500"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-5 bg-gray-50 chat-window min-h-0">
-        {messages.map(message => (
-          <ChatMessage key={message.id} message={message} onCopy={handleCopy} />
-        ))}
+      <div className="flex-1 overflow-y-auto bg-gray-50 chat-window min-h-0 px-5 py-5 sm:px-6 lg:px-8">
+        <div className="mx-auto w-full" style={contentStyle}>
+          {messages.map(message => (
+            <ChatMessage key={message.id} message={message} onCopy={handleCopy} />
+          ))}
 
-        {isLoading && (
-          <div className="flex justify-start mb-6">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
-              <i className="fas fa-robot text-blue-500"></i>
-            </div>
-            <div className="bg-white border border-gray-200 text-gray-800 p-4 rounded-lg">
-              <div className="flex space-x-1">
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
-                <div
-                  className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                  style={{ animationDelay: '0.2s' }}
-                ></div>
-                <div
-                  className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                  style={{ animationDelay: '0.4s' }}
-                ></div>
+          {isLoading && (
+            <div className="flex justify-start mb-6">
+              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+                <i className="fas fa-robot text-blue-500"></i>
+              </div>
+              <div className="bg-white border border-gray-200 text-gray-800 p-4 rounded-lg">
+                <div className="flex space-x-1">
+                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
+                  <div
+                    className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                    style={{ animationDelay: '0.2s' }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                    style={{ animationDelay: '0.4s' }}
+                  ></div>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
-      <div className="p-5 border-t border-gray-100">
-        <div className="flex gap-2.5 mb-3">
-          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <i className="fas fa-microphone text-gray-500"></i>
-          </button>
-          <button
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-            onClick={openChatFileDialog}
-          >
-            <i className="fas fa-paperclip text-gray-500"></i>
-          </button>
-          <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-            <i className="fas fa-smile text-gray-500"></i>
-          </button>
-        </div>
-
-        {chatAttachments.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-3">
-            {chatAttachments.map(item => (
-              <AttachmentBadge key={item.id} attachment={item} onRemove={removeChatAttachment} />
-            ))}
+      <div className="border-t border-gray-100 bg-white px-5 py-5">
+        <div className="mx-auto w-full" style={contentStyle}>
+          <div className="flex gap-2.5 mb-3">
+            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <i className="fas fa-microphone text-gray-500"></i>
+            </button>
+            <button
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              onClick={openChatFileDialog}
+            >
+              <i className="fas fa-paperclip text-gray-500"></i>
+            </button>
+            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
+              <i className="fas fa-smile text-gray-500"></i>
+            </button>
           </div>
-        )}
 
-        <div className="flex gap-2.5">
-          <textarea
-            ref={textareaRef}
-            value={composerValue}
-            onChange={event => setComposerValue(event.target.value)}
-            onKeyDown={handleKeyPress}
-            onInput={adjustTextareaHeight}
-            className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
-            placeholder="我想说的是..."
-            rows={2}
-            style={{ minHeight: 56, maxHeight: 220 }}
+          {chatAttachments.length > 0 && (
+            <div className="flex flex-wrap gap-3 mb-3">
+              {chatAttachments.map(item => (
+                <AttachmentBadge key={item.id} attachment={item} onRemove={removeChatAttachment} />
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2.5">
+            <textarea
+              ref={textareaRef}
+              value={composerValue}
+              onChange={event => setComposerValue(event.target.value)}
+              onKeyDown={handleKeyPress}
+              onInput={adjustTextareaHeight}
+              className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 resize-none"
+              placeholder="我想说的是..."
+              rows={2}
+              style={{ minHeight: 56, maxHeight: 220 }}
+            />
+            <button
+              className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50"
+              onClick={handleSendMessage}
+              disabled={disableSend}
+            >
+              <i className="fas fa-paper-plane"></i>
+            </button>
+          </div>
+
+          <input
+            ref={chatFileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleChatFileInputChange}
           />
-          <button
-            className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50"
-            onClick={handleSendMessage}
-            disabled={disableSend}
-          >
-            <i className="fas fa-paper-plane"></i>
-          </button>
         </div>
-
-        <input
-          ref={chatFileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleChatFileInputChange}
-        />
       </div>
     </main>
   );

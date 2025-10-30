@@ -250,10 +250,10 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
       <div
-        className={`flex flex-row bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
+        className={`flex bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
         style={isChatting ? { width: '100%', minHeight: '100vh' } : homeScaleStyle}
       >
-        <div className="flex-shrink-0">
+        <div className="flex-shrink-0 w-[280px] xl:w-[300px] 2xl:w-[320px]">
           <Sidebar
             onCreateNewTask={handleCreateNewTask}
             tasks={sidebarTasks}
