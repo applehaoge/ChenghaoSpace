@@ -14,7 +14,7 @@ ChenghaoSpace 是一个基于 Fastify + TypeScript 后端与 Vite + React 前端
 2. **会话记忆**：ConversationMemoryManager 自动整理摘要与关键事实。
 3. **附件上传**：前端批量上传，后端统一落盘并生成下载路径。
 4. **图像识别**：接入豆包 doubao-seed-1-6-flash，自动生成图片描述与风险提示。
-5. **文档解析**：支持 TXT/PDF/DOCX 解析，提取摘要供 AI 回答使用。
+5. **文档解析**：支持 TXT/PDF/DOCX/XLSX 解析，提取摘要供 AI 回答使用。
 6. **连通性脚本**：server/scripts/test-doubao-image.mjs 可独立验证豆包图像接口。
 
 ## 快速开始
@@ -41,7 +41,7 @@ ChenghaoSpace 是一个基于 Fastify + TypeScript 后端与 Vite + React 前端
 2. **会话切换**：在左侧面板切换不同会话，检视历史消息与记忆。
 3. **附件上传**：上传图片或文档，刷新页面后仍可访问附件卡片。
 4. **图像描述**：上传图片后，检查 AI 回复是否引用豆包生成的描述，注意是否出现 warnings。
-5. **文档解析**：上传 TXT/PDF/DOCX，并向 AI 提问，确认回复能引用文档内容摘要。
+5. **文档解析**：上传 TXT/PDF/DOCX/XLSX，并向 AI 提问，确认回复能引用文档内容摘要。
 6. **记忆回放**：在同一会话多轮提问，确认摘要和长期记忆被引用。
 7. **后端自检**：运行 pnpm --dir server test 与 pnpm --dir server build，确认管线通过。
 

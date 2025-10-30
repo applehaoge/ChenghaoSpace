@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { promises as fs } from 'node:fs';
+import { Buffer } from 'node:buffer';
+import * as XLSX from 'xlsx';
 
 vi.mock('pdf-parse', () => ({
   default: vi.fn(),
@@ -48,6 +50,15 @@ describe('documentParser', () => {
     ).toBeTruthy();
     expect(
       isSupportedDocument(
+        createRecord({
+          mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          storedName: 'table.xlsx',
+          originalName: 'table.xlsx',
+        })
+      )
+    ).toBeTruthy();
+    expect(
+      isSupportedDocument(
         createRecord({ mimeType: 'application/msword', storedName: 'legacy.doc', originalName: 'legacy.doc' })
       )
     ).toBeFalsy();
@@ -92,5 +103,30 @@ describe('documentParser', () => {
       })
     );
     expect(result.excerpt).toContain('docx body');
+  });
+
+  it('parses xlsx documents', async () => {
+    const workbook = XLSX.utils.book_new();
+    const worksheet = XLSX.utils.aoa_to_sheet([
+      ['姓名', '分数'],
+      ['张三', 95],
+      ['李四', 88],
+    ]);
+    XLSX.utils.book_append_sheet(workbook, worksheet, '成绩');
+    const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }) as Uint8Array;
+    readFileSpy.mockResolvedValueOnce(Buffer.from(buffer));
+
+    const result = await parseDocumentAttachment(
+      createRecord({
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        storedName: 'scores.xlsx',
+        originalName: 'scores.xlsx',
+      })
+    );
+
+    expect(result.excerpt).toContain('成绩');
+    const metadata = result.metadata as { sheetNames?: string[]; sheets?: Array<{ name: string }> };
+    expect(metadata.sheetNames).toContain('成绩');
+    expect(metadata.sheets?.[0]?.name).toBe('成绩');
   });
 });

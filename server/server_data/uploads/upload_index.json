@@ -241,5 +241,14 @@
     "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     "size": 12666,
     "uploadedAt": "2025-10-29T14:08:45.517Z"
+  },
+  "86bc96c1-2d36-4600-91c7-7472459b4bd6": {
+    "fileId": "86bc96c1-2d36-4600-91c7-7472459b4bd6",
+    "originalName": "C++夏令营  2025.07.10-24考勤.xlsx",
+    "storedName": "86bc96c1-2d36-4600-91c7-7472459b4bd6.xlsx",
+    "storedPath": "D:\\AI_agent_project1\\server\\server_data\\uploads\\86bc96c1-2d36-4600-91c7-7472459b4bd6.xlsx",
+    "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "size": 12666,
+    "uploadedAt": "2025-10-30T02:09:03.324Z"
   }
 }

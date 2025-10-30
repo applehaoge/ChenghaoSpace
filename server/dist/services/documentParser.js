@@ -8,11 +8,13 @@ const mimeToFormat = {
     'application/pdf': 'pdf',
     'application/x-pdf': 'pdf',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'xlsx',
 };
 const extensionToFormat = {
     '.txt': 'txt',
     '.pdf': 'pdf',
     '.docx': 'docx',
+    '.xlsx': 'xlsx',
 };
 const normalizeWhitespace = (input) => input
     .replace(/\u0000/g, '')
@@ -131,6 +133,90 @@ const readDocxFile = async (record) => {
         metadata: {},
     };
 };
+const readXlsxFile = async (record) => {
+    const buffer = await fs.readFile(record.storedPath);
+    const xlsxModule = await import('xlsx');
+    const XLSX = xlsxModule.default ?? xlsxModule;
+    const workbook = XLSX.read(buffer, { type: 'buffer' });
+    const warnings = [];
+    const sheetNames = Array.isArray(workbook.SheetNames) ? workbook.SheetNames : [];
+    const maxSheets = Math.max(1, Number(process.env.DOCUMENT_PARSE_MAX_SHEETS ?? 3));
+    const maxRows = Math.max(1, Number(process.env.DOCUMENT_PARSE_MAX_ROWS ?? 20));
+    const maxColumns = Math.max(1, Number(process.env.DOCUMENT_PARSE_MAX_COLUMNS ?? 12));
+    const maxChars = Number(process.env.DOCUMENT_PARSE_MAX_CHARS ?? DEFAULT_MAX_CHARS);
+    const selectedSheets = sheetNames.slice(0, maxSheets);
+    if (sheetNames.length > selectedSheets.length) {
+        warnings.push(`工作簿包含 ${sheetNames.length} 个工作表，仅解析前 ${selectedSheets.length} 个。`);
+    }
+    const sections = [];
+    const sheetSummaries = [];
+    const formatRow = (row, columnLimit) => row
+        .slice(0, columnLimit)
+        .map(cell => {
+        if (!cell)
+            return '-';
+        return cell.length > 60 ? `${cell.slice(0, 57)}...` : cell;
+    })
+        .join(' | ');
+    selectedSheets.forEach((name, index) => {
+        const worksheet = workbook.Sheets[name];
+        if (!worksheet) {
+            warnings.push(`无法读取工作表「${name}」，已跳过。`);
+            return;
+        }
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, raw: false });
+        const normalizedRows = rows.map(row => Array.isArray(row) ? row.map(cell => (cell == null ? '' : String(cell).trim())) : []);
+        const nonEmptyRows = normalizedRows.filter(row => row.some(cell => cell));
+        sheetSummaries.push({
+            name,
+            rows: nonEmptyRows.length,
+            columns: nonEmptyRows[0]?.length ?? 0,
+        });
+        const limitedRows = nonEmptyRows.slice(0, maxRows);
+        if (nonEmptyRows.length > limitedRows.length) {
+            warnings.push(`工作表「${name}」共有 ${nonEmptyRows.length} 行，仅保留前 ${maxRows} 行。`);
+        }
+        const lines = [`工作表${index + 1}：${name}`];
+        if (!limitedRows.length) {
+            lines.push('（表格为空）');
+        }
+        else {
+            const headerRow = limitedRows[0] ?? [];
+            const headerLine = formatRow(headerRow, maxColumns) || '(无表头)';
+            if (headerRow.length > maxColumns) {
+                warnings.push(`工作表「${name}」共有 ${headerRow.length} 列，仅展示前 ${maxColumns} 列。`);
+            }
+            lines.push(`表头：${headerLine}`);
+            const dataRows = limitedRows.slice(1);
+            if (!dataRows.length) {
+                lines.push('（无数据行）');
+            }
+            else {
+                dataRows.forEach((row, rowIndex) => {
+                    lines.push(`第${rowIndex + 1}行：${formatRow(row, maxColumns)}`);
+                });
+            }
+        }
+        sections.push(lines.join('\n'));
+    });
+    const text = normalizeWhitespace(sections.join('\n\n'));
+    const excerpt = buildExcerpt(text, maxChars);
+    if (excerpt.length < text.length && text.length > 0) {
+        warnings.push(`Excel 内容较长，仅截取前 ${maxChars} 个字符用于上下文。`);
+    }
+    const wordCount = text ? text.split(/\s+/).filter(Boolean).length : 0;
+    return {
+        text,
+        excerpt,
+        wordCount,
+        warnings,
+        metadata: {
+            sheetCount: sheetNames.length,
+            sheetNames: selectedSheets,
+            sheets: sheetSummaries,
+        },
+    };
+};
 export const isSupportedDocument = (record) => Boolean(resolveFormat(record));
 export const parseDocumentAttachment = async (record) => {
     const format = resolveFormat(record);
@@ -144,6 +230,8 @@ export const parseDocumentAttachment = async (record) => {
             return readPdfFile(record);
         case 'docx':
             return readDocxFile(record);
+        case 'xlsx':
+            return readXlsxFile(record);
         default:
             throw new Error('未能识别的文档类型');
     }

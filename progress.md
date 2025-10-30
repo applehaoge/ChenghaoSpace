@@ -103,3 +103,7 @@
   - 新增 documentParser 服务，统一处理 TXT/PDF/DOCX，并在附件上下文生成摘要与警告。
   - 扩展 buildAttachmentContext 支持图片 + 文档分支，整理上下文块并返回统一结构。
   - 测试：pnpm --dir server test；pnpm --dir server build。
+- **2025-10-30 Excel 解析支持**
+  - 扩展 documentParser 支持 XLSX，限制表格行列并生成表头/数据摘要。
+  - 统一上下文输出，attachmentContext 自动拼接工作表摘要与警告。
+  - 测试：pnpm --dir server test。
