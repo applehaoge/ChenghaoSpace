@@ -15,6 +15,10 @@ export type MainContentProps = {
 };
 
 const tabs = ['写作', 'PPT', '设计', 'Excel', '网页', '播客'] as const;
+const primaryMaxWidth =
+  'clamp(760px, calc(100vw - var(--sidebar-width) - 2 * var(--layout-gap)), 1320px)';
+const secondaryMaxWidth =
+  'clamp(780px, calc(100vw - var(--sidebar-width) - 2 * var(--layout-gap)), 1340px)';
 
 export function MainContent({
   activeTab,
@@ -160,7 +164,10 @@ export function MainContent({
 
   return (
     <main className="flex min-h-full flex-1 min-w-0 flex-col border-l border-gray-100 bg-white">
-      <header className="flex items-center justify-between px-6 pt-8 pb-6 sm:px-8 lg:px-12 2xl:px-16">
+      <header
+        className="flex items-center justify-between pt-8 pb-6"
+        style={{ paddingInline: 'var(--layout-gap)' }}
+      >
         <h1 className="text-2xl font-bold text-gray-800">
           <span className="text-blue-500">智能助手</span>，一键生成
         </h1>
@@ -172,7 +179,10 @@ export function MainContent({
         </div>
       </header>
 
-      <div className="mb-8 flex flex-wrap justify-center gap-3 px-4 sm:px-6 lg:px-12 2xl:px-16">
+      <div
+        className="mb-8 flex flex-wrap justify-center gap-3"
+        style={{ paddingInline: 'var(--layout-gap)' }}
+      >
         {tabs.map(tab => (
           <button
             key={tab}
@@ -195,10 +205,13 @@ export function MainContent({
         ))}
       </div>
 
-      <div className="flex flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-12 2xl:px-16">
+      <div
+        className="flex flex-col gap-8 pb-10"
+        style={{ paddingInline: 'var(--layout-gap)' }}
+      >
         <section
           className="mx-auto w-full rounded-xl border border-gray-100 bg-white px-5 py-6 shadow-sm sm:px-6 lg:px-8 2xl:px-10"
-          style={{ maxWidth: 'clamp(760px, 68vw, 1280px)' }}
+          style={{ maxWidth: primaryMaxWidth }}
         >
           <div className="mb-4 flex items-start gap-2.5">
             <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-500">
@@ -276,7 +289,7 @@ export function MainContent({
 
         <section
           className="mx-auto w-full rounded-3xl border border-gray-100/70 bg-white/80 px-5 py-6 shadow-sm ring-1 ring-gray-100/60 backdrop-blur sm:px-6 lg:px-8 2xl:px-10"
-          style={{ maxWidth: 'clamp(820px, 70vw, 1320px)' }}
+          style={{ maxWidth: secondaryMaxWidth }}
         >
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 lg:px-6">
             <h3 className="m-0 text-lg font-bold text-gray-800">最佳实践</h3>

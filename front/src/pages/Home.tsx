@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import type { CSSProperties } from 'react';
 import { toast } from 'sonner';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 import type { UploadedAttachment } from '@/pages/home/types';
@@ -235,6 +236,8 @@ export default function Home() {
 
   const scaledSize = Number((100 / scale).toFixed(3));
   const baseScaledHeight = `${scaledSize}vh`;
+  const sidebarWidth = 'clamp(15rem, 18vw, 19rem)';
+  const layoutGap = 'clamp(1.25rem, 2vw, 2.5rem)';
   const containerStyle = {
     transform: `scale(${scale})`,
     transformOrigin: 'top center',
@@ -243,9 +246,12 @@ export default function Home() {
     minHeight: baseScaledHeight,
     overflowY: 'auto',
     transition: 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
-  } as const;
+    '--sidebar-width': sidebarWidth,
+    '--layout-gap': layoutGap,
+    gap: 'var(--layout-gap)',
+  } as CSSProperties & Record<string, string>;
 
-  const layoutClass = 'min-h-screen overflow-x-hidden overflow-y-auto';
+  const layoutClass = 'min-h-screen overflow-x-hidden';
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
@@ -253,7 +259,7 @@ export default function Home() {
         className={`flex bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
         style={containerStyle}
       >
-        <div className="flex-shrink-0 w-[260px] lg:w-[280px] xl:w-[300px] 2xl:w-[320px]">
+        <div className="flex-shrink-0" style={{ width: 'var(--sidebar-width)' }}>
           <Sidebar
             onCreateNewTask={handleCreateNewTask}
             tasks={sidebarTasks}
