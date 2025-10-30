@@ -141,12 +141,15 @@ export function ChatInterface({
     chatHasUploading ||
     chatAttachments.some(item => item.status === 'error');
 
-  const contentStyle = { width: '100%', maxWidth: 'clamp(960px, calc(100vw - 360px), 1800px)' } as const;
+  const contentStyle = {
+    width: '100%',
+    maxWidth: 'clamp(820px, 70vw, 1320px)',
+  } as const;
 
   return (
     <main className="flex-1 bg-white border-l border-gray-100 flex flex-col min-h-0">
       <div className="sticky top-0 z-10 border-b border-gray-100 bg-white px-5 py-5">
-        <div className="mx-auto flex w-full items-center justify-between gap-3" style={contentStyle}>
+        <div className="flex w-full items-center justify-between gap-3" style={contentStyle}>
           <div className="flex items-center gap-3">
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" onClick={onBack}>
               <i className="fas fa-arrow-left text-gray-500"></i>
@@ -171,7 +174,7 @@ export function ChatInterface({
       </div>
 
       <div className="flex-1 overflow-y-auto bg-gray-50 chat-window min-h-0 px-5 py-5 sm:px-6 lg:px-8">
-        <div className="mx-auto w-full" style={contentStyle}>
+        <div className="w-full" style={contentStyle}>
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} onCopy={handleCopy} />
           ))}
@@ -202,7 +205,7 @@ export function ChatInterface({
       </div>
 
       <div className="border-t border-gray-100 bg-white px-5 py-5">
-        <div className="mx-auto w-full" style={contentStyle}>
+        <div className="w-full" style={contentStyle}>
           <div className="flex gap-2.5 mb-3">
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <i className="fas fa-microphone text-gray-500"></i>

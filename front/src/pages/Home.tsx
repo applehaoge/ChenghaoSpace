@@ -235,7 +235,7 @@ export default function Home() {
 
   const scaledSize = Number((100 / scale).toFixed(3));
   const baseScaledHeight = `${scaledSize}vh`;
-  const homeScaleStyle = {
+  const containerStyle = {
     transform: `scale(${scale})`,
     transformOrigin: 'top center',
     width: `${scaledSize}%`,
@@ -245,15 +245,15 @@ export default function Home() {
     transition: 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
   } as const;
 
-  const layoutClass = isChatting ? 'h-screen overflow-hidden' : 'h-screen overflow-x-hidden';
+  const layoutClass = 'min-h-screen overflow-x-hidden overflow-y-auto';
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">
       <div
         className={`flex bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
-        style={isChatting ? { width: '100%', minHeight: '100vh' } : homeScaleStyle}
+        style={containerStyle}
       >
-        <div className="flex-shrink-0 w-[280px] xl:w-[300px] 2xl:w-[320px]">
+        <div className="flex-shrink-0 w-[260px] lg:w-[280px] xl:w-[300px] 2xl:w-[320px]">
           <Sidebar
             onCreateNewTask={handleCreateNewTask}
             tasks={sidebarTasks}

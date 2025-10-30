@@ -170,7 +170,9 @@ export function ChatMessage({
           <i className="fas fa-robot text-blue-500"></i>
         </div>
       )}
-      <div className={`max-w-full ${alignment.order} flex flex-col ${alignment.stack} gap-3 sm:max-w-[82%] xl:max-w-[75%] 2xl:max-w-[70%]`}>
+      <div
+        className={`max-w-full ${alignment.order} flex flex-col ${alignment.stack} gap-3 sm:max-w-[88%] xl:max-w-[82%] 2xl:max-w-[78%]`}
+      >
         {attachmentsNode}
         {attachmentNotesNode}
         {showBubble ? (
