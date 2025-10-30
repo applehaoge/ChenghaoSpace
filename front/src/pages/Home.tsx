@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from 'sonner';
-import { aiService } from '@/api/aiService';
 import { ChatInterface } from '@/components/chat/ChatInterface';
 import type { UploadedAttachment } from '@/pages/home/types';
 import {
@@ -21,6 +20,9 @@ import type { ChatBubble, TaskConversation } from '@/pages/home/types';
 
 const MAX_SCALE = 1.35;
 const BASE_WIDTH = 1440;
+
+const TASK_ICON_CANDIDATES = ['lightbulb', 'edit', 'file', 'clipboard', 'calendar', 'list-check', 'target'];
+const TASK_COLOR_CANDIDATES = ['blue-500', 'green-500', 'indigo-500', 'purple-500', 'pink-500', 'red-500', 'orange-500'];
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState('AI专家');
@@ -44,66 +46,31 @@ export default function Home() {
   });
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
+  const [hasInitializedTask, setHasInitializedTask] = useState(false);
 
-  const handleCreateNewTask = useCallback(async () => {
-    const loadingToast = toast.loading('正在开启新聊天...');
-    try {
-      const response = await aiService.createNewTask('general', '');
-
-      if (response.success && response.taskId) {
-        const icons = ['lightbulb', 'edit', 'file', 'clipboard', 'calendar', 'list-check', 'target'];
-        const colors = [
-          'blue-500',
-          'green-500',
-          'indigo-500',
-          'purple-500',
-          'pink-500',
-          'red-500',
-          'orange-500',
-        ];
-        const randomIcon = icons[Math.floor(Math.random() * icons.length)];
-        const randomColor = colors[Math.floor(Math.random() * colors.length)];
-        const newTaskId = response.taskId;
-        const now = new Date().toISOString();
-
-        setTasks(prevTasks => {
-          const name = `新聊天 ${prevTasks.length + 1}`;
-          const nextTask: TaskConversation = {
-            id: newTaskId,
-            name,
-            icon: randomIcon,
-            color: randomColor,
-            messages: [],
-            createdAt: now,
-            updatedAt: now,
-            sessionId: createSessionId(),
-          };
-          return [nextTask, ...prevTasks];
-        });
-
-        setActiveTaskId(newTaskId);
-        setInitialChatMessage('');
-        setInitialChatAttachments([]);
-        setShowChat(false);
-
-        toast.success(response.message || '新聊天开启成功', { id: 'create-chat-success' });
-        console.log('新聊天ID:', response.taskId);
-      } else {
-        toast.error(response.message || '开启新聊天失败');
-      }
-    } catch (error) {
-      console.error('开启新聊天失败:', error);
-      toast.error('开启新聊天时发生错误');
-    } finally {
-      toast.dismiss(loadingToast);
-    }
+  const handleCreateNewTask = useCallback(() => {
+    setShowChat(false);
+    setActiveTaskId(null);
+    setInitialChatMessage('');
+    setInitialChatAttachments([]);
+    toast.info('已准备新的聊天，请输入内容后发送。', { id: 'prepare-new-chat' });
   }, []);
 
   useEffect(() => {
-    if (!activeTaskId && tasks.length) {
-      setActiveTaskId(tasks[0].id);
+    if (tasks.length === 0) {
+      if (activeTaskId) {
+        setActiveTaskId(null);
+      }
+      if (hasInitializedTask) {
+        setHasInitializedTask(false);
+      }
+      return;
     }
-  }, [activeTaskId, tasks]);
+    if (!hasInitializedTask) {
+      setActiveTaskId(tasks[0].id);
+      setHasInitializedTask(true);
+    }
+  }, [tasks, activeTaskId, hasInitializedTask]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -216,14 +183,16 @@ export default function Home() {
 
     const newTaskId = `task_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     const now = new Date().toISOString();
+    const randomIcon = TASK_ICON_CANDIDATES[Math.floor(Math.random() * TASK_ICON_CANDIDATES.length)];
+    const randomColor = TASK_COLOR_CANDIDATES[Math.floor(Math.random() * TASK_COLOR_CANDIDATES.length)];
 
     setTasks(prevTasks => {
       const title = `新聊天 ${prevTasks.length + 1}`;
       const nextTask: TaskConversation = {
         id: newTaskId,
         name: title,
-        icon: 'comments',
-        color: 'blue-500',
+        icon: randomIcon,
+        color: randomColor,
         messages: [],
         createdAt: now,
         updatedAt: now,

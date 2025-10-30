@@ -107,3 +107,7 @@
   - 扩展 documentParser 支持 XLSX，限制表格行列并生成表头/数据摘要。
   - 统一上下文输出，attachmentContext 自动拼接工作表摘要与警告。
   - 测试：pnpm --dir server test。
+- **2025-10-30 新建对话行为优化**
+  - 点击“开启新聊天”仅重置界面，等待用户输入后再创建会话。
+  - 初次加载仍默认选中最近会话，手动进入新对话时随机分配图标与颜色。
+  - 验证：pnpm --dir front build:client。
