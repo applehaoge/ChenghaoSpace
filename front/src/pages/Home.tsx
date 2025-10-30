@@ -234,11 +234,13 @@ export default function Home() {
   });
 
   const scaledSize = Number((100 / scale).toFixed(3));
+  const baseScaledHeight = `${scaledSize}vh`;
   const scaleStyle = {
     transform: `scale(${scale})`,
     transformOrigin: 'top center',
     width: `${scaledSize}%`,
-    minHeight: `${scaledSize}vh`,
+    minHeight: baseScaledHeight,
+    ...(isChatting ? { height: baseScaledHeight } : {}),
     transition: 'transform 0.3s ease, width 0.3s ease, min-height 0.3s ease',
   } as const;
 

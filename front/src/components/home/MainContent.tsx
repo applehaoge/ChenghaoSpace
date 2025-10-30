@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import type { KeyboardEvent } from 'react';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
@@ -84,9 +84,8 @@ export function MainContent({
       .filter(item => item.status === 'done' && item.fileId)
       .map(item => {
         const remoteUrl = item.downloadUrl || item.previewUrl;
-        const previewUrl = item.previewUrl && !item.previewUrl.startsWith('blob:')
-          ? item.previewUrl
-          : remoteUrl;
+        const previewUrl =
+          item.previewUrl && !item.previewUrl.startsWith('blob:') ? item.previewUrl : remoteUrl;
         return {
           fileId: item.fileId as string,
           name: item.name,
@@ -109,7 +108,7 @@ export function MainContent({
     clearHomeAttachments();
   };
 
-const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
       handleSend();
@@ -157,33 +156,32 @@ const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
   };
 
   const disableHomeSend =
-    !inputText.trim() ||
-    homeHasUploading ||
-    homeAttachments.some(item => item.status === 'error');
+    !inputText.trim() || homeHasUploading || homeAttachments.some(item => item.status === 'error');
 
   return (
-    <main className="flex-1 min-w-0 border-l border-gray-100 bg-white">
-      <div className="relative flex items-center justify-between px-6 pt-8 pb-6 sm:px-8 lg:px-12 2xl:px-16">
+    <main className="flex min-h-full flex-1 min-w-0 flex-col border-l border-gray-100 bg-white">
+      <header className="flex items-center justify-between px-6 pt-8 pb-6 sm:px-8 lg:px-12 2xl:px-16">
         <h1 className="text-2xl font-bold text-gray-800">
           <span className="text-blue-500">智能助手</span>，一键生成
         </h1>
         <div className="hidden md:block">
           <div className="flex items-center rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
             <i className="fas fa-lightbulb mr-1"></i>
-            <span>今日灵感: {inspiration}</span>
+            <span>今日灵感：{inspiration}</span>
           </div>
         </div>
-      </div>
+      </header>
 
       <div className="mb-8 flex flex-wrap justify-center gap-3 px-4 sm:px-6 lg:px-12 2xl:px-16">
         {tabs.map(tab => (
           <button
             key={tab}
-            className={`px-4 py-2 rounded-full text-sm transition-colors ${
+            type="button"
+            className={`rounded-full border px-4 py-2 text-sm transition-all duration-300 ${
               activeTab === tab
-                ? 'bg-gradient-to-r from-blue-400 to-indigo-400 text-white border-blue-400 shadow-sm'
-                : 'bg-white text-gray-600 border border-gray-200 hover:bg-blue-50'
-            } border transition-all duration-300`}
+                ? 'border-blue-400 bg-gradient-to-r from-blue-400 to-indigo-400 text-white shadow-sm'
+                : 'border-gray-200 bg-white text-gray-600 hover:bg-blue-50'
+            }`}
             onClick={() => setActiveTab(tab)}
           >
             {tab === '写作' && <i className="fas fa-pen-to-square mr-1"></i>}
@@ -197,121 +195,144 @@ const handleHomeKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
         ))}
       </div>
 
-      <div
-        className="mx-auto mb-10 w-full rounded-xl border border-gray-100 bg-white px-5 py-6 shadow-sm sm:px-6 lg:px-8 2xl:px-10"
-        style={{ maxWidth: 'clamp(760px, 68vw, 1280px)' }}
-      >
-        <div className="flex items-start mb-4 gap-2.5">
-          <span className="px-2 py-1 bg-blue-50 text-blue-500 rounded-full text-xs font-medium">
-            {activeTab}
-          </span>
-          <textarea
-            ref={homeTextareaRef}
-            value={inputText}
-            onChange={event => setInputText(event.target.value)}
-            onInput={adjustHomeTextareaHeight}
-            onKeyDown={handleHomeKeyDown}
-            className="flex-1 bg-transparent border-none outline-none text-sm text-gray-800 resize-none"
-            placeholder="请告诉我您的需求，我会为您提供专业的AI帮助..."
-            rows={1}
-            style={{ minHeight: 56, maxHeight: 220 }}
-          />
-        </div>
-        {homeAttachments.length > 0 && (
-          <div className="flex flex-wrap gap-3 mb-4 ml-12">
-            {homeAttachments.map(item => (
-              <AttachmentBadge key={item.id} attachment={item} onRemove={removeHomeAttachment} />
-            ))}
+      <div className="flex flex-1 flex-col gap-10 px-4 pb-12 sm:px-6 lg:px-12 2xl:px-16">
+        <section
+          className="mx-auto w-full rounded-xl border border-gray-100 bg-white px-5 py-6 shadow-sm sm:px-6 lg:px-8 2xl:px-10"
+          style={{ maxWidth: 'clamp(760px, 68vw, 1280px)' }}
+        >
+          <div className="mb-4 flex items-start gap-2.5">
+            <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-500">
+              {activeTab}
+            </span>
+            <textarea
+              ref={homeTextareaRef}
+              value={inputText}
+              onChange={event => setInputText(event.target.value)}
+              onInput={adjustHomeTextareaHeight}
+              onKeyDown={handleHomeKeyDown}
+              className="flex-1 resize-none border-none bg-transparent text-sm text-gray-800 outline-none"
+              placeholder="请告诉我您的需求，我会为您提供专业的 AI 帮助..."
+              rows={1}
+              style={{ minHeight: 56, maxHeight: 220 }}
+            />
           </div>
-        )}
-        <div className="flex items-center justify-between gap-2.5">
-          <div className="flex gap-2.5">
-            <button
-              className="p-1.5 bg-transparent border-none cursor-pointer hover:bg-gray-200 rounded transition-colors"
-              onClick={handleFileUpload}
-            >
-              <i className="fas fa-paperclip text-gray-500"></i>
-            </button>
-            <button
-              className="p-1.5 bg-transparent border-none cursor-pointer hover:bg-gray-200 rounded transition-colors"
-              onClick={handleFormatSettings}
-            >
-              <i className="fas fa-font text-gray-500"></i>
-            </button>
-          </div>
-          <div className="flex gap-2.5">
-            <button
-              className="px-3 py-1.5 rounded border border-gray-300 bg-white text-gray-600 text-xs hover:bg-gray-50 transition-colors"
-              onClick={handleOptimize}
-            >
-              一键优化
-            </button>
-            <button
-              className="w-11 h-11 rounded-lg border-none bg-gradient-to-r from-blue-400 to-indigo-400 text-white transition-all flex items-center justify-center hover:shadow-lg disabled:opacity-60 disabled:cursor-not-allowed"
-              onClick={handleSend}
-              disabled={disableHomeSend}
-            >
-              <i className="fas fa-paper-plane"></i>
-            </button>
-          </div>
-        </div>
-        <input
-          ref={homeFileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleHomeFileInputChange}
-        />
-      </div>
 
-      <div
-        className="mx-auto w-full px-5 pb-12 sm:px-6 lg:px-8 2xl:px-10"
-        style={{ maxWidth: 'clamp(820px, 70vw, 1320px)' }}
-      >
-        <div className="mb-5 flex items-center justify-between rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 lg:px-6">
-          <h3 className="m-0 text-lg font-bold text-gray-800">最佳实践</h3>
-          <div className="flex flex-wrap gap-1 text-sm">
-            <button
-              className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
-              onClick={() => handlePracticeCategory('网页宣发')}
-            >
-              网页宣发
-            </button>
-            <button
-              className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
-              onClick={() => handlePracticeCategory('教育工具')}
-            >
-              教育工具
-            </button>
-            <button
-              className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
-              onClick={() => handlePracticeCategory('趣味游戏')}
-            >
-              趣味游戏
-            </button>
-          </div>
-        </div>
+          {homeAttachments.length > 0 ? (
+            <div className="mb-4 ml-12 flex flex-wrap gap-3">
+              {homeAttachments.map(item => (
+                <AttachmentBadge key={item.id} attachment={item} onRemove={removeHomeAttachment} />
+              ))}
+            </div>
+          ) : null}
 
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 justify-items-center 2xl:gap-6">
-          <ProjectCard
-            title="AI智能写作助手"
-            imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"
-            bgColor="#eff6ff"
-            projectId="project_ai_writing"
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                className="rounded p-1.5 transition-colors hover:bg-gray-100"
+                onClick={handleFileUpload}
+                aria-label="上传附件"
+              >
+                <i className="fas fa-paperclip text-gray-500"></i>
+              </button>
+              <button
+                type="button"
+                className="rounded p-1.5 transition-colors hover:bg-gray-100"
+                onClick={handleFormatSettings}
+                aria-label="格式设置"
+              >
+                <i className="fas fa-font text-gray-500"></i>
+              </button>
+            </div>
+
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                className="rounded border border-gray-300 bg-white px-3 py-1.5 text-xs text-gray-600 transition-colors hover:bg-gray-50"
+                onClick={handleOptimize}
+              >
+                一键优化
+              </button>
+              <button
+                type="button"
+                className="flex h-11 w-11 items-center justify-center rounded-lg border-none bg-gradient-to-r from-blue-400 to-indigo-400 text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={handleSend}
+                disabled={disableHomeSend}
+                aria-label="发送"
+              >
+                <i className="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+
+          <input
+            ref={homeFileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleHomeFileInputChange}
           />
-          <ProjectCard
-            title="智能数据分析工具"
-            imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=Data%20visualization%20dashboard%2C%20modern%20design%2C%20blue%20and%20indigo%20colors&sign=ed4909d7a10fe86967a5aa6a0afaa434"
-            bgColor="#e0e7ff"
-            projectId="project_data_analysis"
-          />
-          <ProjectCard
-            title="个性化学习平台"
-            imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20learning%20platform%20concept%2C%20interactive%20interface%2C%20blue%20colors&sign=0eba131c9b66799399b3e86f510476a7"
-            bgColor="#dbeafe"
-            projectId="project_learning_platform"
-          />
-        </div>
+        </section>
+
+        <section
+          className="mx-auto flex w-full flex-1 flex-col justify-between rounded-3xl border border-gray-100/70 bg-white/80 px-5 py-6 shadow-sm ring-1 ring-gray-100/60 backdrop-blur sm:px-6 lg:px-8 2xl:px-10"
+          style={{ maxWidth: 'clamp(820px, 70vw, 1320px)' }}
+        >
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 lg:px-6">
+            <h3 className="m-0 text-lg font-bold text-gray-800">最佳实践</h3>
+            <div className="flex flex-wrap gap-1 text-sm">
+              <button
+                type="button"
+                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
+                onClick={() => handlePracticeCategory('网页宣发')}
+              >
+                网页宣发
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
+                onClick={() => handlePracticeCategory('教育工具')}
+              >
+                教育工具
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
+                onClick={() => handlePracticeCategory('趣味游戏')}
+              >
+                趣味游戏
+              </button>
+              <button
+                type="button"
+                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
+                onClick={() => handlePracticeCategory('营销推广')}
+              >
+                营销推广
+              </button>
+            </div>
+          </div>
+
+          <div className="grid flex-1 grid-cols-[repeat(auto-fit,minmax(240px,1fr))] content-start gap-4 justify-items-center pb-4 2xl:gap-6">
+            <ProjectCard
+              title="AI智能写作助手"
+              imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"
+              bgColor="#eff6ff"
+              projectId="project_ai_writing"
+            />
+            <ProjectCard
+              title="智能数据分析工具"
+              imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=Data%20visualization%20dashboard%2C%20modern%20design%2C%20blue%20and%20indigo%20colors&sign=ed4909d7a10fe86967a5aa6a0afaa434"
+              bgColor="#e0e7ff"
+              projectId="project_data_analysis"
+            />
+            <ProjectCard
+              title="个性化学习平台"
+              imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20learning%20platform%20concept%2C%20interactive%20interface%2C%20blue%20colors&sign=0eba131c9b66799399b3e86f510476a7"
+              bgColor="#dbeafe"
+              projectId="project_learning_platform"
+            />
+          </div>
+        </section>
       </div>
     </main>
   );
