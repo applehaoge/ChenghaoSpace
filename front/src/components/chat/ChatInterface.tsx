@@ -143,7 +143,7 @@ export function ChatInterface({
 
   const contentStyle = {
     width: '100%',
-    maxWidth: 'clamp(820px, 88vw, 2200px)',
+    maxWidth: '92vw',
   } as const;
 
   return (
