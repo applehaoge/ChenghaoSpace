@@ -1,121 +1,128 @@
-# 项目进度记录（PROGRESS.md）
+﻿# 椤圭洰杩涘害璁板綍锛圥ROGRESS.md锛?
 
-## 🧩 概述
-- 项目名称：ChenghaoSpace
-- 类型：AI Chat Demo（前后端自研）
-- 当前能力：聊天 UI、Doubao Provider 接入、附件上下文、会话记忆
-- 目标：一周内完成可投简历的 Demo（RAG、双 Provider、容器化部署、图文消息、持久记忆）
-
-
-
-现在的诉求是：把 doubao-seed-1-6-flash 模型正式接入当前项目，让后端能把用户上传的图片送给模型识别并返回文字描述，而现在这块功能还没打通。
-
-可以分成这些步骤来实现：
-
-梳理输入输出约束：确认前端上传的附件在后端是怎样存储的（例如保存路径、支持的 MIME），以及希望返回给前端的图片描述/警告字段格式。
-封装 Doubao 图片分析服务：在 server/src/services 下新增一个专门调用 Doubao 的图像识别模块（可参考现有 imageAnalyzer.ts 结构），负责把图片转成合适的 image_url（或 base64 data URL）并调用 chat/completions 接口。
-扩展 provider factory：在 providers/doubaoProvider.ts 里补充一个处理图片的入口，或新增 DoubaoImageService，从环境变量读取模型、API base，并复用 proxy 逻辑。
-暴露后端接口：在 Fastify 路由里扩展 /api/upload 或新增 /api/image-insight，在附件扫码流程里调用新服务，把生成的 caption、usage 信息保存到数据库/内存并返回给前端。
-前端接入展示：在 front/src/components/chat/ChatInterface.tsx 等处监听后端返回的图片描述，渲染在附件卡片或 AI 回复里，同时确保 Toast/提示文案覆盖失败场景。
-补充测试与文档：为新服务写 Vitest 单测（mock fetch），并在 progress.md、README.md 更新新的自检步骤，确保 pnpm --dir server test 与 pnpm --dir front smoke 都通过。
-按这个顺序做，就能把“模型识别图片”这条链路稳妥接入现有项目。
-
-那你一步一步去做，每做一步都要测试通过了再做下一步（企业是否要留下单测？？），不得改动无关功能，无关代码
+## 馃З 姒傝堪
+- 椤圭洰鍚嶇О锛欳henghaoSpace
+- 绫诲瀷锛欰I Chat Demo锛堝墠鍚庣鑷爺锛?
+- 褰撳墠鑳藉姏锛氳亰澶?UI銆丏oubao Provider 鎺ュ叆銆侀檮浠朵笂涓嬫枃銆佷細璇濊蹇?
+- 鐩爣锛氫竴鍛ㄥ唴瀹屾垚鍙姇绠€鍘嗙殑 Demo锛圧AG銆佸弻 Provider銆佸鍣ㄥ寲閮ㄧ讲銆佸浘鏂囨秷鎭€佹寔涔呰蹇嗭級
 
 
-## 🚀 重要变更日志（倒序）
-- **2025-10-31 页面滚动控制调整**
-  - Home 级别控制 html/body overflow，统一取消首页/聊天全局滚动条
-  - MainContent 引入内层隐藏滚动条，右侧内容保持可浏览
-  - 侧边栏宽度根据纵向屏幕自动放大，首页/聊天保持一致视觉
-  - 聊天界面由视口宽度控制（maxWidth 92vw），超宽屏输入区自适应拉伸
-  - 侧边栏改为 flex h-full，偏高屏幕任务列表自动贴底
 
-- **2025-10-29 平铺后端目录 + 单元测试扩展 + 协作规范**
-  - 将 server/server/src 平铺为 server/src，清理历史构建产物
-  - 更新构建脚本，pnpm --dir server build / pnpm --dir server test 均已通过
-  - 引入 Vitest，新增 
-sHelpers、 ttachmentContext 与前端  iService 单元测试
-  - 新增 smoke.ps1 与 pnpm --dir front smoke 脚本，沉淀最小化自检流程
-  - README 增补 AI 提示词、手动验证清单及脚本说明
-  - 修复发送后附件卡片延迟消失的问题（发送失败时自动恢复附件）
-  - 修复首页上传消息在聊天界面不显示附件卡片的问题，支持初始消息的附件同步展示
-- **2025-10-28 附件上下文与上传持久化**
-  - Fastify 增加 /uploads/:fileName 静态路由，统一生成下载地址
-  - 前端上传钩子保存远端 URL，刷新后图片仍能展示
-  - 本地存档读取时自动补齐历史附件的访问链接
-- **2025-10-27 多会话隔离 + Streaming 升级（进行中）**
-  - 新增消息仓库 messagesRegistryRef，防止切换对话串台
-  - Streaming 与 sessionId 绑定，避免跨会话污染
-- **2025-10-27 Loading Toast 生命周期管理**
-  - 使用 	ry/finally 确保 toast 正确关闭
-  - 修复失败请求导致 Spinner 卡死的问题
-- **2025-10-27 页面模块化调整**
-  - Home 页面拆分为 chat/、 ttachments/、home/ 模块
-  - 职责更聚焦，复用性提升
-- **2025-10-23 Markdown 代码块复制按钮**
-  - 所有代码块提供独立复制按钮，兼容无 Clipboard API 场景
-  - Toast 提示成功 / 失败
-- **2025-10-23 输入交互优化**
-  - Enter 发送消息，Shift+Enter 换行
-  - 对其他输入场景无副作用
-- **2025-10-23 会话初始化修复**
-  - 引入 lastConversationIdRef，解决 StrictMode 双渲染导致的重复对话
-- **2025-10-22 会话记忆持久化**
-  - ConversationMemoryManager 支持文件持久化，默认目录 server_data/memory
-  - 计划扩展 Redis / pgvector
-- **2025-10-22 自适应临时方案**
-  - 宽屏缩放与溢出保护，暂时规避断层问题
-- **2025-10-22 Provider 路由修复**
-  - .env 配置对齐，端口占用清理
-  - /api/chat 返回 provider: doubao
-- **2025-10-21 首页 UI 迭代**
-  - 聊天区域卡片化、历史区可折叠、推荐提示展示
-- **2025-10-21 前端接入豆包模型**
-  -  iService 调用 /api/chat
-  - 支持模型输出流式响应
-- **2025-10-21 Doubao Provider 适配**
-  - 新增 DoubaoProvider，默认模型 doubao-seed-1-6-flash
-- **2025-10-20 环境与代理配置**
-  - .env.example 补齐，.gitignore 屏蔽敏感文件
-  - 成功绕过 OpenAI 网络限制
+鐜板湪鐨勮瘔姹傛槸锛氭妸 doubao-seed-1-6-flash 妯″瀷姝ｅ紡鎺ュ叆褰撳墠椤圭洰锛岃鍚庣鑳芥妸鐢ㄦ埛涓婁紶鐨勫浘鐗囬€佺粰妯″瀷璇嗗埆骞惰繑鍥炴枃瀛楁弿杩帮紝鑰岀幇鍦ㄨ繖鍧楀姛鑳借繕娌℃墦閫氥€?
 
-## 🔍 诊断摘要
-- 典型问题：ETIMEDOUT → 检查代理与网络连通性
-- 常用测试命令：
+鍙互鍒嗘垚杩欎簺姝ラ鏉ュ疄鐜帮細
+
+姊崇悊杈撳叆杈撳嚭绾︽潫锛氱‘璁ゅ墠绔笂浼犵殑闄勪欢鍦ㄥ悗绔槸鎬庢牱瀛樺偍鐨勶紙渚嬪淇濆瓨璺緞銆佹敮鎸佺殑 MIME锛夛紝浠ュ強甯屾湜杩斿洖缁欏墠绔殑鍥剧墖鎻忚堪/璀﹀憡瀛楁鏍煎紡銆?
+灏佽 Doubao 鍥剧墖鍒嗘瀽鏈嶅姟锛氬湪 server/src/services 涓嬫柊澧炰竴涓笓闂ㄨ皟鐢?Doubao 鐨勫浘鍍忚瘑鍒ā鍧楋紙鍙弬鑰冪幇鏈?imageAnalyzer.ts 缁撴瀯锛夛紝璐熻矗鎶婂浘鐗囪浆鎴愬悎閫傜殑 image_url锛堟垨 base64 data URL锛夊苟璋冪敤 chat/completions 鎺ュ彛銆?
+鎵╁睍 provider factory锛氬湪 providers/doubaoProvider.ts 閲岃ˉ鍏呬竴涓鐞嗗浘鐗囩殑鍏ュ彛锛屾垨鏂板 DoubaoImageService锛屼粠鐜鍙橀噺璇诲彇妯″瀷銆丄PI base锛屽苟澶嶇敤 proxy 閫昏緫銆?
+鏆撮湶鍚庣鎺ュ彛锛氬湪 Fastify 璺敱閲屾墿灞?/api/upload 鎴栨柊澧?/api/image-insight锛屽湪闄勪欢鎵爜娴佺▼閲岃皟鐢ㄦ柊鏈嶅姟锛屾妸鐢熸垚鐨?caption銆乽sage 淇℃伅淇濆瓨鍒版暟鎹簱/鍐呭瓨骞惰繑鍥炵粰鍓嶇銆?
+鍓嶇鎺ュ叆灞曠ず锛氬湪 front/src/components/chat/ChatInterface.tsx 绛夊鐩戝惉鍚庣杩斿洖鐨勫浘鐗囨弿杩帮紝娓叉煋鍦ㄩ檮浠跺崱鐗囨垨 AI 鍥炲閲岋紝鍚屾椂纭繚 Toast/鎻愮ず鏂囨瑕嗙洊澶辫触鍦烘櫙銆?
+琛ュ厖娴嬭瘯涓庢枃妗ｏ細涓烘柊鏈嶅姟鍐?Vitest 鍗曟祴锛坢ock fetch锛夛紝骞跺湪 progress.md銆丷EADME.md 鏇存柊鏂扮殑鑷姝ラ锛岀‘淇?pnpm --dir server test 涓?pnpm --dir front smoke 閮介€氳繃銆?
+鎸夎繖涓『搴忓仛锛屽氨鑳芥妸鈥滄ā鍨嬭瘑鍒浘鐗団€濊繖鏉￠摼璺ǔ濡ユ帴鍏ョ幇鏈夐」鐩€?
+
+閭ｄ綘涓€姝ヤ竴姝ュ幓鍋氾紝姣忓仛涓€姝ラ兘瑕佹祴璇曢€氳繃浜嗗啀鍋氫笅涓€姝ワ紙浼佷笟鏄惁瑕佺暀涓嬪崟娴嬶紵锛燂級锛屼笉寰楁敼鍔ㄦ棤鍏冲姛鑳斤紝鏃犲叧浠ｇ爜
+
+
+## 馃殌 閲嶈鍙樻洿鏃ュ織锛堝€掑簭锛?
+- **2025-10-31 椤甸潰婊氬姩鎺у埗璋冩暣**
+  - Home 绾у埆鎺у埗 html/body overflow锛岀粺涓€鍙栨秷棣栭〉/鑱婂ぉ鍏ㄥ眬婊氬姩鏉?
+  - MainContent 寮曞叆鍐呭眰闅愯棌婊氬姩鏉★紝鍙充晶鍐呭淇濇寔鍙祻瑙?
+  - 渚ц竟鏍忓搴︽牴鎹旱鍚戝睆骞曡嚜鍔ㄦ斁澶э紝棣栭〉/鑱婂ぉ淇濇寔涓€鑷磋瑙?
+  - 鑱婂ぉ鐣岄潰鐢辫鍙ｅ搴︽帶鍒讹紙maxWidth 92vw锛夛紝瓒呭灞忚緭鍏ュ尯鑷€傚簲鎷変几
+  - 渚ц竟鏍忔敼涓?flex h-full锛屽亸楂樺睆骞曚换鍔″垪琛ㄨ嚜鍔ㄨ创搴?
+
+- **2025-10-29 骞抽摵鍚庣鐩綍 + 鍗曞厓娴嬭瘯鎵╁睍 + 鍗忎綔瑙勮寖**
+  - 灏?server/server/src 骞抽摵涓?server/src锛屾竻鐞嗗巻鍙叉瀯寤轰骇鐗?
+  - 鏇存柊鏋勫缓鑴氭湰锛宲npm --dir server build / pnpm --dir server test 鍧囧凡閫氳繃
+  - 寮曞叆 Vitest锛屾柊澧?
+sHelpers銆?ttachmentContext 涓庡墠绔? iService 鍗曞厓娴嬭瘯
+  - 鏂板 smoke.ps1 涓?pnpm --dir front smoke 鑴氭湰锛屾矇娣€鏈€灏忓寲鑷娴佺▼
+  - README 澧炶ˉ AI 鎻愮ず璇嶃€佹墜鍔ㄩ獙璇佹竻鍗曞強鑴氭湰璇存槑
+  - 淇鍙戦€佸悗闄勪欢鍗＄墖寤惰繜娑堝け鐨勯棶棰橈紙鍙戦€佸け璐ユ椂鑷姩鎭㈠闄勪欢锛?
+  - 淇棣栭〉涓婁紶娑堟伅鍦ㄨ亰澶╃晫闈笉鏄剧ず闄勪欢鍗＄墖鐨勯棶棰橈紝鏀寔鍒濆娑堟伅鐨勯檮浠跺悓姝ュ睍绀?
+- **2025-10-28 闄勪欢涓婁笅鏂囦笌涓婁紶鎸佷箙鍖?*
+  - Fastify 澧炲姞 /uploads/:fileName 闈欐€佽矾鐢憋紝缁熶竴鐢熸垚涓嬭浇鍦板潃
+  - 鍓嶇涓婁紶閽╁瓙淇濆瓨杩滅 URL锛屽埛鏂板悗鍥剧墖浠嶈兘灞曠ず
+  - 鏈湴瀛樻。璇诲彇鏃惰嚜鍔ㄨˉ榻愬巻鍙查檮浠剁殑璁块棶閾炬帴
+- **2025-10-27 澶氫細璇濋殧绂?+ Streaming 鍗囩骇锛堣繘琛屼腑锛?*
+  - 鏂板娑堟伅浠撳簱 messagesRegistryRef锛岄槻姝㈠垏鎹㈠璇濅覆鍙?
+  - Streaming 涓?sessionId 缁戝畾锛岄伩鍏嶈法浼氳瘽姹℃煋
+- **2025-10-27 Loading Toast 鐢熷懡鍛ㄦ湡绠＄悊**
+  - 浣跨敤 	ry/finally 纭繚 toast 姝ｇ‘鍏抽棴
+  - 淇澶辫触璇锋眰瀵艰嚧 Spinner 鍗℃鐨勯棶棰?
+- **2025-10-27 椤甸潰妯″潡鍖栬皟鏁?*
+  - Home 椤甸潰鎷嗗垎涓?chat/銆?ttachments/銆乭ome/ 妯″潡
+  - 鑱岃矗鏇磋仛鐒︼紝澶嶇敤鎬ф彁鍗?
+- **2025-10-23 Markdown 浠ｇ爜鍧楀鍒舵寜閽?*
+  - 鎵€鏈変唬鐮佸潡鎻愪緵鐙珛澶嶅埗鎸夐挳锛屽吋瀹规棤 Clipboard API 鍦烘櫙
+  - Toast 鎻愮ず鎴愬姛 / 澶辫触
+- **2025-10-23 杈撳叆浜や簰浼樺寲**
+  - Enter 鍙戦€佹秷鎭紝Shift+Enter 鎹㈣
+  - 瀵瑰叾浠栬緭鍏ュ満鏅棤鍓綔鐢?
+- **2025-10-23 浼氳瘽鍒濆鍖栦慨澶?*
+  - 寮曞叆 lastConversationIdRef锛岃В鍐?StrictMode 鍙屾覆鏌撳鑷寸殑閲嶅瀵硅瘽
+- **2025-10-22 浼氳瘽璁板繂鎸佷箙鍖?*
+  - ConversationMemoryManager 鏀寔鏂囦欢鎸佷箙鍖栵紝榛樿鐩綍 server_data/memory
+  - 璁″垝鎵╁睍 Redis / pgvector
+- **2025-10-22 鑷€傚簲涓存椂鏂规**
+  - 瀹藉睆缂╂斁涓庢孩鍑轰繚鎶わ紝鏆傛椂瑙勯伩鏂眰闂
+- **2025-10-22 Provider 璺敱淇**
+  - .env 閰嶇疆瀵归綈锛岀鍙ｅ崰鐢ㄦ竻鐞?
+  - /api/chat 杩斿洖 provider: doubao
+- **2025-10-21 棣栭〉 UI 杩唬**
+  - 鑱婂ぉ鍖哄煙鍗＄墖鍖栥€佸巻鍙插尯鍙姌鍙犮€佹帹鑽愭彁绀哄睍绀?
+- **2025-10-21 鍓嶇鎺ュ叆璞嗗寘妯″瀷**
+  -  iService 璋冪敤 /api/chat
+  - 鏀寔妯″瀷杈撳嚭娴佸紡鍝嶅簲
+- **2025-10-21 Doubao Provider 閫傞厤**
+  - 鏂板 DoubaoProvider锛岄粯璁ゆā鍨?doubao-seed-1-6-flash
+- **2025-10-20 鐜涓庝唬鐞嗛厤缃?*
+  - .env.example 琛ラ綈锛?gitignore 灞忚斀鏁忔劅鏂囦欢
+  - 鎴愬姛缁曡繃 OpenAI 缃戠粶闄愬埗
+
+## 馃攳 璇婃柇鎽樿
+- 鍏稿瀷闂锛欵TIMEDOUT 鈫?妫€鏌ヤ唬鐞嗕笌缃戠粶杩為€氭€?
+- 甯哥敤娴嬭瘯鍛戒护锛?
   `ash
   curl -v http://localhost:8082/v1/models
   curl -sS -X POST -H "Content-Type: application/json" \
-    -d '{"query":"测试OpenAI连接"}' \
+    -d '{"query":"娴嬭瘯OpenAI杩炴帴"}' \
     http://localhost:8302/api/chat -w '\nHTTP_STATUS:%{http_code}\n'
   `
 
-## 🌐 代理配置备忘
-- Windows 临时示例：
+## 馃寪 浠ｇ悊閰嶇疆澶囧繕
+- Windows 涓存椂绀轰緥锛?
   `powershell
   ='http://127.0.0.1:33210'
   ='http://127.0.0.1:33210'
   ='socks5://127.0.0.1:33211'
   pnpm --dir server dev
   `
-- 密钥与代理凭据仅保留在本地，部署时改用环境变量托管。
+- 瀵嗛挜涓庝唬鐞嗗嚟鎹粎淇濈暀鍦ㄦ湰鍦帮紝閮ㄧ讲鏃舵敼鐢ㄧ幆澧冨彉閲忔墭绠°€?
 - **2025-10-29 Doubao connectivity smoke test**
   - Added server/scripts/test-doubao-image.mjs to verify doubao-seed-1-6-flash reads image prompts without touching app code
   - Confirmed connectivity and successful image caption response using local base64 upload sample
-- **2025-10-30 豆包图像描述接入**
-  - 新增 server/src/services/doubaoImageService.ts，封装豆包图像识别并回落到 OpenAI 元数据。
-  - 扩展 processChatRequest 解析附件上下文，返回 caption、warnings、usage 等信息。
-  - 前端同步展示图像描述与警告，补充 toast 提示及附件卡片样式。
-  - 测试：pnpm --dir server test；pnpm --dir front build:client。
-- **2025-10-30 文档解析接入**
-  - 新增 documentParser 服务，统一处理 TXT/PDF/DOCX，并在附件上下文生成摘要与警告。
-  - 扩展 buildAttachmentContext 支持图片 + 文档分支，整理上下文块并返回统一结构。
-  - 测试：pnpm --dir server test；pnpm --dir server build。
-- **2025-10-30 Excel 解析支持**
-  - 扩展 documentParser 支持 XLSX，限制表格行列并生成表头/数据摘要。
-  - 统一上下文输出，attachmentContext 自动拼接工作表摘要与警告。
-  - 测试：pnpm --dir server test。
-- **2025-10-30 新建对话行为优化**
-  - 点击“开启新聊天”仅重置界面，等待用户输入后再创建会话。
-  - 初次加载仍默认选中最近会话，手动进入新对话时随机分配图标与颜色。
-  - 验证：pnpm --dir front build:client。
+- **2025-10-30 璞嗗寘鍥惧儚鎻忚堪鎺ュ叆**
+  - 鏂板 server/src/services/doubaoImageService.ts锛屽皝瑁呰眴鍖呭浘鍍忚瘑鍒苟鍥炶惤鍒?OpenAI 鍏冩暟鎹€?
+  - 鎵╁睍 processChatRequest 瑙ｆ瀽闄勪欢涓婁笅鏂囷紝杩斿洖 caption銆亀arnings銆乽sage 绛変俊鎭€?
+  - 鍓嶇鍚屾灞曠ず鍥惧儚鎻忚堪涓庤鍛婏紝琛ュ厖 toast 鎻愮ず鍙婇檮浠跺崱鐗囨牱寮忋€?
+  - 娴嬭瘯锛歱npm --dir server test锛沺npm --dir front build:client銆?
+- **2025-10-30 鏂囨。瑙ｆ瀽鎺ュ叆**
+  - 鏂板 documentParser 鏈嶅姟锛岀粺涓€澶勭悊 TXT/PDF/DOCX锛屽苟鍦ㄩ檮浠朵笂涓嬫枃鐢熸垚鎽樿涓庤鍛娿€?
+  - 鎵╁睍 buildAttachmentContext 鏀寔鍥剧墖 + 鏂囨。鍒嗘敮锛屾暣鐞嗕笂涓嬫枃鍧楀苟杩斿洖缁熶竴缁撴瀯銆?
+  - 娴嬭瘯锛歱npm --dir server test锛沺npm --dir server build銆?
+- **2025-10-30 Excel 瑙ｆ瀽鏀寔**
+  - 鎵╁睍 documentParser 鏀寔 XLSX锛岄檺鍒惰〃鏍艰鍒楀苟鐢熸垚琛ㄥご/鏁版嵁鎽樿銆?
+  - 缁熶竴涓婁笅鏂囪緭鍑猴紝attachmentContext 鑷姩鎷兼帴宸ヤ綔琛ㄦ憳瑕佷笌璀﹀憡銆?
+  - 娴嬭瘯锛歱npm --dir server test銆?
+- **2025-10-30 鏂板缓瀵硅瘽琛屼负浼樺寲**
+  - 鐐瑰嚮鈥滃紑鍚柊鑱婂ぉ鈥濅粎閲嶇疆鐣岄潰锛岀瓑寰呯敤鎴疯緭鍏ュ悗鍐嶅垱寤轰細璇濄€?
+  - 鍒濇鍔犺浇浠嶉粯璁ら€変腑鏈€杩戜細璇濓紝鎵嬪姩杩涘叆鏂板璇濇椂闅忔満鍒嗛厤鍥炬爣涓庨鑹层€?
+  - 楠岃瘉锛歱npm --dir front build:client銆?
+- **2025-10-31 Streaming output cadence**
+  - useConversationController introduces token-level buffering with adaptive flush cadence for GPT-like typing
+  - Adaptive delay + auto-scroll now smooth the early cadence while the caret indicator shows ongoing generation
+  - ChatMessage adds a softened bounce-in animation plus typing indicator for active AI replies
+  - Tests: pnpm --dir front build:client; pnpm --dir server test
+
+

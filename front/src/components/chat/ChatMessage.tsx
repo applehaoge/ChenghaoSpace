@@ -163,6 +163,17 @@ export function ChatMessage({
     [attachments, isUser, onAttachmentPreview, onAttachmentDownload]
   );
 
+  const streamingChunkCount = message.streamingChunks?.length ?? 0;
+  const shouldAnimateStream = message.isStreaming && streamingChunkCount <= 6;
+
+  const streamingIndicatorStyle = useMemo(
+    () =>
+      message.isStreaming
+        ? { opacity: 0.85, maxHeight: '16px' }
+        : { opacity: 0, maxHeight: '0px' },
+    [message.isStreaming]
+  );
+
   return (
     <div className={`flex mb-6 ${alignment.wrapper}`}>
       {!isUser && (
@@ -189,13 +200,23 @@ export function ChatMessage({
               } p-4`}
             >
               {message.sender === 'ai' ? (
-                <div className="text-base leading-relaxed space-y-2">
+                <div
+                  className={`text-base leading-relaxed space-y-2${
+                    shouldAnimateStream ? ' chat-bubble-streaming' : ''
+                  }`}
+                  style={shouldAnimateStream ? { animationName: 'chat-bubble-stream-in' } : undefined}
+                >
                   <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
                     {message.content}
                   </ReactMarkdown>
-                  {message.isStreaming && (
-                    <span className="inline-block w-2 h-4 bg-blue-400 rounded-sm animate-pulse"></span>
-                  )}
+                  <div
+                    className="mt-2 flex items-center gap-1 text-blue-500 transition-all duration-200 ease-out pointer-events-none select-none overflow-hidden"
+                    style={streamingIndicatorStyle}
+                    aria-hidden="true"
+                  >
+                    <span className="chat-typing-caret" />
+                    <span className="chat-typing-dot" />
+                  </div>
                 </div>
               ) : (
                 <div className="whitespace-pre-wrap leading-relaxed text-base">{message.content}</div>

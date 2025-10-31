@@ -26,6 +26,7 @@ export type ChatBubble = {
   isStreaming?: boolean;
   attachments?: UploadedAttachment[];
   attachmentNotes?: string[];
+  streamingChunks?: string[];
 };
 
 export type TaskConversation = {

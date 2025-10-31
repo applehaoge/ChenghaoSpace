@@ -1,9 +1,55 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+﻿import { useState, useEffect, useRef, useCallback } from 'react';
 import type { RefObject } from 'react';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
 import { createSessionId } from '@/pages/home/taskUtils';
 import type { ChatBubble, UploadedAttachment } from '@/pages/home/types';
+
+const STREAM_MIN_INTERVAL = 64;
+
+type StreamingState = {
+  pendingTokens: string[];
+  displayedTokens: string[];
+  timerId: number | null;
+  lastFlushTime: number;
+};
+
+const getNow = () =>
+  typeof performance !== 'undefined' && typeof performance.now === 'function'
+    ? performance.now()
+    : Date.now();
+
+const tokenizeForStreaming = (raw: string): string[] => {
+  if (!raw) return [];
+  const pattern = /(\r\n|\n|\s+|[A-Za-z0-9]+|[\u4e00-\u9fff]|[。，！？、“”’·；：—……（）\[\]{}<>《》【】|\\-]|[^A-Za-z0-9\s])/g;
+  const matches = raw.match(pattern);
+  if (!matches) {
+    return [raw];
+  }
+  return matches.filter(token => token.length > 0);
+};
+
+const getTokensPerTick = (pendingCount: number): number => {
+  if (pendingCount > 220) return 4;
+  if (pendingCount > 160) return 4;
+  if (pendingCount > 110) return 3;
+  if (pendingCount > 70) return 3;
+  if (pendingCount > 36) return 2;
+  if (pendingCount > 16) return 2;
+  if (pendingCount > 8) return 2;
+  return 1;
+};
+
+const getFlushDelay = (pendingCount: number): number => {
+  if (pendingCount > 220) return 40;
+  if (pendingCount > 160) return 48;
+  if (pendingCount > 110) return 56;
+  if (pendingCount > 70) return 64;
+  if (pendingCount > 36) return 72;
+  if (pendingCount > 16) return 84;
+  if (pendingCount > 8) return 92;
+  return STREAM_MIN_INTERVAL;
+};
 
 type UseConversationControllerParams = {
   conversationId: string;
@@ -44,7 +90,8 @@ export function useConversationController({
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const streamingTimersRef = useRef<Record<string, number>>({});
+  const lastAutoScrollTimeRef = useRef(0);
+  const streamingStateRef = useRef<Record<string, StreamingState>>({});
   const lastInitialMessageRef = useRef<{ conversationId: string | null; message: string | null }>({
     conversationId: null,
     message: null,
@@ -91,18 +138,25 @@ export function useConversationController({
   }, [initialAttachments]);
 
   const clearStreamingTimer = useCallback((id?: string) => {
-    if (id) {
-      const timer = streamingTimersRef.current[id];
-      if (timer) {
-        window.clearInterval(timer);
-        delete streamingTimersRef.current[id];
+    const cancel = (targetId: string) => {
+      const state = streamingStateRef.current[targetId];
+      if (!state) {
+        return;
       }
+      if (state.timerId != null) {
+        window.clearTimeout(state.timerId);
+      }
+      delete streamingStateRef.current[targetId];
+    };
+
+    if (id) {
+      cancel(id);
       return;
     }
-    Object.values(streamingTimersRef.current).forEach(timer => window.clearInterval(timer));
-    streamingTimersRef.current = {};
-  }, []);
 
+    Object.keys(streamingStateRef.current).forEach(cancel);
+    streamingStateRef.current = {};
+  }, []);
   const updateConversationMessages = useCallback(
     (
       targetConversationId: string,
@@ -131,57 +185,141 @@ export function useConversationController({
     onSessionChange(conversationIdRef.current, next);
   }, [onSessionChange]);
 
-  const startStreaming = useCallback(
-    (fullText: string, messageId: string, targetConversationId: string) => {
+  const scheduleTokenFlush = useCallback((messageId: string, targetConversationId: string) => {
+    const state = streamingStateRef.current[messageId];
+    if (!state || state.pendingTokens.length === 0) {
       clearStreamingTimer(messageId);
+      return;
+    }
 
-      if (!fullText) {
-        updateConversationMessages(targetConversationId, prev =>
-          prev.map(msg =>
-            msg.id === messageId ? { ...msg, content: '', isStreaming: false } : msg
-          )
-        );
+    if (state.timerId != null) {
+      window.clearTimeout(state.timerId);
+    }
+
+    const flushTokens = () => {
+      const current = streamingStateRef.current[messageId];
+      if (!current) {
         return;
       }
 
-      const totalLength = fullText.length;
-      const chunkSize = Math.max(1, Math.floor(totalLength / 80));
-      let index = 0;
-
-      const pushUpdate = () => {
-        index = Math.min(index + chunkSize, totalLength);
-        const nextContent = fullText.slice(0, index);
-        const finished = index >= totalLength;
-
-        updateConversationMessages(targetConversationId, prev =>
-          prev.map(msg =>
-            msg.id === messageId
-              ? { ...msg, content: nextContent, isStreaming: !finished }
-              : msg
-          )
-        );
-
-        if (finished) {
-          clearStreamingTimer(messageId);
-        }
-      };
-
-      pushUpdate();
-
-      if (index < totalLength) {
-        const timer = window.setInterval(pushUpdate, 30);
-        streamingTimersRef.current[messageId] = timer;
+      if (current.pendingTokens.length === 0) {
+        clearStreamingTimer(messageId);
+        return;
       }
-    },
-    [clearStreamingTimer, updateConversationMessages]
-  );
 
+      const tokensToConsume = getTokensPerTick(current.pendingTokens.length);
+      const nextTokens = current.pendingTokens.splice(0, tokensToConsume);
+      if (nextTokens.length === 0) {
+        clearStreamingTimer(messageId);
+        return;
+      }
+
+      current.displayedTokens.push(...nextTokens);
+      const nextContent = current.displayedTokens.join('');
+      const remaining = current.pendingTokens.length;
+      current.lastFlushTime = getNow();
+
+      updateConversationMessages(targetConversationId, prev =>
+        prev.map(msg =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content: nextContent,
+                isStreaming: remaining > 0,
+                streamingChunks:
+                  remaining > 0 ? current.displayedTokens.slice() : undefined,
+              }
+            : msg
+        )
+      );
+
+      const now = current.lastFlushTime;
+      if (now - lastAutoScrollTimeRef.current > 120) {
+        scrollToBottom();
+        lastAutoScrollTimeRef.current = now;
+      }
+
+      if (remaining === 0) {
+        clearStreamingTimer(messageId);
+        return;
+      }
+
+      const delay = getFlushDelay(remaining);
+      current.timerId = window.setTimeout(flushTokens, delay);
+    };
+
+    const initialDelay = getFlushDelay(state.pendingTokens.length);
+    state.timerId = window.setTimeout(flushTokens, initialDelay);
+  }, [clearStreamingTimer, scrollToBottom, updateConversationMessages]);
+
+  const startStreaming = useCallback((fullText: string, messageId: string, targetConversationId: string) => {
+    clearStreamingTimer(messageId);
+
+    if (!fullText) {
+      updateConversationMessages(targetConversationId, prev =>
+        prev.map(msg =>
+          msg.id === messageId
+            ? { ...msg, content: '', isStreaming: false, streamingChunks: undefined }
+            : msg
+        )
+      );
+      return;
+    }
+
+    const tokens = tokenizeForStreaming(fullText);
+    if (tokens.length === 0) {
+      updateConversationMessages(targetConversationId, prev =>
+        prev.map(msg =>
+          msg.id === messageId
+            ? { ...msg, content: fullText, isStreaming: false, streamingChunks: undefined }
+            : msg
+        )
+      );
+      return;
+    }
+
+    const initialBatchSize = Math.min(tokens.length, Math.max(1, Math.min(2, getTokensPerTick(tokens.length))));
+    const initialTokens = tokens.splice(0, initialBatchSize);
+    const initialContent = initialTokens.join('');
+
+    const initialState: StreamingState = {
+      pendingTokens: tokens,
+      displayedTokens: initialTokens.slice(),
+      timerId: null,
+      lastFlushTime: getNow(),
+    };
+
+    streamingStateRef.current[messageId] = initialState;
+
+    updateConversationMessages(targetConversationId, prev =>
+      prev.map(msg =>
+        msg.id === messageId
+          ? {
+              ...msg,
+              content: initialContent,
+              isStreaming: tokens.length > 0,
+              streamingChunks: initialState.displayedTokens.slice(),
+            }
+          : msg
+      )
+    );
+
+    lastAutoScrollTimeRef.current = getNow();
+    scrollToBottom();
+
+    if (tokens.length === 0) {
+      clearStreamingTimer(messageId);
+      return;
+    }
+
+    scheduleTokenFlush(messageId, targetConversationId);
+  }, [clearStreamingTimer, scheduleTokenFlush, scrollToBottom, updateConversationMessages]);
   const fetchAssistantReply = useCallback(
     async (userMessage: string, messageAttachments: UploadedAttachment[]) => {
       setIsLoading(true);
       const requestConversationId = conversationIdRef.current;
       try {
-        const response = await aiService.sendAIRequest('聊天', userMessage, {
+        const response = await aiService.sendAIRequest('鑱婂ぉ', userMessage, {
           sessionId: sessionIdRef.current,
           conversationId: requestConversationId,
           userMessage,
@@ -230,6 +368,7 @@ export function useConversationController({
           isStreaming: true,
           attachments: undefined,
           attachmentNotes: attachmentNotes.length ? attachmentNotes : undefined,
+          streamingChunks: [],
         };
 
         updateConversationMessages(requestConversationId, prev => [...prev, assistantMessage]);
@@ -241,13 +380,14 @@ export function useConversationController({
               msg.id === assistantMessage.id
                 ? {
                     ...msg,
-                    content: response.error || '抱歉，暂时无法获取回复，请稍后再试。',
+                    content: response.error || '\u62b1\u6b49\uff0c\u6682\u65f6\u65e0\u6cd5\u83b7\u53d6\u56de\u590d\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002',
                     isStreaming: false,
+                    streamingChunks: undefined,
                   }
                 : msg
             )
           );
-          toast.error(response.error || '获取回复失败，请稍后再试');
+          toast.error(response.error || '\u83b7\u53d6\u56de\u590d\u5931\u8d25\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5');
           return false;
         }
 
@@ -255,20 +395,21 @@ export function useConversationController({
         return true;
       } catch (error) {
         clearStreamingTimer();
-        console.error('调用对话接口失败:', error);
+        console.error('\u8c03\u7528\u5bf9\u8bdd\u63a5\u53e3\u5931\u8d25:', error);
         updateConversationMessages(requestConversationId, prev =>
           prev.map(msg =>
             msg.isStreaming && msg.sender === 'ai'
               ? {
                   ...msg,
-                  content: '抱歉，调用接口时出现异常，请稍后再试。',
+                  content: '\u62b1\u6b49\uff0c\u8c03\u7528\u63a5\u53e3\u65f6\u51fa\u73b0\u5f02\u5e38\uff0c\u8bf7\u7a0d\u540e\u518d\u8bd5\u3002',
                   isStreaming: false,
+                  streamingChunks: undefined,
                   error: (error as Error)?.message,
                 }
               : msg
           )
         );
-        toast.error('调用后端接口失败');
+        toast.error('\u8c03\u7528\u540e\u7aef\u63a5\u53e3\u5931\u8d25');
         return false;
       } finally {
         setIsLoading(false);
@@ -300,10 +441,10 @@ export function useConversationController({
   const handleCopy = useCallback(async (content: string) => {
     try {
       await navigator.clipboard.writeText(content);
-      toast.success('已复制到剪贴板');
+      toast.success('\u5df2\u590d\u5236\u5230\u526a\u8d34\u677f');
     } catch (error) {
-      console.error('复制失败:', error);
-      toast.error('复制失败，请手动复制');
+      console.error('\u590d\u5236\u5931\u8d25:', error);
+      toast.error('\u590d\u5236\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u590d\u5236');
     }
   }, []);
 
@@ -395,3 +536,6 @@ export function useConversationController({
     handleCopy,
   };
 }
+
+
+

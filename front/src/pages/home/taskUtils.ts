@@ -62,6 +62,7 @@ export const normalizeMessages = (messages: ChatBubble[]): ChatBubble[] =>
     ...message,
     timestamp: message.timestamp || new Date().toISOString(),
     isStreaming: message.isStreaming ? false : message.isStreaming,
+    streamingChunks: undefined,
     attachments: Array.isArray(message.attachments)
       ? message.attachments.map(normalizeAttachment)
       : message.attachments,
