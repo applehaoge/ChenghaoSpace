@@ -34,7 +34,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className="w-[260px] h-full flex flex-col bg-white border-r border-gray-100 shadow-sm overflow-hidden">
+    <aside className="w-full h-full flex flex-col bg-white border-r border-gray-100 shadow-sm overflow-hidden">
       <div className="flex justify-between items-center p-[15px_20px] bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-blue-500 font-bold text-lg">

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from 'react';
+﻿import { useEffect, useCallback, useMemo } from 'react';
 import type { KeyboardEvent } from 'react';
 import { toast } from 'sonner';
 import { AttachmentBadge, useFileUploader } from '@/components/attachments';
@@ -143,7 +143,7 @@ export function ChatInterface({
 
   const contentStyle = {
     width: '100%',
-    maxWidth: 'clamp(820px, 70vw, 1320px)',
+    maxWidth: 'clamp(820px, 88vw, 2200px)',
   } as const;
 
   return (
@@ -262,3 +262,5 @@ export function ChatInterface({
     </main>
   );
 }
+
+

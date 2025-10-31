@@ -46,6 +46,7 @@ export default function Home() {
   });
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [scale, setScale] = useState(1);
+  const [isPortrait, setIsPortrait] = useState(false);
   const [hasInitializedTask, setHasInitializedTask] = useState(false);
 
   useEffect(() => {
@@ -100,15 +101,22 @@ export default function Home() {
   }, [tasks]);
 
   useEffect(() => {
-    const updateScale = () => {
-      const width = typeof window !== 'undefined' ? window.innerWidth : BASE_WIDTH;
+    const updateViewport = () => {
+      if (typeof window === 'undefined') {
+        setScale(1);
+        setIsPortrait(false);
+        return;
+      }
+      const { innerWidth: width, innerHeight: height } = window;
       const nextScale = width > BASE_WIDTH ? Math.min(width / BASE_WIDTH, MAX_SCALE) : 1;
       setScale(Number(nextScale.toFixed(3)));
+      const ratio = height / Math.max(width, 1);
+      setIsPortrait(ratio >= 1.05);
     };
 
-    updateScale();
-    window.addEventListener('resize', updateScale);
-    return () => window.removeEventListener('resize', updateScale);
+    updateViewport();
+    window.addEventListener('resize', updateViewport);
+    return () => window.removeEventListener('resize', updateViewport);
   }, []);
 
   const handleConversationUpdate = useCallback(
@@ -252,17 +260,21 @@ export default function Home() {
   });
 
   const scaledSize = Number((100 / scale).toFixed(3));
-  const baseScaledHeight = `${scaledSize}vh`;
+  const sidebarWidth = isPortrait ? 'clamp(18rem, 34vw, 22rem)' : 'clamp(16rem, 18vw, 20rem)';
+  const layoutGap = 'clamp(1.25rem, 2vw, 2.5rem)';
+  const shouldScaleLayout = !isChatting && !isPortrait;
   const containerStyle = {
-    transform: isChatting ? 'none' : `scale(${scale})`,
+    transform: shouldScaleLayout ? `scale(${scale})` : 'none',
     transformOrigin: 'top center',
-    width: isChatting ? '100%' : `${scaledSize}%`,
+    width: shouldScaleLayout ? `${scaledSize}%` : '100%',
     height: '100vh',
     minHeight: '100vh',
     overflowY: 'hidden',
-    transition: isChatting
-      ? 'none'
-      : 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
+    transition: shouldScaleLayout
+      ? 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease'
+      : 'none',
+    '--sidebar-width': sidebarWidth,
+    '--layout-gap': layoutGap,
   } as const;
 
   const layoutClass = 'min-h-screen overflow-x-hidden overflow-y-hidden';
@@ -273,7 +285,7 @@ export default function Home() {
         className={`flex bg-gray-50 font-sans ${layoutClass} ${isChatting ? '' : 'home-page'}`}
         style={containerStyle}
       >
-        <div className="flex-shrink-0 w-[260px] lg:w-[280px] xl:w-[300px] 2xl:w-[320px]">
+        <div className="flex-shrink-0" style={{ width: 'var(--sidebar-width)' }}>
           <Sidebar
             onCreateNewTask={handleCreateNewTask}
             tasks={sidebarTasks}
