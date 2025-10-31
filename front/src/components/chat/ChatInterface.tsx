@@ -143,15 +143,12 @@ export function ChatInterface({
 
   const contentStyle = {
     width: '100%',
-    maxWidth: 'clamp(780px, calc(100vw - var(--sidebar-width) - 2 * var(--layout-gap)), 1340px)',
+    maxWidth: 'clamp(820px, 70vw, 1320px)',
   } as const;
 
   return (
     <main className="flex-1 bg-white border-l border-gray-100 flex flex-col min-h-0">
-      <div
-        className="sticky top-0 z-10 border-b border-gray-100 bg-white py-5"
-        style={{ paddingInline: 'var(--layout-gap)' }}
-      >
+      <div className="sticky top-0 z-10 border-b border-gray-100 bg-white px-5 py-5">
         <div className="flex w-full items-center justify-between gap-3" style={contentStyle}>
           <div className="flex items-center gap-3">
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors" onClick={onBack}>
@@ -176,10 +173,7 @@ export function ChatInterface({
         </div>
       </div>
 
-      <div
-        className="flex-1 overflow-y-auto bg-gray-50 chat-window min-h-0 py-5"
-        style={{ paddingInline: 'var(--layout-gap)' }}
-      >
+      <div className="flex-1 overflow-y-auto bg-gray-50 chat-window min-h-0 px-5 py-5 sm:px-6 lg:px-8">
         <div className="w-full" style={contentStyle}>
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} onCopy={handleCopy} />
@@ -210,10 +204,7 @@ export function ChatInterface({
         </div>
       </div>
 
-      <div
-        className="border-t border-gray-100 bg-white py-5"
-        style={{ paddingInline: 'var(--layout-gap)' }}
-      >
+      <div className="border-t border-gray-100 bg-white px-5 py-5">
         <div className="w-full" style={contentStyle}>
           <div className="flex gap-2.5 mb-3">
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
