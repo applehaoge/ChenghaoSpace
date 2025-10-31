@@ -24,6 +24,10 @@
 
 
 ## 🚀 重要变更日志（倒序）
+- **2025-10-31 页面滚动控制调整**
+  - Home 级别控制 html/body overflow，统一取消首页/聊天全局滚动条
+  - MainContent 引入内层隐藏滚动条，右侧内容保持可浏览
+  - 新增 app-no-scrollbar/home-main-scroll 样式，待手动验证大屏表现
 - **2025-10-29 平铺后端目录 + 单元测试扩展 + 协作规范**
   - 将 server/server/src 平铺为 server/src，清理历史构建产物
   - 更新构建脚本，pnpm --dir server build / pnpm --dir server test 均已通过

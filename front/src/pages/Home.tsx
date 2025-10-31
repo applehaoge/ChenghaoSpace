@@ -48,6 +48,24 @@ export default function Home() {
   const [scale, setScale] = useState(1);
   const [hasInitializedTask, setHasInitializedTask] = useState(false);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const body = document.body;
+    const root = document.documentElement;
+    const prevBodyOverflow = body.style.overflow;
+    const prevRootOverflow = root.style.overflow;
+    body.classList.add('app-no-scrollbar');
+    root.classList.add('app-no-scrollbar');
+    body.style.overflow = 'hidden';
+    root.style.overflow = 'hidden';
+    return () => {
+      body.classList.remove('app-no-scrollbar');
+      root.classList.remove('app-no-scrollbar');
+      body.style.overflow = prevBodyOverflow;
+      root.style.overflow = prevRootOverflow;
+    };
+  }, []);
+
   const handleCreateNewTask = useCallback(() => {
     setShowChat(false);
     setActiveTaskId(null);
@@ -241,7 +259,7 @@ export default function Home() {
     width: `${scaledSize}%`,
     height: baseScaledHeight,
     minHeight: baseScaledHeight,
-    overflowY: 'auto',
+    overflowY: 'hidden',
     transition: 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
   } as const;
 

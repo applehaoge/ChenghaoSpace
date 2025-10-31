@@ -159,7 +159,7 @@ export function MainContent({
     !inputText.trim() || homeHasUploading || homeAttachments.some(item => item.status === 'error');
 
   return (
-    <main className="flex min-h-full flex-1 min-w-0 flex-col border-l border-gray-100 bg-white">
+    <main className="flex min-h-full h-full flex-1 min-w-0 flex-col border-l border-gray-100 bg-white overflow-y-auto home-main-scroll">
       <header className="flex items-center justify-between px-6 pt-8 pb-6 sm:px-8 lg:px-12 2xl:px-16">
         <h1 className="text-2xl font-bold text-gray-800">
           <span className="text-blue-500">智能助手</span>，一键生成
