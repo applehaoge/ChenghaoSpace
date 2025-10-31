@@ -39,7 +39,7 @@ export default function Home() {
       try {
         window.localStorage.setItem(TASK_STORAGE_KEY, JSON.stringify([]));
       } catch (error) {
-        console.error('初始化任务列表失败:', error);
+        console.error('初始化任务列表失�?', error);
       }
     }
     return [];
@@ -71,7 +71,7 @@ export default function Home() {
     setActiveTaskId(null);
     setInitialChatMessage('');
     setInitialChatAttachments([]);
-    toast.info('已准备新的聊天，请输入内容后发送。', { id: 'prepare-new-chat' });
+    toast.info('已准备新的聊天，请输入内容后发送�?, { id: 'prepare-new-chat' });
   }, []);
 
   useEffect(() => {
@@ -195,9 +195,9 @@ export default function Home() {
       });
 
       if (outcome.deleted) {
-        toast.success('聊天已删除');
+        toast.success('聊天已删�?);
       } else {
-        toast.error('找不到聊天或已删除');
+        toast.error('找不到聊天或已删�?);
       }
     },
     [activeTaskId]
@@ -217,7 +217,7 @@ export default function Home() {
     const randomColor = TASK_COLOR_CANDIDATES[Math.floor(Math.random() * TASK_COLOR_CANDIDATES.length)];
 
     setTasks(prevTasks => {
-      const title = `新聊天 ${prevTasks.length + 1}`;
+      const title = `新聊�?${prevTasks.length + 1}`;
       const nextTask: TaskConversation = {
         id: newTaskId,
         name: title,
@@ -254,18 +254,16 @@ export default function Home() {
   const scaledSize = Number((100 / scale).toFixed(3));
   const baseScaledHeight = `${scaledSize}vh`;
   const containerStyle = {
-    transform: isChatting ? 'none' : `scale(${scale})`,
+    transform: `scale(${scale})`,
     transformOrigin: 'top center',
-    width: isChatting ? '100%' : `${scaledSize}%`,
-    height: '100vh',
-    minHeight: '100vh',
+    width: `${scaledSize}%`,
+    height: baseScaledHeight,
+    minHeight: baseScaledHeight,
     overflowY: 'hidden',
-    transition: isChatting
-      ? 'none'
-      : 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
+    transition: 'transform 0.3s ease, width 0.3s ease, height 0.3s ease, min-height 0.3s ease',
   } as const;
 
-  const layoutClass = 'min-h-screen overflow-x-hidden overflow-y-hidden';
+  const layoutClass = 'min-h-screen overflow-x-hidden overflow-y-auto';
 
   return (
     <div className="min-h-screen bg-gray-50 overflow-x-hidden flex justify-center">

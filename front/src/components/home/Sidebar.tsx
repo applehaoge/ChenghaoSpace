@@ -34,7 +34,7 @@ export function Sidebar({
   };
 
   return (
-    <aside className="w-[260px] h-full bg-white border-r border-gray-100 shadow-sm overflow-hidden">
+    <aside className="w-[260px] h-full flex flex-col bg-white border-r border-gray-100 shadow-sm overflow-hidden">
       <div className="flex justify-between items-center p-[15px_20px] bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-blue-500 font-bold text-lg">
@@ -95,7 +95,7 @@ export function Sidebar({
       </ul>
 
       <div className="p-[0_20px_10px] text-xs text-gray-500">聊天</div>
-      <div className="p-[0_20px] max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+      <div className="p-[0_20px] flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
         <ul className="list-none">
           {tasks.map((task, index) => (
             <li

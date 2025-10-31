@@ -27,11 +27,13 @@
 - **2025-10-31 页面滚动控制调整**
   - Home 级别控制 html/body overflow，统一取消首页/聊天全局滚动条
   - MainContent 引入内层隐藏滚动条，右侧内容保持可浏览
-  - 新增 app-no-scrollbar/home-main-scroll 样式，待手动验证大屏表现
+  - 侧边栏改为 flex h-full，偏高屏幕任务列表自动贴底
+
 - **2025-10-29 平铺后端目录 + 单元测试扩展 + 协作规范**
   - 将 server/server/src 平铺为 server/src，清理历史构建产物
   - 更新构建脚本，pnpm --dir server build / pnpm --dir server test 均已通过
-  - 引入 Vitest，新增 sHelpers、 ttachmentContext 与前端  iService 单元测试
+  - 引入 Vitest，新增 
+sHelpers、 ttachmentContext 与前端  iService 单元测试
   - 新增 smoke.ps1 与 pnpm --dir front smoke 脚本，沉淀最小化自检流程
   - README 增补 AI 提示词、手动验证清单及脚本说明
   - 修复发送后附件卡片延迟消失的问题（发送失败时自动恢复附件）

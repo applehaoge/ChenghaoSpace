@@ -29,16 +29,6 @@ body {
   min-height: 100vh;
 }
 
-.app-no-scrollbar {
-  overflow: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.app-no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
 /* 聊天界面样式 */
 .chat-window {
   overflow-y: auto;
@@ -89,6 +79,16 @@ body {
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
+}
+
+.app-no-scrollbar {
+  overflow: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 .home-main-scroll {
