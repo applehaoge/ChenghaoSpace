@@ -196,45 +196,49 @@ export function ChatInterface({
         </div>
       </div>
 
-      <div
-        ref={scrollContainerRef}
-        className="relative flex-1 overflow-y-auto bg-gray-50 chat-window min-h-0 px-5 py-5 sm:px-6 lg:px-8"
-      >
-        <div className="w-full" style={contentStyle}>
-          {messages.map(message => (
-            <ChatMessage key={message.id} message={message} onCopy={handleCopy} />
-          ))}
+      <div className="relative flex-1 min-h-0">
+        <div
+          ref={scrollContainerRef}
+          className="h-full overflow-y-auto bg-gray-50 chat-window px-5 py-5 sm:px-6 lg:px-8"
+        >
+          <div className="w-full" style={contentStyle}>
+            {messages.map(message => (
+              <ChatMessage key={message.id} message={message} onCopy={handleCopy} />
+            ))}
 
-          {isLoading && (
-            <div className="flex justify-start mb-6">
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
-                <i className="fas fa-robot text-blue-500"></i>
-              </div>
-              <div className="bg-white border border-gray-200 text-gray-800 p-4 rounded-lg">
-                <div className="flex space-x-1">
-                  <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
-                  <div
-                    className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                    style={{ animationDelay: '0.2s' }}
-                  ></div>
-                  <div
-                    className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
-                    style={{ animationDelay: '0.4s' }}
-                  ></div>
+            {isLoading && (
+              <div className="flex justify-start mb-6">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-2 flex-shrink-0">
+                  <i className="fas fa-robot text-blue-500"></i>
+                </div>
+                <div className="bg-white border border-gray-200 text-gray-800 p-4 rounded-lg">
+                  <div className="flex space-x-1">
+                    <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"></div>
+                    <div
+                      className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                      style={{ animationDelay: '0.2s' }}
+                    ></div>
+                    <div
+                      className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                      style={{ animationDelay: '0.4s' }}
+                    ></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
         {!isAtBottom && (
           <button
             type="button"
-            className="absolute bottom-6 right-6 h-11 w-11 rounded-full bg-white text-gray-600 shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors"
+            aria-label="回到最新消息"
+            className="absolute bottom-6 right-6 h-12 w-12 rounded-full bg-white text-gray-600 shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors z-10"
             onClick={() => {
               setAutoScrollEnabled(true);
+              setIsAtBottom(true);
               scrollToLatest();
             }}
           >
