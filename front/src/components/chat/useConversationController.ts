@@ -72,6 +72,8 @@ type ConversationControllerReturn = {
   adjustTextareaHeight: () => void;
   sendMessage: (content: string, attachments: UploadedAttachment[]) => Promise<boolean>;
   handleCopy: (content: string) => Promise<void>;
+  scrollToLatest: () => void;
+  setAutoScrollEnabled: (value: boolean) => void;
 };
 
 export function useConversationController({
@@ -104,9 +106,19 @@ export function useConversationController({
     [conversationId]: initialMessages,
   });
   const currentMessagesRef = useRef<ChatBubble[]>(initialMessages);
+  const autoScrollEnabledRef = useRef(true);
 
-  const scrollToBottom = useCallback(() => {
+  const scrollToBottomImmediate = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const autoScrollToBottom = useCallback(() => {
+    if (!autoScrollEnabledRef.current) return;
+    scrollToBottomImmediate();
+  }, [scrollToBottomImmediate]);
+
+  const setAutoScrollEnabled = useCallback((value: boolean) => {
+    autoScrollEnabledRef.current = value;
   }, []);
 
   const adjustTextareaHeight = useCallback(() => {
@@ -235,7 +247,7 @@ export function useConversationController({
 
       const now = current.lastFlushTime;
       if (now - lastAutoScrollTimeRef.current > 120) {
-        scrollToBottom();
+        autoScrollToBottom();
         lastAutoScrollTimeRef.current = now;
       }
 
@@ -250,7 +262,7 @@ export function useConversationController({
 
     const initialDelay = getFlushDelay(state.pendingTokens.length);
     state.timerId = window.setTimeout(flushTokens, initialDelay);
-  }, [clearStreamingTimer, scrollToBottom, updateConversationMessages]);
+  }, [autoScrollToBottom, clearStreamingTimer, updateConversationMessages]);
 
   const startStreaming = useCallback((fullText: string, messageId: string, targetConversationId: string) => {
     clearStreamingTimer(messageId);
@@ -305,7 +317,7 @@ export function useConversationController({
     );
 
     lastAutoScrollTimeRef.current = getNow();
-    scrollToBottom();
+    autoScrollToBottom();
 
     if (tokens.length === 0) {
       clearStreamingTimer(messageId);
@@ -313,7 +325,7 @@ export function useConversationController({
     }
 
     scheduleTokenFlush(messageId, targetConversationId);
-  }, [clearStreamingTimer, scheduleTokenFlush, scrollToBottom, updateConversationMessages]);
+  }, [autoScrollToBottom, clearStreamingTimer, scheduleTokenFlush, updateConversationMessages]);
   const fetchAssistantReply = useCallback(
     async (userMessage: string, messageAttachments: UploadedAttachment[]) => {
       setIsLoading(true);
@@ -449,8 +461,8 @@ export function useConversationController({
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, scrollToBottom]);
+    autoScrollToBottom();
+  }, [autoScrollToBottom, messages]);
 
   useEffect(
     () => () => {
@@ -534,6 +546,8 @@ export function useConversationController({
     adjustTextareaHeight,
     sendMessage,
     handleCopy,
+    scrollToLatest: scrollToBottomImmediate,
+    setAutoScrollEnabled,
   };
 }
 

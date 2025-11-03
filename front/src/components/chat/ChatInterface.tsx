@@ -1,4 +1,4 @@
-﻿import { useEffect, useCallback, useMemo } from 'react';
+﻿import { useEffect, useCallback, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { toast } from 'sonner';
 import { AttachmentBadge, useFileUploader } from '@/components/attachments';
@@ -41,6 +41,8 @@ export function ChatInterface({
     adjustTextareaHeight,
     sendMessage,
     handleCopy,
+    scrollToLatest,
+    setAutoScrollEnabled,
   } = useConversationController({
     conversationId,
     initialMessage,
@@ -66,6 +68,27 @@ export function ChatInterface({
   useEffect(() => {
     clearChatAttachments();
   }, [conversationId, clearChatAttachments]);
+
+  const [isAtBottom, setIsAtBottom] = useState(true);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const isNearBottom = scrollHeight - (scrollTop + clientHeight) <= 48;
+      setIsAtBottom(isNearBottom);
+      setAutoScrollEnabled(isNearBottom);
+    };
+
+    handleScroll();
+    container.addEventListener('scroll', handleScroll);
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+    };
+  }, [setAutoScrollEnabled]);
 
   const completedAttachments = useMemo(() => {
     return chatAttachments
@@ -173,7 +196,10 @@ export function ChatInterface({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto bg-gray-50 chat-window min-h-0 px-5 py-5 sm:px-6 lg:px-8">
+      <div
+        ref={scrollContainerRef}
+        className="relative flex-1 overflow-y-auto bg-gray-50 chat-window min-h-0 px-5 py-5 sm:px-6 lg:px-8"
+      >
         <div className="w-full" style={contentStyle}>
           {messages.map(message => (
             <ChatMessage key={message.id} message={message} onCopy={handleCopy} />
@@ -202,6 +228,19 @@ export function ChatInterface({
 
           <div ref={messagesEndRef} />
         </div>
+
+        {!isAtBottom && (
+          <button
+            type="button"
+            className="absolute bottom-6 right-6 h-11 w-11 rounded-full bg-white text-gray-600 shadow-lg border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors"
+            onClick={() => {
+              setAutoScrollEnabled(true);
+              scrollToLatest();
+            }}
+          >
+            <i className="fas fa-arrow-down"></i>
+          </button>
+        )}
       </div>
 
       <div className="border-t border-gray-100 bg-white px-5 py-5">
@@ -262,5 +301,6 @@ export function ChatInterface({
     </main>
   );
 }
+
 
 
