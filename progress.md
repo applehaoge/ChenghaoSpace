@@ -24,10 +24,15 @@
 
 
 ## 馃殌 閲嶈鍙樻洿鏃ュ織锛堝€掑簭锛?
-- **2025-10-31 聊天窗口滚动提示优化**
-  - 自动滚动仅在用户停留底部时触发，手动滚动时保持当前视角
-  - 聊天区新增“回到底部”悬浮按钮，方便回到最新回复
-  - 校验：pnpm --dir server test；pnpm --dir front build:client
+- **2025-10-31 Chat scroll affordance**
+  - Auto-scroll stays enabled when the user is at the bottom; manual scrolling pauses it
+  - Floating "scroll to latest" button appears when browsing history
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-10-31 Chat send jump**
+  - Sending a new user message now re-enables auto-scroll to keep context fresh
+  - Applies setAutoScrollEnabled/scrollToLatest before dispatching request
+  - Checks: pnpm --dir front build:client
 
 - **2025-10-31 椤甸潰婊氬姩鎺у埗璋冩暣**
   - Home 绾у埆鎺у埗 html/body overflow锛岀粺涓€鍙栨秷棣栭〉/鑱婂ぉ鍏ㄥ眬婊氬姩鏉?

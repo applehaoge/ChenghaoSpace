@@ -125,6 +125,10 @@ export function ChatInterface({
       return;
     }
 
+    setAutoScrollEnabled(true);
+    setIsAtBottom(true);
+    scrollToLatest();
+
     const attachmentsSnapshot = chatAttachments.map(item => ({ ...item }));
     clearChatAttachments();
     const succeeded = await sendMessage(trimmed, completedAttachments);
@@ -139,6 +143,9 @@ export function ChatInterface({
     composerValue,
     hasAttachmentMetadataIssue,
     isLoading,
+    scrollToLatest,
+    setAutoScrollEnabled,
+    setIsAtBottom,
     restoreChatAttachments,
     sendMessage,
   ]);
