@@ -24,11 +24,6 @@ export function Sidebar({
   onSelectTask,
   onDeleteTask,
 }: SidebarProps) {
-  const handleMenuItemClick = (itemName: string) => {
-    toast.info(`已切换到${itemName}`);
-    console.log(`切换到${itemName}`);
-  };
-
   const handleNotificationClick = () => {
     toast.info('您有新的通知');
   };
@@ -62,37 +57,6 @@ export function Sidebar({
         <span>开启新聊天</span>
         <span className="text-xs bg-white/30 px-1.5 py-0.5 rounded">Ctrl</span>
       </button>
-
-      <ul className="p-[0_20px] mb-5 list-none">
-        <li
-          className="flex items-center gap-2.5 p-3 mb-2 bg-blue-50 rounded-lg cursor-pointer hover:bg-blue-100 transition-colors border-l-4 border-blue-400"
-          onClick={() => handleMenuItemClick('AI专家')}
-        >
-          <i className="fas fa-robot text-blue-400"></i>
-          <span className="text-sm text-gray-800">AI专家</span>
-        </li>
-        <li
-          className="flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
-          onClick={() => handleMenuItemClick('DeepTrip旅行专家')}
-        >
-          <i className="fas fa-plane text-green-500"></i>
-          <span className="text-sm text-gray-800">DeepTrip旅行专家</span>
-        </li>
-        <li
-          className="flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
-          onClick={() => handleMenuItemClick('华泰A股观察助手')}
-        >
-          <i className="fas fa-chart-line text-red-500"></i>
-          <span className="text-sm text-gray-800">华泰A股观察助手</span>
-        </li>
-        <li
-          className="flex items-center gap-2.5 p-3 mb-2 bg-gray-100 rounded-md cursor-pointer hover:bg-gray-200 transition-colors"
-          onClick={() => handleMenuItemClick('舆情分析专家')}
-        >
-          <i className="fas fa-newspaper text-purple-500"></i>
-          <span className="text-sm text-gray-800">舆情分析专家</span>
-        </li>
-      </ul>
 
       <div className="p-[0_20px_10px] text-xs text-gray-500">聊天</div>
       <div className="p-[0_20px] flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">

@@ -4,7 +4,6 @@ import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
 import { AttachmentBadge, useFileUploader } from '@/components/attachments';
 import type { UploadedAttachment } from '@/pages/home/types';
-import { ProjectCard } from './ProjectCard';
 
 export type MainContentProps = {
   inputText: string;
@@ -14,6 +13,26 @@ export type MainContentProps = {
 
 const KIDS_CODING_URL = (import.meta.env.VITE_KIDS_CODING_URL as string | undefined) ?? '';
 const HOME_BADGE_LABEL = 'AI 问答';
+const DEFAULT_STUDENT_NAME = (import.meta.env.VITE_STUDENT_NAME as string | undefined) ?? '同学';
+const CHECK_IN_STORAGE_KEY = 'home.dailyCheckIn';
+const UPCOMING_EVENTS = [
+  { label: 'CSP-J/S 2026 第一轮', date: '2026-09-20' },
+  { label: 'NOIP 2025', date: '2025-11-28' },
+] as const;
+const FORTUNE_LEVELS = ['大吉', '中吉', '小吉', '平顺'] as const;
+const FORTUNE_GOOD_ACTIVITIES = [
+  '练习编程题',
+  '调试小项目',
+  '复习算法笔记',
+  '阅读科普书籍',
+  '分享学习心得',
+] as const;
+const FORTUNE_BAD_ACTIVITIES = ['熬夜', '拖延任务', '敷衍打卡', '分心刷手机', '临时抱佛脚'] as const;
+
+type CheckInRecord = {
+  lastCheckInDate: string;
+  streak: number;
+};
 
 export function MainContent({
   inputText,
@@ -21,6 +40,11 @@ export function MainContent({
   onSendMessage,
 }: MainContentProps) {
   const [inspiration, setInspiration] = useState('创新思维，高效创作');
+  const [checkInRecord, setCheckInRecord] = useState<CheckInRecord>({
+    lastCheckInDate: '',
+    streak: 0,
+  });
+  const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
   const homeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const {
     attachments: homeAttachments,
@@ -46,6 +70,21 @@ export function MainContent({
   useEffect(() => {
     adjustHomeTextareaHeight();
   }, [inputText, adjustHomeTextareaHeight]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const stored = window.localStorage.getItem(CHECK_IN_STORAGE_KEY);
+      if (!stored) return;
+      const parsed = JSON.parse(stored) as CheckInRecord;
+      setCheckInRecord(parsed);
+      if (parsed.lastCheckInDate === formatDateKey(new Date())) {
+        setHasCheckedInToday(true);
+      }
+    } catch (error) {
+      console.error('加载打卡记录失败:', error);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchInspiration = async () => {
@@ -148,16 +187,51 @@ export function MainContent({
     toast.info('格式设置功能即将上线');
   };
 
-  const handlePracticeCategory = (category: string) => {
-    toast.info(`已切换到 ${category} 分类`);
-  };
-
   const handleOpenKidsCoding = () => {
     if (!KIDS_CODING_URL) {
       toast.info('少儿编程课堂链接即将上线');
       return;
     }
     window.open(KIDS_CODING_URL, '_blank', 'noopener,noreferrer');
+  };
+
+  const today = new Date();
+  const monthLabel = today.toLocaleString('zh-CN', { month: 'long' });
+  const dayNumber = today.getDate().toString().padStart(2, '0');
+  const weekdayLabel = today.toLocaleString('zh-CN', { weekday: 'long' });
+  const upcomingCountdowns = UPCOMING_EVENTS.map(event => ({
+    ...event,
+    daysRemaining: calculateDaysRemaining(event.date, today),
+  }));
+  const fortuneSeed = generateFortuneSeed(today);
+  const fortuneLevel = FORTUNE_LEVELS[fortuneSeed % FORTUNE_LEVELS.length];
+  const fortuneGood = pickFortuneItems(FORTUNE_GOOD_ACTIVITIES, fortuneSeed, 2);
+  const fortuneBad = pickFortuneItems(FORTUNE_BAD_ACTIVITIES, fortuneSeed + 7, 2);
+
+  const handleCheckIn = () => {
+    if (hasCheckedInToday) {
+      toast.info('今天已经打过卡啦，继续保持好状态！');
+      return;
+    }
+    const todayKey = formatDateKey(today);
+    const yesterdayKey = formatDateKey(new Date(today.getTime() - 24 * 60 * 60 * 1000));
+    const nextStreak =
+      checkInRecord.lastCheckInDate === yesterdayKey ? checkInRecord.streak + 1 : 1;
+    const nextRecord: CheckInRecord = {
+      lastCheckInDate: todayKey,
+      streak: nextStreak,
+    };
+    setCheckInRecord(nextRecord);
+    setHasCheckedInToday(true);
+
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(CHECK_IN_STORAGE_KEY, JSON.stringify(nextRecord));
+      } catch (error) {
+        console.error('保存打卡记录失败:', error);
+      }
+    }
+    toast.success('打卡成功！继续努力练习少儿编程！');
   };
 
   const disableHomeSend =
@@ -192,9 +266,9 @@ export function MainContent({
         </button>
       </div>
 
-      <div className="flex flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-12 2xl:px-16">
+      <div className="flex flex-col gap-6 px-4 pb-10 sm:px-6 lg:px-12 2xl:px-16">
         <section
-          className="mx-auto w-full rounded-xl border border-gray-100 bg-white px-5 py-6 shadow-sm sm:px-6 lg:px-8 2xl:px-10"
+          className="mx-auto w-full rounded-xl border border-gray-100 bg-white px-5 py-5 shadow-sm sm:px-6 lg:px-8 2xl:px-10"
           style={{ maxWidth: 'clamp(760px, 68vw, 1280px)' }}
         >
           <div className="mb-4 flex items-start gap-2.5">
@@ -272,65 +346,143 @@ export function MainContent({
         </section>
 
         <section
-          className="mx-auto w-full rounded-3xl border border-gray-100/70 bg-white/80 px-5 py-6 shadow-sm ring-1 ring-gray-100/60 backdrop-blur sm:px-6 lg:px-8 2xl:px-10"
+          className="mx-auto flex w-full flex-col gap-6 rounded-3xl border border-gray-100/70 bg-white/90 px-5 py-5 shadow-sm ring-1 ring-blue-100/50 backdrop-blur sm:px-6 lg:flex-row lg:px-8 2xl:px-10"
           style={{ maxWidth: 'clamp(820px, 70vw, 1320px)' }}
         >
-          <div className="mb-5 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 px-4 py-3 lg:px-6">
-            <h3 className="m-0 text-lg font-bold text-gray-800">最佳实践</h3>
-            <div className="flex flex-wrap gap-1 text-sm">
-              <button
-                type="button"
-                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
-                onClick={() => handlePracticeCategory('网页宣发')}
-              >
-                网页宣发
-              </button>
-              <button
-                type="button"
-                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
-                onClick={() => handlePracticeCategory('教育工具')}
-              >
-                教育工具
-              </button>
-              <button
-                type="button"
-                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
-                onClick={() => handlePracticeCategory('趣味游戏')}
-              >
-                趣味游戏
-              </button>
-              <button
-                type="button"
-                className="px-3 py-1 text-gray-700 transition-colors hover:text-blue-600"
-                onClick={() => handlePracticeCategory('营销推广')}
-              >
-                营销推广
-              </button>
+          <div className="flex flex-1 flex-col gap-4 rounded-2xl bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 p-6 text-white shadow-md">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-white/80">欢迎回来，</p>
+                <p className="text-2xl font-semibold">{DEFAULT_STUDENT_NAME}</p>
+              </div>
+              <div className="rounded-full bg-white/20 px-3 py-1 text-xs font-medium uppercase tracking-widest">
+                每日打卡
+              </div>
             </div>
+            <div className="flex flex-wrap items-end gap-6">
+              <div className="flex flex-col items-center text-white/90">
+                <span className="text-base">{monthLabel}</span>
+                <span className="text-lg">{weekdayLabel}</span>
+              </div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-6xl font-black leading-none">{dayNumber}</span>
+                <span className="text-lg font-medium text-white/90">日</span>
+              </div>
+            </div>
+            <ul className="space-y-1 text-sm text-white/90">
+              {upcomingCountdowns.map(event => (
+                <li key={event.label} className="flex items-center gap-2">
+                  <i className="fas fa-flag text-white/70"></i>
+                  <span>
+                    距 {event.label} 还剩{' '}
+                    <span className="font-semibold text-white">{event.daysRemaining}</span> 天
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={handleCheckIn}
+              disabled={hasCheckedInToday}
+              className={`mt-2 inline-flex items-center justify-center rounded-xl px-5 py-3 text-base font-semibold transition-all ${
+                hasCheckedInToday
+                  ? 'cursor-not-allowed bg-white/20 text-white/70'
+                  : 'bg-white text-indigo-600 shadow-lg hover:-translate-y-0.5 hover:shadow-xl'
+              }`}
+            >
+              {hasCheckedInToday ? '今日已打卡 √' : '点击打卡'}
+            </button>
+            <p className="text-xs text-white/80">
+              {hasCheckedInToday
+                ? `你已经连续打卡 ${checkInRecord.streak} 天，坚持就是成功的秘诀！`
+                : `连续打卡可以累计学习成就，当前连续 ${checkInRecord.streak} 天`}
+            </p>
           </div>
 
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(240px,1fr))] gap-4 justify-items-center 2xl:gap-6">
-            <ProjectCard
-              title="AI智能写作助手"
-              imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20assistant%20concept%20illustration%2C%20modern%20flat%20design%2C%20blue%20color%20scheme&sign=28ebbd06cb141c1a009017f1f8d41227"
-              bgColor="#eff6ff"
-              projectId="project_ai_writing"
-            />
-            <ProjectCard
-              title="智能数据分析工具"
-              imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=Data%20visualization%20dashboard%2C%20modern%20design%2C%20blue%20and%20indigo%20colors&sign=ed4909d7a10fe86967a5aa6a0afaa434"
-              bgColor="#e0e7ff"
-              projectId="project_data_analysis"
-            />
-            <ProjectCard
-              title="个性化学习平台"
-              imageUrl="https://space.coze.cn/api/coze_space/gen_image?image_size=square&prompt=AI%20learning%20platform%20concept%2C%20interactive%20interface%2C%20blue%20colors&sign=0eba131c9b66799399b3e86f510476a7"
-              bgColor="#dbeafe"
-              projectId="project_learning_platform"
-            />
+          <div className="flex flex-1 flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
+            <div className="flex items-center justify-between">
+              <h3 className="m-0 text-lg font-semibold text-gray-800">{DEFAULT_STUDENT_NAME} 的今日运势</h3>
+              <i className="fas fa-sparkles text-lg text-amber-500"></i>
+            </div>
+            <div className="flex items-center gap-3 text-4xl font-bold text-amber-500">
+              § {fortuneLevel} §
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="rounded-xl bg-emerald-50 p-4 text-emerald-700">
+                <div className="mb-2 flex items-center gap-2 font-semibold">
+                  <i className="fas fa-check-circle"></i>
+                  宜
+                </div>
+                <ul className="space-y-2">
+                  {fortuneGood.map(item => (
+                    <li key={item} className="flex items-start gap-2">
+                      <span className="mt-0.5 text-emerald-500">·</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="rounded-xl bg-rose-50 p-4 text-rose-700">
+                <div className="mb-2 flex items-center gap-2 font-semibold">
+                  <i className="fas fa-ban"></i>
+                  忌
+                </div>
+                <ul className="space-y-2">
+                  {fortuneBad.map(item => (
+                    <li key={item} className="flex items-start gap-2">
+                      <span className="mt-0.5 text-rose-500">·</span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="rounded-lg bg-indigo-50 px-4 py-3 text-sm text-indigo-600">
+              <i className="fas fa-lightbulb mr-2"></i>
+              今日贴士：保持好奇心，多动手实践，你就是下一位少儿编程高手！
+            </div>
           </div>
         </section>
       </div>
     </main>
   );
+}
+
+function formatDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function calculateDaysRemaining(targetDate: string, baseDate: Date) {
+  const target = new Date(targetDate);
+  const startOfToday = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate()).getTime();
+  const startOfTarget = new Date(target.getFullYear(), target.getMonth(), target.getDate()).getTime();
+  const diff = Math.max(0, startOfTarget - startOfToday);
+  return Math.round(diff / (1000 * 60 * 60 * 24));
+}
+
+function generateFortuneSeed(date: Date) {
+  const numeric = Number(formatDateKey(date).replace(/-/g, ''));
+  const randomish = Math.sin(numeric) * 10000;
+  return Math.abs(Math.floor(randomish));
+}
+
+function pickFortuneItems(source: readonly string[], seed: number, count: number) {
+  if (source.length <= count) {
+    return [...source];
+  }
+  const selected: string[] = [];
+  let currentSeed = seed;
+  const used = new Set<number>();
+  while (selected.length < count) {
+    const index = currentSeed % source.length;
+    if (!used.has(index)) {
+      selected.push(source[index]);
+      used.add(index);
+    }
+    currentSeed = (currentSeed * 9301 + 49297) % 233280;
+  }
+  return selected;
 }

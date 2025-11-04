@@ -27,6 +27,9 @@
 - **2025-11-04 首页少儿编程入口**
   - 移除首页顶部多功能标签，仅保留 AI 问答说明并腾出空间
   - 新增“进入少儿编程课堂”按钮，通过 `VITE_KIDS_CODING_URL` 配置跳转到外部学习站点
+  - 侧边栏移除无实际功能的专家入口，界面更聚焦聊天与少儿编程定位
+  - 首页“最佳实践”替换为每日打卡 + 今日运势模块，支持本地存储连续打卡数据
+  - 微调打卡区间距，减少与输入区之间的留白
   - Checks: pnpm --dir front build:client
 - **2025-10-31 Chat scroll affordance**
   - Auto-scroll stays enabled when the user is at the bottom; manual scrolling pauses it
