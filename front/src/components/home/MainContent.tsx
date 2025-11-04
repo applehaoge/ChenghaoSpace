@@ -7,18 +7,15 @@ import type { UploadedAttachment } from '@/pages/home/types';
 import { ProjectCard } from './ProjectCard';
 
 export type MainContentProps = {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
   inputText: string;
   setInputText: (value: string) => void;
   onSendMessage?: (message: string, attachments?: UploadedAttachment[]) => void;
 };
 
-const tabs = ['写作', 'PPT', '设计', 'Excel', '网页', '播客'] as const;
+const KIDS_CODING_URL = (import.meta.env.VITE_KIDS_CODING_URL as string | undefined) ?? '';
+const HOME_BADGE_LABEL = 'AI 问答';
 
 export function MainContent({
-  activeTab,
-  setActiveTab,
   inputText,
   setInputText,
   onSendMessage,
@@ -155,6 +152,14 @@ export function MainContent({
     toast.info(`已切换到 ${category} 分类`);
   };
 
+  const handleOpenKidsCoding = () => {
+    if (!KIDS_CODING_URL) {
+      toast.info('少儿编程课堂链接即将上线');
+      return;
+    }
+    window.open(KIDS_CODING_URL, '_blank', 'noopener,noreferrer');
+  };
+
   const disableHomeSend =
     !inputText.trim() || homeHasUploading || homeAttachments.some(item => item.status === 'error');
 
@@ -173,26 +178,18 @@ export function MainContent({
       </header>
 
       <div className="mb-8 flex flex-wrap justify-center gap-3 px-4 sm:px-6 lg:px-12 2xl:px-16">
-        {tabs.map(tab => (
-          <button
-            key={tab}
-            type="button"
-            className={`rounded-full border px-4 py-2 text-sm transition-all duration-300 ${
-              activeTab === tab
-                ? 'border-blue-400 bg-gradient-to-r from-blue-400 to-indigo-400 text-white shadow-sm'
-                : 'border-gray-200 bg-white text-gray-600 hover:bg-blue-50'
-            }`}
-            onClick={() => setActiveTab(tab)}
-          >
-            {tab === '写作' && <i className="fas fa-pen-to-square mr-1"></i>}
-            {tab === 'PPT' && <i className="fas fa-file-powerpoint mr-1"></i>}
-            {tab === '设计' && <i className="fas fa-paint-brush mr-1"></i>}
-            {tab === 'Excel' && <i className="fas fa-file-excel mr-1"></i>}
-            {tab === '网页' && <i className="fas fa-globe mr-1"></i>}
-            {tab === '播客' && <i className="fas fa-podcast mr-1"></i>}
-            {tab}
-          </button>
-        ))}
+        <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+          <i className="fas fa-robot"></i>
+          <span>基础 AI 问答功能随时支持你的学习</span>
+        </div>
+        <button
+          type="button"
+          className="inline-flex items-center rounded-full border border-blue-400 bg-gradient-to-r from-blue-400 to-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:shadow-md"
+          onClick={handleOpenKidsCoding}
+        >
+          <i className="fas fa-code mr-2"></i>
+          进入少儿编程课堂
+        </button>
       </div>
 
       <div className="flex flex-col gap-8 px-4 pb-10 sm:px-6 lg:px-12 2xl:px-16">
@@ -202,7 +199,7 @@ export function MainContent({
         >
           <div className="mb-4 flex items-start gap-2.5">
             <span className="rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-500">
-              {activeTab}
+              {HOME_BADGE_LABEL}
             </span>
             <textarea
               ref={homeTextareaRef}

@@ -25,7 +25,6 @@ const TASK_ICON_CANDIDATES = ['lightbulb', 'edit', 'file', 'clipboard', 'calenda
 const TASK_COLOR_CANDIDATES = ['blue-500', 'green-500', 'indigo-500', 'purple-500', 'pink-500', 'red-500', 'orange-500'];
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState('AI专家');
   const [inputText, setInputText] = useState('');
   const [showChat, setShowChat] = useState(false);
   const [initialChatMessage, setInitialChatMessage] = useState('');
@@ -314,8 +313,6 @@ export default function Home() {
           />
         ) : (
           <MainContent
-            activeTab={activeTab}
-            setActiveTab={setActiveTab}
             inputText={inputText}
             setInputText={setInputText}
             onSendMessage={handleStartConversationFromPrompt}

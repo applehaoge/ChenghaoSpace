@@ -24,6 +24,10 @@
 
 
 ## 馃殌 閲嶈鍙樻洿鏃ュ織锛堝€掑簭锛?
+- **2025-11-04 首页少儿编程入口**
+  - 移除首页顶部多功能标签，仅保留 AI 问答说明并腾出空间
+  - 新增“进入少儿编程课堂”按钮，通过 `VITE_KIDS_CODING_URL` 配置跳转到外部学习站点
+  - Checks: pnpm --dir front build:client
 - **2025-10-31 Chat scroll affordance**
   - Auto-scroll stays enabled when the user is at the bottom; manual scrolling pauses it
   - Floating "scroll to latest" button appears when browsing history
