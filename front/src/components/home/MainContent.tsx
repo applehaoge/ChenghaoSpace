@@ -4,8 +4,10 @@ import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
 import { AttachmentBadge, useFileUploader } from '@/components/attachments';
 import type { UploadedAttachment } from '@/pages/home/types';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
 import { DailyProgressPanel } from './DailyProgressPanel';
 import { FORTUNE_BAD_ACTIVITIES, FORTUNE_GOOD_ACTIVITIES, FORTUNE_LEVELS } from './fortuneConfig';
+import { VoiceInputButton } from './VoiceInputButton';
 
 export type MainContentProps = {
   inputText: string;
@@ -201,6 +203,21 @@ export function MainContent({
   const fortuneGood = pickFortuneItems(FORTUNE_GOOD_ACTIVITIES, fortuneSeed, 2);
   const fortuneBad = pickFortuneItems(FORTUNE_BAD_ACTIVITIES, fortuneSeed + 7, 2);
 
+  const { status: speechStatus, start: startSpeech, stop: stopSpeech, isSupported: isSpeechSupported } =
+    useSpeechToText({
+      onResult: transcript => {
+        setInputText(prev => {
+          if (!prev) return transcript;
+          const needsSpace = /\S$/.test(prev);
+          return `${prev}${needsSpace ? ' ' : ''}${transcript}`;
+        });
+        toast.success('语音识别完成，已填入输入框');
+      },
+      onError: message => {
+        toast.error(message);
+      },
+    });
+
   const handleCheckIn = () => {
     if (hasCheckedInToday) {
       toast.info('今天已经打过卡啦，继续保持好状态！');
@@ -230,9 +247,6 @@ export function MainContent({
   const disableHomeSend =
     !inputText.trim() || homeHasUploading || homeAttachments.some(item => item.status === 'error');
 
-  
-  
-  
   return (
     <main className="flex min-h-full h-full flex-1 min-w-0 flex-col border-l border-gray-100 bg-white overflow-y-auto home-main-scroll">
       <header className="flex items-center justify-between px-6 pt-4 pb-5 sm:px-8 sm:pt-5 sm:pb-5 lg:px-12 lg:pt-6 lg:pb-6 2xl:px-16 2xl:pt-7">
@@ -310,6 +324,12 @@ export function MainContent({
               >
                 <i className="fas fa-font text-gray-500"></i>
               </button>
+              <VoiceInputButton
+                status={speechStatus}
+                onStart={startSpeech}
+                onStop={stopSpeech}
+                disabled={homeHasUploading && speechStatus !== 'recording'}
+              />
             </div>
 
             <div className="flex gap-2.5">

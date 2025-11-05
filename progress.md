@@ -3,6 +3,8 @@
 - **2025-11-05 组件重构与工作区整理**
   - 提炼每日打卡/运势区域为独立 DailyProgressPanel 组件，MainContent 仅保留数据流
   - 新增 pnpm-workspace.yaml 与根级 package.json，统一 front/server 构建与测试入口
+  - 新增语音输入按钮，封装 useSpeechToText Hook，语音转文字自动填充输入框
+
 
 - **2025-11-05 ��ҳ������һ�廯**
   - �򿨳ɹ����������Զ��л�Ϊ���ƿ�Ƭ���Ƴ�˫�в������ͷŹ��ռ�
