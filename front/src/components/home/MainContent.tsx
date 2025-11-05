@@ -307,7 +307,7 @@ export function MainContent({
           ) : null}
 
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex gap-2.5">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 className="rounded p-1.5 transition-colors hover:bg-gray-100"
@@ -330,6 +330,12 @@ export function MainContent({
                 onStop={stopSpeech}
                 disabled={homeHasUploading && speechStatus !== 'recording'}
               />
+              {speechStatus === 'recording' ? (
+                <span className="flex items-center gap-1 text-xs font-medium text-red-500">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                  正在录音...
+                </span>
+              ) : null}
             </div>
 
             <div className="flex gap-2.5">

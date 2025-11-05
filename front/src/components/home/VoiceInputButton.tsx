@@ -36,16 +36,23 @@ export function VoiceInputButton({
   return (
     <button
       type="button"
-      className={`flex h-10 w-10 items-center justify-center rounded-lg border border-blue-200 transition-colors ${
-        isRecording ? 'bg-red-50 text-red-500 border-red-200' : 'text-blue-500 hover:bg-blue-50'
+      className={`relative flex h-10 w-10 items-center justify-center rounded-lg border border-blue-200 transition-colors ${
+        isRecording ? 'bg-red-100 text-red-600 border-red-300' : 'text-blue-500 hover:bg-blue-50'
       } ${isDisabled ? 'cursor-not-allowed opacity-60 hover:bg-transparent' : ''}`}
       onClick={handleClick}
       disabled={isDisabled}
       aria-label={label}
+      aria-pressed={isRecording}
       title={label}
       {...rest}
     >
-      <i className={`fas fa-microphone${isRecording ? '' : '-alt'}`}></i>
+      <i className={`fas fa-microphone${isRecording ? '' : '-alt'} text-lg`}></i>
+      {isRecording ? (
+        <>
+          <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>
+          <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500/40 animate-ping"></span>
+        </>
+      ) : null}
       {isRecording ? <span className="sr-only">停止语音输入</span> : <span className="sr-only">开始语音输入</span>}
     </button>
   );

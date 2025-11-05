@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 type SpeechStatus = 'idle' | 'recording' | 'unsupported' | 'error';
 
@@ -28,21 +28,37 @@ export function useSpeechToText({
   const [status, setStatus] = useState<SpeechStatus>('idle');
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
+  const ctorRef = useRef<typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition | null>(null);
+  const silenceTimerRef = useRef<number | null>(null);
+  const SILENCE_TIMEOUT_MS = 2500;
 
   useEffect(() => {
     if (typeof window === 'undefined') {
       setStatus('unsupported');
       return;
     }
+
     const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognitionCtor) {
       setStatus('unsupported');
       return;
     }
 
+    ctorRef.current = SpeechRecognitionCtor;
+
+    return () => {
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+    };
+  }, []);
+
+  const createRecognition = useCallback(() => {
+    const SpeechRecognitionCtor = ctorRef.current;
+    if (!SpeechRecognitionCtor) return null;
+
     const recognition = new SpeechRecognitionCtor() as SpeechRecognitionLike;
     recognition.lang = lang;
-    recognition.continuous = false;
+    recognition.continuous = true;
     recognition.interimResults = false;
     recognition.maxAlternatives = 1;
 
@@ -54,51 +70,82 @@ export function useSpeechToText({
       if (transcript) {
         onResult(transcript);
       }
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+      }
+      silenceTimerRef.current = window.setTimeout(() => {
+        recognitionRef.current?.stop();
+      }, SILENCE_TIMEOUT_MS);
     };
 
     recognition.onerror = event => {
       const message = event.error === 'not-allowed' ? '浏览器拒绝访问麦克风' : `语音识别失败：${event.error}`;
       setError(message);
       setStatus('error');
+      recognitionRef.current = null;
       onError?.(message);
     };
 
     recognition.onstart = () => {
       setError(null);
       setStatus('recording');
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+      }
+      silenceTimerRef.current = window.setTimeout(() => {
+        recognitionRef.current?.stop();
+      }, SILENCE_TIMEOUT_MS);
     };
 
     recognition.onend = () => {
-      setStatus(prev => (prev === 'unsupported' ? prev : 'idle'));
-    };
-
-    recognitionRef.current = recognition;
-
-    return () => {
-      recognition.stop();
       recognitionRef.current = null;
+      setStatus(prev => (prev === 'unsupported' ? prev : 'idle'));
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
     };
-  }, [lang, onResult, onError]);
+
+    return recognition;
+  }, [lang, onError, onResult]);
 
   const start = useCallback(() => {
-    if (!recognitionRef.current || status === 'unsupported') {
-      return;
-    }
+    if (status === 'unsupported') return;
+    if (status === 'recording') return;
+
     try {
-      recognitionRef.current.start();
+      recognitionRef.current?.abort?.();
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+
+      const recognition = createRecognition();
+      if (!recognition) {
+        setStatus('unsupported');
+        return;
+      }
+
+      recognitionRef.current = recognition;
+      recognition.start();
+      if (silenceTimerRef.current) {
+        window.clearTimeout(silenceTimerRef.current);
+        silenceTimerRef.current = null;
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : '启动语音识别失败';
       setError(message);
       setStatus('error');
+      recognitionRef.current = null;
       onError?.(message);
     }
-  }, [onError, status]);
+  }, [createRecognition, onError, status]);
 
   const stop = useCallback(() => {
-    if (!recognitionRef.current || status !== 'recording') {
-      return;
+    if (status !== 'recording') return;
+    recognitionRef.current?.stop();
+    if (silenceTimerRef.current) {
+      window.clearTimeout(silenceTimerRef.current);
+      silenceTimerRef.current = null;
     }
-    recognitionRef.current.stop();
   }, [status]);
 
   return {
