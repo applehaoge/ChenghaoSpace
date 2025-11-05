@@ -29,8 +29,8 @@ export function useSpeechToText({
   const [error, setError] = useState<string | null>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const ctorRef = useRef<typeof window.SpeechRecognition | typeof window.webkitSpeechRecognition | null>(null);
-  const silenceTimerRef = useRef<number | null>(null);
-  const SILENCE_TIMEOUT_MS = 2500;
+  const manualStopRef = useRef(false);
+  const transcriptRef = useRef('');
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -59,27 +59,37 @@ export function useSpeechToText({
     const recognition = new SpeechRecognitionCtor() as SpeechRecognitionLike;
     recognition.lang = lang;
     recognition.continuous = true;
-    recognition.interimResults = false;
+    recognition.interimResults = true;
     recognition.maxAlternatives = 1;
 
     recognition.onresult = event => {
-      const transcript = Array.from(event.results)
+      if (manualStopRef.current) {
+        return;
+      }
+      const combined = Array.from(event.results)
         .map(result => result[0]?.transcript ?? '')
-        .join(' ')
+        .join('')
+        .replace(/\s+/g, ' ')
         .trim();
-      if (transcript) {
-        onResult(transcript);
+
+      if (!combined) return;
+
+      const previous = transcriptRef.current;
+      let addition = combined;
+      if (combined.startsWith(previous)) {
+        addition = combined.slice(previous.length);
       }
-      if (silenceTimerRef.current) {
-        window.clearTimeout(silenceTimerRef.current);
+      addition = addition.replace(/\s+/g, ' ').trim();
+
+      if (addition) {
+        onResult(addition);
       }
-      silenceTimerRef.current = window.setTimeout(() => {
-        recognitionRef.current?.stop();
-      }, SILENCE_TIMEOUT_MS);
+      transcriptRef.current = combined;
     };
 
     recognition.onerror = event => {
-      const message = event.error === 'not-allowed' ? 'æµè§ˆå™¨æ‹’ç»è®¿é—®éº¦å…‹é£Ž' : `è¯­éŸ³è¯†åˆ«å¤±è´¥ï¼š${event.error}`;
+      const message = event.error === 'not-allowed' ? 'ä¯ÀÀÆ÷¾Ü¾ø·ÃÎÊÂó¿Ë·ç' : `ÓïÒôÊ¶±ðÊ§°Ü£º${event.error}`;
+      manualStopRef.current = true;
       setError(message);
       setStatus('error');
       recognitionRef.current = null;
@@ -87,23 +97,16 @@ export function useSpeechToText({
     };
 
     recognition.onstart = () => {
+      manualStopRef.current = false;
+      transcriptRef.current = '';
       setError(null);
       setStatus('recording');
-      if (silenceTimerRef.current) {
-        window.clearTimeout(silenceTimerRef.current);
-      }
-      silenceTimerRef.current = window.setTimeout(() => {
-        recognitionRef.current?.stop();
-      }, SILENCE_TIMEOUT_MS);
     };
 
     recognition.onend = () => {
       recognitionRef.current = null;
       setStatus(prev => (prev === 'unsupported' ? prev : 'idle'));
-      if (silenceTimerRef.current) {
-        window.clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = null;
-      }
+      manualStopRef.current = false;
     };
 
     return recognition;
@@ -124,14 +127,12 @@ export function useSpeechToText({
         return;
       }
 
+      transcriptRef.current = '';
       recognitionRef.current = recognition;
       recognition.start();
-      if (silenceTimerRef.current) {
-        window.clearTimeout(silenceTimerRef.current);
-        silenceTimerRef.current = null;
-      }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'å¯åŠ¨è¯­éŸ³è¯†åˆ«å¤±è´¥';
+      const message = err instanceof Error ? err.message : 'Æô¶¯ÓïÒôÊ¶±ðÊ§°Ü';
+      manualStopRef.current = true;
       setError(message);
       setStatus('error');
       recognitionRef.current = null;
@@ -140,13 +141,11 @@ export function useSpeechToText({
   }, [createRecognition, onError, status]);
 
   const stop = useCallback(() => {
-    if (status !== 'recording') return;
+    manualStopRef.current = true;
     recognitionRef.current?.stop();
-    if (silenceTimerRef.current) {
-      window.clearTimeout(silenceTimerRef.current);
-      silenceTimerRef.current = null;
-    }
-  }, [status]);
+    recognitionRef.current = null;
+    transcriptRef.current = '';
+  }, []);
 
   return {
     status,
@@ -156,3 +155,4 @@ export function useSpeechToText({
     stop,
   };
 }
+

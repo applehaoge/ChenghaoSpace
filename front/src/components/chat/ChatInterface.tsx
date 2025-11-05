@@ -5,6 +5,8 @@ import { AttachmentBadge, useFileUploader } from '@/components/attachments';
 import type { ChatBubble, UploadedAttachment } from '@/pages/home/types';
 import { ChatMessage } from '@/components/chat/ChatMessage';
 import { useConversationController } from '@/components/chat/useConversationController';
+import { useSpeechToText } from '@/hooks/useSpeechToText';
+import { VoiceInputButton } from '@/components/home/VoiceInputButton';
 
 export type ChatInterfaceProps = {
   conversationId: string;
@@ -171,6 +173,25 @@ export function ChatInterface({
     chatHasUploading ||
     chatAttachments.some(item => item.status === 'error');
 
+  const {
+    status: speechStatus,
+    start: startSpeech,
+    stop: stopSpeech,
+    isSupported: isSpeechSupported,
+  } = useSpeechToText({
+    onResult: transcript => {
+      setComposerValue(prev => {
+        if (!prev) return transcript;
+        const needsSpace = /\S$/.test(prev);
+        return `${prev}${needsSpace ? ' ' : ''}${transcript}`;
+      });
+      toast.success('语音识别完成，已填入输入框');
+    },
+    onError: message => {
+      toast.error(message);
+    },
+  });
+
   const contentStyle = {
     width: '100%',
     maxWidth: '92vw',
@@ -256,10 +277,13 @@ export function ChatInterface({
 
       <div className="border-t border-gray-100 bg-white px-5 py-5">
         <div className="w-full" style={contentStyle}>
-          <div className="flex gap-2.5 mb-3">
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <i className="fas fa-microphone text-gray-500"></i>
-            </button>
+          <div className="flex items-center gap-3 mb-3">
+            <VoiceInputButton
+              status={speechStatus}
+              onStart={startSpeech}
+              onStop={stopSpeech}
+              disabled={!isSpeechSupported || chatHasUploading}
+            />
             <button
               className="p-2 rounded-full hover:bg-gray-100 transition-colors"
               onClick={openChatFileDialog}
@@ -269,6 +293,12 @@ export function ChatInterface({
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <i className="fas fa-smile text-gray-500"></i>
             </button>
+            {speechStatus === 'recording' ? (
+              <span className="flex items-center gap-1 text-xs font-medium text-red-500">
+                <span className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse"></span>
+                正在录音...
+              </span>
+            ) : null}
           </div>
 
           {chatAttachments.length > 0 && (
