@@ -374,26 +374,26 @@ export function MainContent({
 
   return (
     <main className="flex min-h-full h-full flex-1 min-w-0 flex-col border-l border-gray-100 bg-white overflow-y-auto home-main-scroll">
-      <header className="flex items-center justify-between px-6 pt-8 pb-6 sm:px-8 sm:pt-9 sm:pb-6 lg:px-12 lg:pt-11 lg:pb-8 2xl:px-16 2xl:pt-12">
+      <header className="flex items-center justify-between px-6 pt-8 pb-6 sm:px-8 sm:pt-9 sm:pb-6 lg:px-12 lg:pt-10 lg:pb-7 2xl:px-16 2xl:pt-11">
         <h1 className="text-2xl font-bold text-gray-800">
           <span className="text-blue-500">智能助手</span>，一键生成
         </h1>
         <div className="hidden md:block">
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-sm text-blue-700">
+          <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-sm text-blue-600 shadow-sm">
             <i className="fas fa-lightbulb"></i>
             <span>今日灵感：{inspiration}</span>
           </div>
         </div>
       </header>
 
-      <div className="mb-8 flex flex-wrap justify-center gap-3 px-4 sm:px-6 lg:px-12 2xl:px-16">
-        <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-4 py-2 text-sm text-blue-700">
+      <div className="mb-6 flex flex-wrap justify-center gap-3 px-4 sm:px-6 lg:px-12 2xl:px-16">
+        <div className="inline-flex items-center gap-2 rounded-full border border-blue-100 bg-white px-4 py-2 text-sm text-blue-600 shadow-sm">
           <i className="fas fa-robot"></i>
           <span>基础 AI 问答功能随时支持你的学习</span>
         </div>
         <button
           type="button"
-          className="inline-flex items-center rounded-full border border-blue-400 bg-gradient-to-r from-blue-400 to-indigo-400 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:shadow-md"
+          className="inline-flex items-center rounded-full bg-blue-500 px-4 py-2 text-sm font-medium text-white shadow-sm transition-all duration-300 hover:bg-blue-600"
           onClick={handleOpenKidsCoding}
         >
           <i className="fas fa-code mr-2"></i>

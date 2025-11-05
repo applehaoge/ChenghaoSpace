@@ -29,47 +29,50 @@ export function Sidebar({
   };
 
   return (
-    <aside className="w-full h-full flex flex-col bg-white border-r border-gray-100 shadow-sm overflow-hidden pt-4 sm:pt-6">
-      <div className="flex justify-between items-center p-[15px_20px] bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl">
+    <aside className="flex h-full w-full flex-col overflow-hidden border-r border-gray-100 bg-white pt-4 sm:pt-6">
+      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-blue-500 font-bold text-lg">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-sm font-semibold text-blue-500">
             橙
           </div>
-          <span className="text-xl font-bold">橙浩空间</span>
-          <span className="text-xs bg-white/30 px-1.5 py-0.5 rounded">BETA</span>
-        </div>
-        <div className="relative">
-          <div
-            className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center text-blue-500 cursor-pointer"
-            onClick={handleNotificationClick}
-          >
-            <i className="fas fa-paper-plane"></i>
+          <div className="flex flex-col leading-tight">
+            <span className="text-base font-semibold text-gray-800">橙浩空间</span>
+            <span className="text-xs text-gray-400">AI 学习助手</span>
           </div>
-          <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-500">BETA</span>
         </div>
+        <button
+          type="button"
+          className="relative flex h-9 w-9 items-center justify-center rounded-full border border-blue-100 text-blue-500 transition-colors hover:bg-blue-50"
+          onClick={handleNotificationClick}
+          aria-label="查看通知"
+        >
+          <i className="fas fa-paper-plane"></i>
+          <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-red-500"></span>
+        </button>
       </div>
 
       <button
-        className="w-[calc(100%-40px)] h-11 mx-[20px] my-5 bg-gradient-to-r from-blue-400 to-indigo-400 text-white rounded-xl border-none text-sm font-medium flex items-center justify-center gap-1 shadow-sm hover:shadow-md transition-shadow"
+        className="mx-5 my-5 flex h-11 items-center justify-center gap-2 rounded-xl border border-blue-100 bg-blue-500/90 text-sm font-medium text-white transition-all hover:bg-blue-500"
         onClick={onCreateNewTask}
       >
         <i className="fas fa-plus-circle"></i>
         <span>开启新聊天</span>
-        <span className="text-xs bg-white/30 px-1.5 py-0.5 rounded">Ctrl</span>
+        <span className="rounded bg-white/20 px-1.5 py-0.5 text-xs">Ctrl</span>
       </button>
 
-      <div className="p-[0_20px_10px] text-xs text-gray-500">聊天</div>
-      <div className="p-[0_20px] flex-1 min-h-0 overflow-y-auto pr-1 custom-scrollbar">
+      <div className="px-5 pb-3 text-xs font-medium uppercase tracking-widest text-gray-400">聊天</div>
+      <div className="custom-scrollbar flex-1 min-h-0 overflow-y-auto px-5 pb-4">
         <ul className="list-none">
           {tasks.map((task, index) => (
             <li
               key={task.id}
-              className={`flex items-center gap-2.5 p-3 rounded-md cursor-pointer transition-colors ${
-                index === tasks.length - 1 ? 'mb-0' : 'mb-2'
+              className={`mb-2 flex cursor-pointer items-center gap-2.5 rounded-lg border bg-white p-3 transition-colors ${
+                index === tasks.length - 1 ? 'mb-0' : ''
               } ${
                 activeTaskId === task.id
-                  ? 'bg-blue-50 border border-blue-200 text-blue-600'
-                  : 'bg-gray-100 hover:bg-gray-200'
+                  ? 'border-blue-200 bg-blue-50 text-blue-700'
+                  : 'border-transparent hover:border-gray-200 hover:bg-gray-50'
               }`}
               onClick={() => onSelectTask?.(task.id)}
             >
@@ -79,16 +82,12 @@ export function Sidebar({
                 <i className={`fas fa-${task.icon} text-${task.color}`}></i>
               )}
               <div className="flex flex-col flex-1 min-w-0">
-                <span
-                  className={`text-sm truncate ${
-                    activeTaskId === task.id ? 'text-blue-700 font-medium' : 'text-gray-800'
-                  }`}
-                >
+                <span className={`truncate text-sm ${activeTaskId === task.id ? 'font-medium text-blue-700' : 'text-gray-800'}`}>
                   {task.name}
                 </span>
                 {task.lastMessagePreview ? (
                   <span
-                    className={`text-xs truncate ${
+                    className={`truncate text-xs ${
                       activeTaskId === task.id ? 'text-blue-500' : 'text-gray-500'
                     }`}
                   >
@@ -98,7 +97,7 @@ export function Sidebar({
               </div>
               <button
                 type="button"
-                className="ml-2 text-gray-400 hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400 rounded"
+                className="ml-2 rounded text-gray-300 transition-colors hover:text-red-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                 aria-label="删除聊天"
                 onClick={event => {
                   event.stopPropagation();
