@@ -29,21 +29,20 @@ export function Sidebar({
   };
 
   return (
-    <aside className="flex h-full w-full flex-col overflow-hidden border-r border-gray-100 bg-white pt-4 sm:pt-6">
-      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-50 text-sm font-semibold text-blue-500">
+    <aside className="flex h-full w-full flex-col overflow-hidden border-r border-gray-100 bg-white pt-1 sm:pt-2">
+      <div className="flex items-center justify-between border-b border-gray-100 px-5 py-3">
+        <div className="flex items-center gap-4">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-base font-semibold text-blue-500">
             橙
           </div>
-          <div className="flex flex-col leading-tight">
-            <span className="text-base font-semibold text-gray-800">橙浩空间</span>
+          <div className="flex flex-col justify-center gap-1 leading-tight">
+            <span className="text-2xl font-semibold text-gray-900 tracking-wide">橙浩空间</span>
             <span className="text-xs text-gray-400">AI 学习助手</span>
           </div>
-          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-500">BETA</span>
         </div>
         <button
           type="button"
-          className="relative flex h-9 w-9 items-center justify-center rounded-full border border-blue-100 text-blue-500 transition-colors hover:bg-blue-50"
+          className="relative flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-colors hover:bg-blue-600"
           onClick={handleNotificationClick}
           aria-label="查看通知"
         >
