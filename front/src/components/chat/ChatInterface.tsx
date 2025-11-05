@@ -217,8 +217,8 @@ export function ChatInterface({
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <i className="fas fa-file-export text-gray-500"></i>
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <i className="fas fa-ellipsis text-gray-500"></i>
+            <button className="group flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 hover:border-rose-200 hover:shadow-md active:translate-y-px">
+              <i className="fas fa-ellipsis text-lg bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent transition-all group-hover:from-orange-400 group-hover:via-pink-500 group-hover:to-rose-500"></i>
             </button>
           </div>
         </div>
@@ -285,13 +285,13 @@ export function ChatInterface({
               disabled={!isSpeechSupported || chatHasUploading}
             />
             <button
-              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+              className="group flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 hover:border-rose-200 hover:shadow-md active:translate-y-px"
               onClick={openChatFileDialog}
             >
-              <i className="fas fa-paperclip text-gray-500"></i>
+              <i className="fas fa-paperclip text-lg bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent transition-all group-hover:from-orange-400 group-hover:via-pink-500 group-hover:to-rose-500"></i>
             </button>
-            <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
-              <i className="fas fa-smile text-gray-500"></i>
+            <button className="group flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 hover:border-rose-200 hover:shadow-md active:translate-y-px">
+              <i className="fas fa-smile text-lg bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent transition-all group-hover:from-orange-400 group-hover:via-pink-500 group-hover:to-rose-500"></i>
             </button>
             {speechStatus === 'recording' ? (
               <span className="flex items-center gap-1 text-xs font-medium text-red-500">
@@ -322,7 +322,7 @@ export function ChatInterface({
               style={{ minHeight: 56, maxHeight: 220 }}
             />
             <button
-              className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 text-white flex items-center justify-center hover:shadow-md transition-all disabled:opacity-50"
+              className="flex h-11 w-11 items-center justify-center rounded-xl bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 text-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 hover:from-orange-400 hover:via-pink-500 hover:to-rose-500 hover:shadow-lg hover:brightness-110 hover:scale-105 active:translate-y-px disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleSendMessage}
               disabled={disableSend}
             >

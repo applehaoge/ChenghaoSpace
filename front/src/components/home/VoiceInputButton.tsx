@@ -18,6 +18,26 @@ export function VoiceInputButton({
   const isSupported = status !== 'unsupported';
   const isDisabled = disabled || !isSupported;
 
+  const baseClasses =
+    'group relative flex h-10 w-10 items-center justify-center rounded-2xl bg-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 active:translate-y-px';
+  const interactiveIdleClasses =
+    'border border-blue-100 shadow-sm hover:border-rose-200 hover:shadow-md';
+  const disabledIdleClasses =
+    'border border-gray-200 shadow-none cursor-not-allowed opacity-60';
+  const recordingClasses = 'border border-rose-300 shadow-md focus:ring-rose-200';
+
+  const iconBaseClasses = `fas ${isRecording ? 'fa-microphone' : 'fa-microphone-alt'} text-lg transition-all`;
+  const idleIconClasses =
+    'bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent group-hover:from-orange-400 group-hover:via-pink-500 group-hover:to-rose-500';
+  const recordingIconClasses =
+    'bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 bg-clip-text text-transparent';
+  const disabledIconClasses = 'text-gray-300';
+  const iconClasses = isRecording
+    ? recordingIconClasses
+    : isDisabled
+      ? disabledIconClasses
+      : idleIconClasses;
+
   const handleClick = () => {
     if (isDisabled) return;
     if (isRecording) {
@@ -36,9 +56,9 @@ export function VoiceInputButton({
   return (
     <button
       type="button"
-      className={`relative flex h-10 w-10 items-center justify-center rounded-lg border border-blue-200 transition-colors ${
-        isRecording ? 'bg-red-100 text-red-600 border-red-300' : 'text-blue-500 hover:bg-blue-50'
-      } ${isDisabled ? 'cursor-not-allowed opacity-60 hover:bg-transparent' : ''}`}
+      className={`${baseClasses} ${
+        isRecording ? recordingClasses : isDisabled ? disabledIdleClasses : interactiveIdleClasses
+      }`}
       onClick={handleClick}
       disabled={isDisabled}
       aria-label={label}
@@ -46,7 +66,7 @@ export function VoiceInputButton({
       title={label}
       {...rest}
     >
-      <i className={`fas fa-microphone${isRecording ? '' : '-alt'} text-lg`}></i>
+      <i className={`${iconBaseClasses} ${iconClasses}`}></i>
       {isRecording ? (
         <>
           <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>

@@ -310,19 +310,19 @@ export function MainContent({
             <div className="flex items-center gap-3">
               <button
                 type="button"
-                className="rounded p-1.5 transition-colors hover:bg-gray-100"
+                className="group flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 hover:border-rose-200 hover:shadow-md active:translate-y-px"
                 onClick={handleFileUpload}
                 aria-label="上传附件"
               >
-                <i className="fas fa-paperclip text-gray-500"></i>
+                <i className="fas fa-paperclip text-lg bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent transition-all group-hover:from-orange-400 group-hover:via-pink-500 group-hover:to-rose-500"></i>
               </button>
               <button
                 type="button"
-                className="rounded p-1.5 transition-colors hover:bg-gray-100"
+                className="group flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-100 bg-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 hover:border-rose-200 hover:shadow-md active:translate-y-px"
                 onClick={handleFormatSettings}
                 aria-label="格式设置"
               >
-                <i className="fas fa-font text-gray-500"></i>
+                <i className="fas fa-font text-lg bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 bg-clip-text text-transparent transition-all group-hover:from-orange-400 group-hover:via-pink-500 group-hover:to-rose-500"></i>
               </button>
               <VoiceInputButton
                 status={speechStatus}
@@ -348,7 +348,7 @@ export function MainContent({
               </button>
               <button
                 type="button"
-                className="flex h-11 w-11 items-center justify-center rounded-lg border-none bg-gradient-to-r from-blue-400 to-indigo-400 text-white transition-all hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-60"
+                className="flex h-11 w-11 items-center justify-center rounded-xl border-none bg-gradient-to-r from-blue-500 via-indigo-500 to-indigo-600 text-white transition-all focus:outline-none focus:ring-2 focus:ring-blue-200 hover:from-orange-400 hover:via-pink-500 hover:to-rose-500 hover:shadow-lg hover:brightness-110 hover:scale-105 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={handleSend}
                 disabled={disableHomeSend}
                 aria-label="发送"
