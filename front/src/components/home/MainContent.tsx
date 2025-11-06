@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { KeyboardEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { aiService } from '@/api/aiService';
 import { AttachmentBadge, useFileUploader } from '@/components/attachments';
@@ -41,6 +42,7 @@ export function MainContent({
   });
   const [hasCheckedInToday, setHasCheckedInToday] = useState(false);
   const homeTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const navigate = useNavigate();
   const {
     attachments: homeAttachments,
     hasUploading: homeHasUploading,
@@ -183,11 +185,11 @@ export function MainContent({
   };
 
   const handleOpenKidsCoding = () => {
-    if (!KIDS_CODING_URL) {
-      toast.info('少儿编程课堂链接即将上线');
+    if (KIDS_CODING_URL) {
+      window.open(KIDS_CODING_URL, '_blank', 'noopener,noreferrer');
       return;
     }
-    window.open(KIDS_CODING_URL, '_blank', 'noopener,noreferrer');
+    navigate('/kids-coding');
   };
 
   const today = new Date();

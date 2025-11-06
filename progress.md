@@ -1,4 +1,9 @@
-﻿# 椤圭洰杩涘害璁板綍锛圥ROGRESS.md锟?
+﻿# 项目进度记录（PROGRESS.md）
+
+- **2025-11-06 少儿编程主页迁移**
+  - 迁入 kidsCoding Hero/Features/课程/家长/价格/打卡组件，并封装上下文与主题 Hook
+  - 新增编程学堂 `/kids-coding/editor` 页面（含编程助手模态、AI 对话、全屏演示），导航入口联动
+  - Checks: pnpm --dir front build:client
 
 - **2025-11-05 缁勪欢閲嶆瀯涓庡伐浣滃尯鏁寸悊**
   - 鎻愮偧姣忔棩鎵撳崱/杩愬娍鍖哄煙涓虹嫭绔?DailyProgressPanel 缁勪欢锛孧ainContent 浠呬繚鐣欐暟鎹祦
@@ -173,3 +178,4 @@ sHelpers锟?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
 
 
 
+  - Checks: pnpm --dir front build:client
