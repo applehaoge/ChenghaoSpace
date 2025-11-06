@@ -275,55 +275,7 @@ export function KidsCodingEditorPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
-      <header className="border-b border-slate-200 bg-white/80 backdrop-blur dark:border-slate-800 dark:bg-slate-900/80">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-700 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200"
-              aria-label="切换主题"
-            >
-              <i className={`fa-solid ${theme === 'light' ? 'fa-moon' : 'fa-sun'}`} />
-            </button>
-            <div>
-              <p className="text-xs uppercase text-blue-500">课程进度</p>
-              <h1 className="text-xl font-semibold">{MISSION_CONTENT.title}</h1>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="hidden items-center gap-2 rounded-full border border-slate-200 px-3 py-1 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-300 md:flex">
-              <i className="fa-solid fa-flag-checkered text-blue-500" />
-              <span>第 1 / 60 节</span>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowAssistantModal(true)}
-              className="hidden items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 md:flex"
-            >
-              <i className="fa-solid fa-compass" />
-              教学资料
-            </button>
-            {userInfo ? (
-              <div className="flex items-center gap-3 rounded-full border border-slate-200 px-3 py-1.5 dark:border-slate-700">
-                <img src={userInfo.avatar} alt={userInfo.name} className="h-10 w-10 rounded-full object-cover" />
-                <div>
-                  <p className="text-sm font-medium">{userInfo.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{userInfo.email}</p>
-                </div>
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="rounded-lg bg-slate-100 px-3 py-1 text-xs text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
-                >
-                  退出
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </header>
+      
 
       <main className="flex flex-1 flex-col py-6">
         <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4">
@@ -462,7 +414,7 @@ export function KidsCodingEditorPage() {
                         className="rounded-xl border border-blue-200 px-4 py-2 text-sm text-blue-600 transition hover:bg-blue-50 dark:border-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/20"
                       >
                         <i className="fa-solid fa-robot me-2" />
-                        AI 助手
+                        编程助手
                       </button>
                     </div>
                   </div>
