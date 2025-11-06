@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { KidsCodingProvider } from '@/features/kidsCoding/providers/KidsCodingProvider';
 import { HeroSection } from '@/features/kidsCoding/components/HeroSection';
 import { FeaturesSection } from '@/features/kidsCoding/components/FeaturesSection';
 import { LearningContent } from '@/features/kidsCoding/components/LearningContent';
@@ -9,62 +10,18 @@ import { DailyCheckin } from '@/features/kidsCoding/components/DailyCheckin';
 import { Footer } from '@/features/kidsCoding/components/Footer';
 import { Navbar } from '@/features/kidsCoding/components/Navbar';
 import { AuthModal } from '@/features/kidsCoding/components/AuthModal';
-import {
-  KidsCodingAuthContext,
-  type KidsCodingAuthContextValue,
-  type KidsCodingUserInfo,
-} from '@/features/kidsCoding/contexts/authContext';
-
-const STORAGE_KEY = 'kidsCoding.userInfo';
 
 export function KidsCodingPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userInfo, setUserInfo] = useState<KidsCodingUserInfo | null>(null);
+  return (
+    <KidsCodingProvider>
+      <KidsCodingLanding />
+    </KidsCodingProvider>
+  );
+}
+
+function KidsCodingLanding() {
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('register');
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved) as KidsCodingUserInfo;
-        setUserInfo(parsed);
-        setIsAuthenticated(true);
-      }
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    try {
-      if (userInfo) {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(userInfo));
-      } else {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch {
-      // ignore
-    }
-  }, [userInfo]);
-
-  const logout = () => {
-    setIsAuthenticated(false);
-    setUserInfo(null);
-  };
-
-  const contextValue = useMemo<KidsCodingAuthContextValue>(
-    () => ({
-      isAuthenticated,
-      userInfo,
-      setIsAuthenticated,
-      setUserInfo,
-      logout,
-    }),
-    [isAuthenticated, userInfo],
-  );
 
   const handleOpenAuthModal = (mode: 'login' | 'register') => {
     setAuthMode(mode);
@@ -72,7 +29,7 @@ export function KidsCodingPage() {
   };
 
   return (
-    <KidsCodingAuthContext.Provider value={contextValue}>
+    <>
       <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
         <Navbar onOpenAuthModal={handleOpenAuthModal} />
         <main>
@@ -86,7 +43,7 @@ export function KidsCodingPage() {
         <Footer onOpenAuthModal={handleOpenAuthModal} />
         <div className="border-t border-slate-200/70 bg-white py-4 text-center text-xs text-slate-500 dark:border-slate-800 dark:bg-slate-900/80">
           <p>
-            <span className="font-medium">橙浩编程</span> · 专注少儿编程的企业级体验页
+            <span className="font-medium">橙浩编程</span> · 专注少儿编程的体验页
           </p>
           <p className="mt-1">
             <Link to="/" className="text-blue-600 hover:text-blue-500 dark:text-blue-400">
@@ -96,8 +53,12 @@ export function KidsCodingPage() {
         </div>
       </div>
       {showAuthModal ? (
-        <AuthModal mode={authMode} onClose={() => setShowAuthModal(false)} onToggleMode={() => setAuthMode(prev => (prev === 'login' ? 'register' : 'login'))} />
+        <AuthModal
+          mode={authMode}
+          onClose={() => setShowAuthModal(false)}
+          onToggleMode={() => setAuthMode(prev => (prev === 'login' ? 'register' : 'login'))}
+        />
       ) : null}
-    </KidsCodingAuthContext.Provider>
+    </>
   );
 }

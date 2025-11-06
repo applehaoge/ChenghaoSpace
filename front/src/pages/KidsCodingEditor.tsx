@@ -1,6 +1,9 @@
-import { KidsCodingEditorPage } from '@/features/kidsCoding';
+import { KidsCodingEditorPage, KidsCodingProvider } from '@/features/kidsCoding';
 
 export default function KidsCodingEditor() {
-  return <KidsCodingEditorPage />;
+  return (
+    <KidsCodingProvider>
+      <KidsCodingEditorPage />
+    </KidsCodingProvider>
+  );
 }
-

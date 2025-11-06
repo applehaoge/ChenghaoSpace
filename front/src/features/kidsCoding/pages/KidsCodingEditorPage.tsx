@@ -127,6 +127,16 @@ export function KidsCodingEditorPage() {
     setIsRightPanelOpen(next === 'result');
   };
 
+  const toggleLeftPanel = () => {
+    if (screenWidth < 768) return;
+    setIsLeftPanelOpen(prev => !prev);
+  };
+
+  const toggleRightPanel = () => {
+    if (screenWidth < 768) return;
+    setIsRightPanelOpen(prev => !prev);
+  };
+
   const handleRunCode = () => {
     setIsRunning(true);
     setTimeout(() => {
@@ -178,8 +188,8 @@ export function KidsCodingEditorPage() {
     setActiveTab('ai');
   };
 
-  const shouldRenderLeft = screenWidth >= 1024 || isLeftPanelOpen;
-  const shouldRenderRight = screenWidth >= 1024 || isRightPanelOpen;
+  const shouldRenderLeft = isLeftPanelOpen;
+  const shouldRenderRight = isRightPanelOpen;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
@@ -238,7 +248,20 @@ export function KidsCodingEditorPage() {
           </div>
         ) : null}
 
-        <div className="flex flex-1 gap-4">
+        <div className="flex flex-1 items-start gap-4">
+          {screenWidth >= 768 && !shouldRenderLeft ? (
+            <motion.button
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -12 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleLeftPanel}
+              className="hidden h-10 w-10 items-center justify-center rounded-r-lg border border-slate-200 bg-white shadow-md transition dark:border-slate-700 dark:bg-slate-900 md:flex"
+            >
+              <i className="fa-solid fa-chevron-right text-slate-500 dark:text-slate-300" />
+            </motion.button>
+          ) : null}
           <AnimatePresence>
             {shouldRenderLeft ? (
               <motion.aside
@@ -254,10 +277,10 @@ export function KidsCodingEditorPage() {
                     <p className="text-xs uppercase text-blue-500">任务进度</p>
                     <h2 className="mt-1 text-lg font-semibold">{MOCK_MISSION.title}</h2>
                   </div>
-                  {screenWidth >= 1024 ? (
+                  {screenWidth >= 768 ? (
                     <button
                       type="button"
-                      onClick={() => setIsLeftPanelOpen(false)}
+                      onClick={toggleLeftPanel}
                       className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
                     >
                       <i className="fa-solid fa-chevron-left" />
@@ -381,10 +404,10 @@ export function KidsCodingEditorPage() {
                       </button>
                     ))}
                   </div>
-                  {screenWidth >= 1024 ? (
+                  {screenWidth >= 768 ? (
                     <button
                       type="button"
-                      onClick={() => setIsRightPanelOpen(false)}
+                      onClick={toggleRightPanel}
                       className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
                     >
                       <i className="fa-solid fa-chevron-right" />
@@ -460,6 +483,19 @@ export function KidsCodingEditorPage() {
               </motion.aside>
             ) : null}
           </AnimatePresence>
+          {screenWidth >= 768 && !shouldRenderRight ? (
+            <motion.button
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleRightPanel}
+              className="hidden h-10 w-10 items-center justify-center rounded-l-lg border border-slate-200 bg-white shadow-md transition dark:border-slate-700 dark:bg-slate-900 md:flex"
+            >
+              <i className="fa-solid fa-chevron-left text-slate-500 dark:text-slate-300" />
+            </motion.button>
+          ) : null}
         </div>
       </div>
 
@@ -467,4 +503,3 @@ export function KidsCodingEditorPage() {
     </div>
   );
 }
-

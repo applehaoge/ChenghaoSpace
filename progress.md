@@ -3,6 +3,8 @@
 - **2025-11-06 少儿编程主页迁移**
   - 迁入 kidsCoding Hero/Features/课程/家长/价格/打卡组件，并封装上下文与主题 Hook
   - 新增编程学堂 `/kids-coding/editor` 页面（含编程助手模态、AI 对话、全屏演示），导航入口联动
+  - 抽离 `KidsCodingProvider` 共享认证状态，确保主页与学堂的登录信息一致
+  - 恢复编程学堂左右侧边栏的折叠/展开操作，与原项目交互一致
   - Checks: pnpm --dir front build:client
 
 - **2025-11-05 缁勪欢閲嶆瀯涓庡伐浣滃尯鏁寸悊**
