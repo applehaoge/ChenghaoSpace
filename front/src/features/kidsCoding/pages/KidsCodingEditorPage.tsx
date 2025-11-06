@@ -74,8 +74,7 @@ const MISSION_CONTENT = {
 };
 
 type MobileSection = 'mission' | 'code' | 'results';
-type ResultLayout = 'stack' | 'split';
-type ResultFocus = 'visualization' | 'console';
+type ResultFocus = 'visualization' | 'ai';
 
 const getInitialWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1280);
 
@@ -87,12 +86,11 @@ export function KidsCodingEditorPage() {
   const [screenWidth, setScreenWidth] = useState(getInitialWidth);
   const [mobileSection, setMobileSection] = useState<MobileSection>('code');
   const [activeMobileResult, setActiveMobileResult] = useState<ResultFocus>('visualization');
-  const [resultLayout, setResultLayout] = useState<ResultLayout>('stack');
   const [aiMessages, setAiMessages] = useState<AiChatMessage[]>(() => [...INITIAL_CHAT]);
   const [aiInput, setAiInput] = useState('');
   const [isRunning, setIsRunning] = useState(false);
+  const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [showAssistantModal, setShowAssistantModal] = useState(false);
-  const [showAiPanel, setShowAiPanel] = useState(() => getInitialWidth() >= 1280);
 
   const showFullLayout = screenWidth >= 1280;
   const isLaptop = screenWidth >= 1024;
@@ -106,7 +104,7 @@ export function KidsCodingEditorPage() {
 
   useEffect(() => {
     if (!isLaptop) {
-      setShowAiPanel(false);
+      setIsConsoleOpen(false);
     }
   }, [isLaptop]);
 
@@ -119,7 +117,9 @@ export function KidsCodingEditorPage() {
       toast.success('运行成功，AI 助手状态已更新');
       if (!showFullLayout) {
         setMobileSection('results');
+        setActiveMobileResult('visualization');
       }
+      setIsConsoleOpen(true);
       if (consoleRef.current) {
         consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
       }
@@ -137,9 +137,6 @@ export function KidsCodingEditorPage() {
     const userMessage: AiChatMessage = { id: now, text: trimmed, isAI: false };
     setAiMessages(prev => [...prev, userMessage]);
     setAiInput('');
-    if (!showAiPanel) {
-      setShowAiPanel(true);
-    }
     setTimeout(() => {
       setAiMessages(prev => [
         ...prev,
@@ -155,6 +152,126 @@ export function KidsCodingEditorPage() {
   const missionVisible = showFullLayout || mobileSection === 'mission';
   const codeVisible = showFullLayout || mobileSection === 'code';
   const resultVisible = showFullLayout || mobileSection === 'results';
+
+  const renderConsoleOverlay = () => (
+    <AnimatePresence initial={false}>
+      {isConsoleOpen ? (
+        <motion.div
+          key="console-overlay"
+          initial={{ height: 0, opacity: 0 }}
+          animate={{ height: 'auto', opacity: 1 }}
+          exit={{ height: 0, opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          className="pointer-events-auto absolute inset-x-0 bottom-0 overflow-hidden border-t border-slate-800 bg-slate-950/95"
+        >
+          <div className="flex items-center justify-between px-5 py-3 text-xs text-slate-300">
+            <div className="flex items-center gap-2">
+              <i className="fa-solid fa-terminal text-emerald-400" />
+              <span>控制台输出</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setIsConsoleOpen(false)}
+              className="rounded-lg px-3 py-1 transition hover:bg-white/10"
+            >
+              收起
+            </button>
+          </div>
+          <div ref={consoleRef} className="max-h-60 overflow-auto px-5 pb-5 text-[12px] text-green-200">
+            <pre>{CONSOLE_SAMPLE}</pre>
+          </div>
+        </motion.div>
+      ) : null}
+    </AnimatePresence>
+  );
+
+  const renderVisualization = () => (
+    <div className="overflow-hidden rounded-2xl bg-slate-950/90 p-5 text-white shadow-inner">
+      <div className="flex items-center justify-between text-sm text-slate-300">
+        <span>
+          <i className="fa-solid fa-cubes me-2 text-blue-400" />
+          可视化演示
+        </span>
+        <button
+          type="button"
+          onClick={() => toast.info('全屏演示模式即将上线')}
+          className="rounded-lg px-3 py-1 text-xs text-slate-300 transition hover:bg-white/10"
+        >
+          <i className="fa-solid fa-up-right-and-down-left-from-center me-1" />
+          全屏
+        </button>
+      </div>
+      <div className="mt-6 flex h-full min-h-[220px] flex-col items-center justify-center gap-6">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-500 text-3xl font-bold shadow-lg shadow-blue-700/40">
+          AI
+        </div>
+        <p className="max-w-xs text-center text-sm text-blue-100">
+          小智正在依次执行问候、学习、工作、休息技能，运行时动画和状态条会同步刷新。
+        </p>
+        <div className="flex w-full max-w-xs justify-center gap-3 text-xs text-slate-200">
+          <span>
+            <i className="fa-solid fa-bolt me-1 text-amber-300" />
+            能量 90%
+          </span>
+          <span>
+            <i className="fa-solid fa-brain me-1 text-emerald-300" />
+            知识 35%
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const renderAiAssistant = () => (
+    <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner dark:border-slate-800 dark:bg-slate-900">
+      <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800">
+        <div className="flex items-center gap-2">
+          <i className="fa-solid fa-robot text-blue-500" />
+          <span className="font-medium text-slate-800 dark:text-slate-100">AI 编程助手</span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowAssistantModal(true)}
+          className="rounded-lg px-3 py-1 text-xs text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+        >
+          查看教学资料
+        </button>
+      </div>
+      <div className="flex-1 space-y-3 overflow-auto px-4 py-4 text-sm">
+        {aiMessages.map(message => (
+          <div key={message.id} className={clsx('flex', message.isAI ? 'justify-start' : 'justify-end')}>
+            <div
+              className={clsx(
+                'max-w-[80%] rounded-2xl px-3 py-2',
+                message.isAI
+                  ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                  : 'bg-blue-600 text-white',
+              )}
+            >
+              {message.text}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-800">
+        <div className="flex gap-2">
+          <input
+            value={aiInput}
+            onChange={event => setAiInput(event.target.value)}
+            placeholder="向 AI 助手提问：例如“帮我优化能量恢复逻辑”"
+            className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
+          />
+          <button
+            type="button"
+            onClick={handleSendAiMessage}
+            className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+          >
+            发送
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
@@ -365,37 +482,47 @@ export function KidsCodingEditorPage() {
                   </div>
                 </div>
                 <div className="flex flex-1 flex-col">
-                  <div className="flex-1 overflow-hidden bg-slate-950/95">
-                    <pre className="h-full overflow-auto p-6 text-[13px] leading-relaxed text-green-200">{CODE_SAMPLE}</pre>
+                  <div className="relative flex-1 overflow-hidden bg-slate-950/95">
+                    <pre className="h-full overflow-auto p-6 pb-36 text-[13px] leading-relaxed text-green-200">{CODE_SAMPLE}</pre>
+                    {renderConsoleOverlay()}
                   </div>
-                  <div className="flex items-center justify-between border-t border-slate-200 px-5 py-4 dark:border-slate-800">
-                    <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
-                      <span>
-                        <i className="fa-solid fa-shield-halved me-1 text-emerald-500" />
-                        已通过 2 项安全检查
-                      </span>
-                      <span>
-                        <i className="fa-solid fa-sparkles me-1 text-amber-400" />
-                        使用注释记录调试要点
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleReset}
-                        className="rounded-xl px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                      >
-                        重置
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleRunCode}
-                        className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
-                        disabled={isRunning}
-                      >
-                        <i className="fa-solid fa-play" />
-                        {isRunning ? '运行中…' : '运行代码'}
-                      </button>
+                  <div className="border-t border-slate-200 dark:border-slate-800">
+                    <div className="flex flex-col gap-3 px-5 py-4 text-xs text-slate-500 dark:text-slate-400 lg:flex-row lg:items-center lg:justify-between">
+                      <div className="flex flex-wrap items-center gap-4">
+                        <span>
+                          <i className="fa-solid fa-shield-halved me-1 text-emerald-500" />
+                          已通过 2 项安全检查
+                        </span>
+                        <span>
+                          <i className="fa-solid fa-sparkles me-1 text-amber-400" />
+                          使用注释记录调试要点
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setIsConsoleOpen(previous => !previous)}
+                          className="rounded-xl px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                          {isConsoleOpen ? '收起控制台' : '查看控制台'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleReset}
+                          className="rounded-xl px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                        >
+                          重置
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleRunCode}
+                          className="flex items-center gap-2 rounded-xl bg-blue-600 px-5 py-2 text-sm font-medium text-white shadow-lg shadow-blue-500/30 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                          disabled={isRunning}
+                        >
+                          <i className="fa-solid fa-play" />
+                          {isRunning ? '运行中…' : '运行代码'}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -403,253 +530,39 @@ export function KidsCodingEditorPage() {
             ) : null}
             {resultVisible ? (
               <aside className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex flex-col border-b border-slate-200 px-4 py-3 dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <p className="text-xs uppercase text-blue-500">运行结果</p>
-                      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">可视化 + 控制台</h2>
+                <div className="flex flex-col border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
+                  <div>
+                    <p className="text-xs uppercase text-blue-500">运行结果</p>
+                    <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">可视化 + AI 助手</h2>
+                  </div>
+                  {!showFullLayout ? (
+                    <div className="mt-3 flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-300 lg:mt-0">
+                      {[
+                        { key: 'visualization', label: '可视化', icon: 'fa-display' },
+                        { key: 'ai', label: 'AI 助手', icon: 'fa-robot' },
+                      ].map(option => (
+                        <button
+                          key={option.key}
+                          type="button"
+                          onClick={() => setActiveMobileResult(option.key as ResultFocus)}
+                          className={clsx(
+                            'flex items-center gap-1 rounded-lg px-3 py-1 transition',
+                            activeMobileResult === option.key
+                              ? 'bg-blue-600 text-white'
+                              : 'text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700',
+                          )}
+                        >
+                          <i className={`fa-solid ${option.icon}`} />
+                          {option.label}
+                        </button>
+                      ))}
                     </div>
-                    {showFullLayout ? (
-                      <span className="hidden items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-[11px] text-slate-500 dark:bg-slate-800 dark:text-slate-300 xl:flex">
-                        <i className="fa-solid fa-laptop-code" />
-                        {resultLayout === 'stack' ? '上下分屏' : '左右分屏'}
-                      </span>
-                    ) : null}
-                  </div>
-                  <div className="mt-3 flex items-center gap-2 lg:mt-0">
-                    {showFullLayout ? (
-                      <div className="flex items-center gap-1 rounded-xl border border-slate-200 p-1 text-xs dark:border-slate-700">
-                        {[
-                          { key: 'stack', label: '上下', icon: 'fa-grip-lines' },
-                          { key: 'split', label: '左右', icon: 'fa-grip' },
-                        ].map(option => (
-                          <button
-                            key={option.key}
-                            type="button"
-                            onClick={() => setResultLayout(option.key as ResultLayout)}
-                            className={clsx(
-                              'flex items-center gap-1 rounded-lg px-3 py-1 transition',
-                              resultLayout === option.key
-                                ? 'bg-blue-600 text-white'
-                                : 'text-slate-500 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
-                            )}
-                          >
-                            <i className={`fa-solid ${option.icon}`} />
-                            {option.label}
-                          </button>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs dark:bg-slate-800">
-                        {[
-                          { key: 'visualization', label: '可视化', icon: 'fa-display' },
-                          { key: 'console', label: '控制台', icon: 'fa-terminal' },
-                        ].map(option => (
-                          <button
-                            key={option.key}
-                            type="button"
-                            onClick={() => setActiveMobileResult(option.key as ResultFocus)}
-                            className={clsx(
-                              'flex items-center gap-1 rounded-lg px-3 py-1 transition',
-                              activeMobileResult === option.key
-                                ? 'bg-blue-600 text-white'
-                                : 'text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700',
-                            )}
-                          >
-                            <i className={`fa-solid ${option.icon}`} />
-                            {option.label}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setShowAiPanel(prev => !prev)}
-                      className={clsx(
-                        'flex h-10 w-10 items-center justify-center rounded-full transition',
-                        showAiPanel
-                          ? 'bg-blue-600 text-white hover:bg-blue-700'
-                          : 'border border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800',
-                      )}
-                      aria-label="打开或收起 AI 助手"
-                    >
-                      <i className="fa-solid fa-comments" />
-                    </button>
-                  </div>
+                  ) : null}
                 </div>
 
-                <div className="flex flex-1 flex-col overflow-hidden px-4 pb-4 pt-3">
-                  {showFullLayout ? (
-                    <div className={clsx('flex flex-1 gap-3', resultLayout === 'split' ? 'flex-row' : 'flex-col')}>
-                      <div className="flex-1 overflow-hidden rounded-2xl bg-slate-950/90 p-5 text-white shadow-inner">
-                        <div className="flex items-center justify-between text-sm text-slate-300">
-                          <span>
-                            <i className="fa-solid fa-cubes me-2 text-blue-400" />
-                            可视化演示
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => toast.info('全屏演示模式即将上线')}
-                            className="rounded-lg px-3 py-1 text-xs text-slate-300 transition hover:bg-white/10"
-                          >
-                            <i className="fa-solid fa-up-right-and-down-left-from-center me-1" />
-                            全屏
-                          </button>
-                        </div>
-                        <div className="mt-6 flex h-full min-h-[220px] flex-col items-center justify-center gap-6">
-                          <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-500 text-3xl font-bold shadow-lg shadow-blue-700/40">
-                            AI
-                          </div>
-                          <p className="max-w-xs text-center text-sm text-blue-100">
-                            小智正在依次执行问候、学习、工作、休息技能，运行时动画和状态条会同步刷新。
-                          </p>
-                          <div className="flex w-full max-w-xs justify-center gap-3 text-xs text-slate-200">
-                            <span>
-                              <i className="fa-solid fa-bolt me-1 text-amber-300" />
-                              能量 90%
-                            </span>
-                            <span>
-                              <i className="fa-solid fa-brain me-1 text-emerald-300" />
-                              知识 35%
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex-1 overflow-hidden rounded-2xl bg-slate-950/95 shadow-inner">
-                        <div className="flex items-center justify-between px-5 py-3 text-sm text-slate-300">
-                          <span>
-                            <i className="fa-solid fa-terminal me-2 text-emerald-400" />
-                            控制台输出
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (consoleRef.current) {
-                                consoleRef.current.scrollTop = 0;
-                              }
-                            }}
-                            className="rounded-lg px-3 py-1 text-xs text-slate-300 transition hover:bg-white/10"
-                          >
-                            回到顶部
-                          </button>
-                        </div>
-                        <div ref={consoleRef} className="h-full overflow-auto px-5 pb-5 text-xs text-green-200">
-                          <pre>{CONSOLE_SAMPLE}</pre>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex flex-1 flex-col gap-3">
-                      {activeMobileResult === 'visualization' ? (
-                        <div className="overflow-hidden rounded-2xl bg-slate-950/90 p-5 text-white shadow-inner">
-                          <div className="flex items-center justify-between text-sm text-slate-300">
-                            <span>
-                              <i className="fa-solid fa-cubes me-2 text-blue-400" />
-                              可视化演示
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => toast.info('建议横屏或连接外接显示器以获得更佳体验')}
-                              className="rounded-lg px-3 py-1 text-xs text-slate-300 transition hover:bg-white/10"
-                            >
-                              体验提示
-                            </button>
-                          </div>
-                          <div className="mt-6 flex flex-col items-center justify-center gap-6">
-                            <div className="flex h-20 w-20 items-center justify-center rounded-full bg-blue-500 text-2xl font-bold shadow-lg shadow-blue-700/40">
-                              AI
-                            </div>
-                            <p className="text-center text-sm text-blue-100">
-                              运行后查看 AI 助手的技能演示与状态变化。
-                            </p>
-                          </div>
-                        </div>
-                      ) : null}
-                      {activeMobileResult === 'console' ? (
-                        <div className="overflow-hidden rounded-2xl bg-slate-950/95 shadow-inner">
-                          <div className="flex items-center justify-between px-5 py-3 text-sm text-slate-300">
-                            <span>
-                              <i className="fa-solid fa-terminal me-2 text-emerald-400" />
-                              控制台输出
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (consoleRef.current) {
-                                  consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
-                                }
-                              }}
-                              className="rounded-lg px-3 py-1 text-xs text-slate-300 transition hover:bg-white/10"
-                            >
-                              跳到底部
-                            </button>
-                          </div>
-                          <div ref={consoleRef} className="max-h-60 overflow-auto px-5 pb-5 text-xs text-green-200">
-                            <pre>{CONSOLE_SAMPLE}</pre>
-                          </div>
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
-
-                  <AnimatePresence initial={false}>
-                    {showAiPanel ? (
-                      <motion.div
-                        initial={{ opacity: 0, y: 12 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 12 }}
-                        transition={{ duration: 0.2 }}
-                        className="mt-3 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner dark:border-slate-800 dark:bg-slate-900"
-                      >
-                        <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800">
-                          <div className="flex items-center gap-2">
-                            <i className="fa-solid fa-robot text-blue-500" />
-                            <span className="font-medium text-slate-800 dark:text-slate-100">AI 编程助手</span>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setShowAssistantModal(true)}
-                            className="rounded-lg px-3 py-1 text-xs text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
-                          >
-                            查看教学资料
-                          </button>
-                        </div>
-                        <div className="flex-1 space-y-3 overflow-auto px-4 py-4 text-sm">
-                          {aiMessages.map(message => (
-                            <div key={message.id} className={clsx('flex', message.isAI ? 'justify-start' : 'justify-end')}>
-                              <div
-                                className={clsx(
-                                  'max-w-[80%] rounded-2xl px-3 py-2',
-                                  message.isAI
-                                    ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
-                                    : 'bg-blue-600 text-white',
-                                )}
-                              >
-                                {message.text}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        <div className="border-t border-slate-200 px-4 py-3 dark:border-slate-800">
-                          <div className="flex gap-2">
-                            <input
-                              value={aiInput}
-                              onChange={event => setAiInput(event.target.value)}
-                              placeholder="向 AI 助手提问：例如“帮我优化能量恢复逻辑”"
-                              className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
-                            />
-                            <button
-                              type="button"
-                              onClick={handleSendAiMessage}
-                              className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
-                            >
-                              发送
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ) : null}
-                  </AnimatePresence>
+                <div className="flex flex-1 flex-col gap-3 overflow-hidden px-4 pb-4 pt-3">
+                  {(showFullLayout || activeMobileResult === 'visualization') ? renderVisualization() : null}
+                  {(showFullLayout || activeMobileResult === 'ai') ? renderAiAssistant() : null}
                 </div>
               </aside>
             ) : null}
