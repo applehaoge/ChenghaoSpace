@@ -84,6 +84,8 @@ const ACTION_LINK_CLASS =
   'text-xs font-medium text-blue-600 transition hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300';
 const PANEL_BASE_CLASS =
   'flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
+const SECTION_HEADER_CLASS =
+  'flex min-h-[72px] items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800';
 
 export function KidsCodingEditorPage() {
   const { theme, toggleTheme } = useKidsCodingTheme();
@@ -319,7 +321,7 @@ export function KidsCodingEditorPage() {
           >
             {missionVisible ? (
               <aside className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
-                <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
+                <div className={SECTION_HEADER_CLASS}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className={SECTION_LABEL_CLASS}>任务说明</span>
                     <span className={SECTION_TITLE_CLASS}>{MISSION_CONTENT.title}</span>
@@ -392,37 +394,36 @@ export function KidsCodingEditorPage() {
             ) : null}
             {codeVisible ? (
               <section className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
-                <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
+                <div className={clsx(SECTION_HEADER_CLASS, 'gap-3 lg:px-5')}>
                   <div className="flex flex-wrap items-center gap-3">
                     <span className={SECTION_LABEL_CLASS}>代码编辑器</span>
-                    <div className="ml-auto flex flex-wrap items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={handleSave}
-                        className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                      >
-                        <i className="fa-solid fa-floppy-disk me-2" />
-                        保存进度
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleFormat}
-                        className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                      >
-                        <i className="fa-solid fa-wand-magic-sparkles me-2" />
-                        自动格式化
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowAssistantModal(true)}
-                        className="rounded-xl border border-blue-200 px-4 py-2 text-sm text-blue-600 transition hover:bg-blue-50 dark:border-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/20"
-                      >
-                        <i className="fa-solid fa-robot me-2" />
-                        编程助手
-                      </button>
-                    </div>
                   </div>
-                  <div className="mt-2" />
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      <i className="fa-solid fa-floppy-disk me-2" />
+                      保存进度
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleFormat}
+                      className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+                    >
+                      <i className="fa-solid fa-wand-magic-sparkles me-2" />
+                      自动格式化
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAssistantModal(true)}
+                      className="rounded-xl border border-blue-200 px-4 py-2 text-sm text-blue-600 transition hover:bg-blue-50 dark:border-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/20"
+                    >
+                      <i className="fa-solid fa-robot me-2" />
+                      编程助手
+                    </button>
+                  </div>
                 </div>
                 <div className="flex flex-1 flex-col overflow-hidden">
                   <div className="relative flex-1 min-h-0 overflow-auto rounded-2xl bg-slate-950/95 shadow-inner scrollbar-hidden">
@@ -473,7 +474,7 @@ export function KidsCodingEditorPage() {
             ) : null}
             {resultVisible ? (
               <aside className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
-                <div className="flex flex-col border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
+                <div className={clsx(SECTION_HEADER_CLASS, 'text-sm lg:flex-row lg:items-center lg:justify-between')}>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className={SECTION_LABEL_CLASS}>运行结果</span>
                     <span className={SECTION_TITLE_CLASS}>可视化 & AI 助手</span>
