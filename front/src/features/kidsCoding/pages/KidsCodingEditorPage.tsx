@@ -77,7 +77,7 @@ type MobileSection = 'mission' | 'code' | 'results';
 type ResultFocus = 'visualization' | 'ai';
 
 const getInitialWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1280);
-const RESPONSIVE_PANEL_HEIGHT_CLASS = 'md:min-h-[480px] lg:h-[75vh] xl:h-[680px] lg:max-h-[760px]';
+const RESPONSIVE_PANEL_HEIGHT_CLASS = 'md:min-h-[560px] lg:h-[85vh] xl:h-[780px] lg:max-h-[900px]';
 const SECTION_LABEL_CLASS = 'text-xs uppercase tracking-wide text-blue-500 dark:text-blue-400';
 const SECTION_TITLE_CLASS = 'text-sm font-semibold text-slate-900 dark:text-slate-100';
 const ACTION_LINK_CLASS =
