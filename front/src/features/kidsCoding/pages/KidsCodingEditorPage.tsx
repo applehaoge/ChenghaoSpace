@@ -77,6 +77,9 @@ type MobileSection = 'mission' | 'code' | 'results';
 type ResultFocus = 'visualization' | 'ai';
 
 const getInitialWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1280);
+const RESPONSIVE_PANEL_HEIGHT_CLASS = 'md:min-h-[480px] lg:h-[75vh] xl:h-[680px] lg:max-h-[760px]';
+const PANEL_BASE_CLASS =
+  'flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
 
 export function KidsCodingEditorPage() {
   const { theme, toggleTheme } = useKidsCodingTheme();
@@ -306,12 +309,12 @@ export function KidsCodingEditorPage() {
 
           <div
             className={clsx(
-              'grid flex-1 items-stretch gap-4',
-              showFullLayout ? 'grid-cols-[320px_minmax(0,1fr)_380px] gap-6' : 'grid-cols-1',
+              'grid gap-4 lg:flex-1 lg:gap-6',
+              showFullLayout ? 'grid-cols-[320px_minmax(0,1fr)_380px] lg:items-stretch' : 'grid-cols-1',
             )}
           >
             {missionVisible ? (
-              <aside className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <aside className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
                 <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
                   <div>
                     <p className="text-xs uppercase text-blue-500">任务说明</p>
@@ -384,7 +387,7 @@ export function KidsCodingEditorPage() {
               </aside>
             ) : null}
             {codeVisible ? (
-              <section className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <section className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
                 <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
                   <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
                     <div>
@@ -481,7 +484,7 @@ export function KidsCodingEditorPage() {
               </section>
             ) : null}
             {resultVisible ? (
-              <aside className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <aside className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
                 <div className="flex flex-col border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
                   <div>
                     <p className="text-xs uppercase text-blue-500">运行结果</p>
