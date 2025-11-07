@@ -441,9 +441,9 @@ export function KidsCodingEditorPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex flex-1 flex-col">
-                  <div className="relative flex-1 overflow-hidden bg-slate-950/95">
-                    <pre className="h-full overflow-auto p-6 pb-36 text-[13px] leading-relaxed text-green-200">{CODE_SAMPLE}</pre>
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  <div className="relative flex-1 min-h-0 overflow-hidden bg-slate-950/95">
+                    <pre className="h-full min-h-0 overflow-auto p-6 pb-28 text-[13px] leading-relaxed text-green-200">{CODE_SAMPLE}</pre>
                     {renderConsoleOverlay()}
                   </div>
                   <div className="border-t border-slate-200 dark:border-slate-800">

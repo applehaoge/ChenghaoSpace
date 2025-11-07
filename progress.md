@@ -1,4 +1,12 @@
-﻿# 项目进度记录（PROGRESS.md�?
+﻿- **2025-11-07 KidsCoding 面板溢出修复**
+  - 调整 PANEL_BASE_CLASS，保留任务/结果列的 overflow-hidden，仅让代码面板可滚动，保证底部控制栏可见；顶部按钮成为唯一控制台入口。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-07 KidsCoding 编辑器高度修复**
+  - 恢复三列 overflow-hidden，并给代码面板增加 min-h-0 / pb-28，确保底部按钮与控制台入口始终可见且三栏高度一致。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+项目进度记录（PROGRESS.md�?
 
 - **2025-11-07 KidsCoding 标题压缩**
   - 任务说明标题改为单行（徽标 + 标题 + 刷新按钮），删除代码编辑器副标题，只保留标签文本，减少顶部高度浪费。
