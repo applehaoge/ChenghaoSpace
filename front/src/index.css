@@ -81,6 +81,15 @@ body {
   background: #94A3B8;
 }
 
+.scrollbar-hidden {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none;
+}
+
 .app-no-scrollbar {
   overflow: hidden;
   scrollbar-width: none;

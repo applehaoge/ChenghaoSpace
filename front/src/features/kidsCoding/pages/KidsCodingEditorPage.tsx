@@ -422,28 +422,11 @@ export function KidsCodingEditorPage() {
                       </button>
                     </div>
                   </div>
-                  <div className="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                    <span>
-                      <i className="fa-solid fa-code me-2" />
-                      Python 3.11
-                    </span>
-                    <span>
-                      <i className="fa-solid fa-circle-nodes me-2 text-emerald-500" />
-                      AI 纠错已开启
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setIsConsoleOpen(previous => !previous)}
-                      className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-600 transition active:scale-95 dark:border-blue-900/40 dark:text-blue-400"
-                    >
-                      <i className="fa-solid fa-terminal" />
-                      {isConsoleOpen ? '隐藏控制台' : '查看控制台'}
-                    </button>
-                  </div>
+                  <div className="mt-2" />
                 </div>
                 <div className="flex flex-1 flex-col overflow-hidden">
-                  <div className="relative flex-1 min-h-0 overflow-hidden bg-slate-950/95">
-                    <pre className="h-full min-h-0 overflow-auto p-6 pb-28 text-[13px] leading-relaxed text-green-200">{CODE_SAMPLE}</pre>
+                  <div className="relative flex-1 min-h-0 overflow-auto rounded-2xl bg-slate-950/95 shadow-inner scrollbar-hidden">
+                    <pre className="h-full rounded-2xl bg-transparent p-6 pb-28 text-[13px] leading-relaxed text-green-200">{CODE_SAMPLE}</pre>
                     {renderConsoleOverlay()}
                   </div>
                   <div className="border-t border-slate-200 dark:border-slate-800">

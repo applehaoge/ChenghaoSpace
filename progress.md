@@ -2,7 +2,11 @@
   - 调整 PANEL_BASE_CLASS，保留任务/结果列的 overflow-hidden，仅让代码面板可滚动，保证底部控制栏可见；顶部按钮成为唯一控制台入口。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-- **2025-11-07 KidsCoding 编辑器高度修复**
+- **2025-11-07 KidsCoding 页面加高**
+  - 上调 RESPONSIVE_PANEL_HEIGHT_CLASS 至 md≥560px、lg≈85vh、xl 780px，整页三列同步增高，AI 助手和运行结果不再被压缩。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+**2025-11-07 KidsCoding 编辑器高度修复**
   - 恢复三列 overflow-hidden，并给代码面板增加 min-h-0 / pb-28，确保底部按钮与控制台入口始终可见且三栏高度一致。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
