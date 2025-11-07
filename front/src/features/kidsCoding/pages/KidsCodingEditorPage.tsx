@@ -166,84 +166,88 @@ export function KidsCodingEditorPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
       <main className="flex flex-1 flex-col py-6">
-        <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-0 px-4">
-          <EditorNavbar
-            onOpenMission={() => setIsMissionDrawerOpen(true)}
-            onSave={handleSave}
-            onFormat={handleFormat}
-            onOpenAssistant={() => setShowAssistantModal(true)}
-          />
+        <div className="mx-auto flex h-full w-full max-w-7xl flex-col px-4">
+          <div className="overflow-hidden rounded-3xl shadow-[0_30px_80px_-40px_rgba(15,23,42,0.9)] ring-1 ring-white/10">
+            <EditorNavbar
+              className="rounded-none border-b border-white/10 shadow-none"
+              onOpenMission={() => setIsMissionDrawerOpen(true)}
+              onSave={handleSave}
+              onFormat={handleFormat}
+              onOpenAssistant={() => setShowAssistantModal(true)}
+            />
 
-          {!showFullLayout ? (
-            <div className="mt-4 flex gap-2 rounded-2xl bg-white p-2 shadow-sm dark:bg-slate-900">
-              {[
-                { key: 'code', label: '代码', icon: 'fa-code' },
-                { key: 'results', label: '结果', icon: 'fa-display' },
-              ].map(item => (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setMobileSection(item.key as MobileSection)}
+            <div className="bg-slate-950/90 px-4 pb-6 pt-6 text-slate-100 lg:px-6">
+              {!showFullLayout ? (
+                <div className="mb-4 flex gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 backdrop-blur">
+                  {[
+                    { key: 'code', label: '代码', icon: 'fa-code' },
+                    { key: 'results', label: '结果', icon: 'fa-display' },
+                  ].map(item => (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setMobileSection(item.key as MobileSection)}
+                      className={clsx(
+                        'flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition',
+                        mobileSection === item.key
+                          ? 'bg-blue-600 text-white'
+                          : 'text-slate-200 hover:bg-white/10 dark:text-slate-300',
+                      )}
+                    >
+                      <i className={`fa-solid ${item.icon}`} />
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
+
+              <div
+                className={clsx(
+                  'flex gap-4 lg:gap-6',
+                  showFullLayout ? 'items-stretch' : 'flex-col',
+                )}
+              >
+                <div
                   className={clsx(
-                    'flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition',
-                    mobileSection === item.key
-                      ? 'bg-blue-600 text-white'
-                      : 'text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800',
+                    'grid flex-1 gap-4 lg:gap-6',
+                    showFullLayout ? desktopColumns : 'grid-cols-1',
+                    showFullLayout && 'lg:items-stretch',
                   )}
                 >
-                  <i className={`fa-solid ${item.icon}`} />
-                  {item.label}
-                </button>
-              ))}
+                  {codeVisible ? (
+                    <CodePanel
+                      className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
+                      codeSample={CODE_SAMPLE}
+                      consoleSample={CONSOLE_SAMPLE}
+                      isRunning={isRunning}
+                      isConsoleOpen={isConsoleOpen}
+                      consoleRef={consoleRef}
+                      onToggleConsole={() => setIsConsoleOpen(previous => !previous)}
+                      onRunCode={handleRunCode}
+                      onReset={handleReset}
+                    />
+                  ) : null}
+                  {resultVisible && !resultCollapsed ? (
+                    <ResultPanel
+                      className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
+                      showFullLayout={showFullLayout}
+                      activeFocus={activeMobileResult}
+                      onFocusChange={setActiveMobileResult}
+                      aiMessages={aiMessages}
+                      aiInput={aiInput}
+                      onAiInputChange={setAiInput}
+                      onSendMessage={handleSendAiMessage}
+                      onShowAssistantModal={() => setShowAssistantModal(true)}
+                      enableCollapse={showFullLayout}
+                      onCollapse={() => togglePanel('results')}
+                    />
+                  ) : null}
+                </div>
+                {showFullLayout && resultVisible && resultCollapsed ? (
+                  <CollapsedPanelRail side="right" label="运行结果" onExpand={() => togglePanel('results')} />
+                ) : null}
+              </div>
             </div>
-          ) : null}
-
-          <div
-            className={clsx(
-              'flex gap-4 lg:gap-6',
-              showFullLayout ? 'items-stretch' : 'flex-col',
-              showFullLayout ? 'mt-0' : 'mt-4',
-            )}
-          >
-            <div
-              className={clsx(
-                'grid flex-1 gap-4 lg:gap-6',
-                showFullLayout ? desktopColumns : 'grid-cols-1',
-                showFullLayout && 'lg:items-stretch',
-              )}
-            >
-              {codeVisible ? (
-                <CodePanel
-                  className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
-                  codeSample={CODE_SAMPLE}
-                  consoleSample={CONSOLE_SAMPLE}
-                  isRunning={isRunning}
-                  isConsoleOpen={isConsoleOpen}
-                  consoleRef={consoleRef}
-                  onToggleConsole={() => setIsConsoleOpen(previous => !previous)}
-                  onRunCode={handleRunCode}
-                  onReset={handleReset}
-                />
-              ) : null}
-              {resultVisible && !resultCollapsed ? (
-                <ResultPanel
-                  className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
-                  showFullLayout={showFullLayout}
-                  activeFocus={activeMobileResult}
-                  onFocusChange={setActiveMobileResult}
-                  aiMessages={aiMessages}
-                  aiInput={aiInput}
-                  onAiInputChange={setAiInput}
-                  onSendMessage={handleSendAiMessage}
-                  onShowAssistantModal={() => setShowAssistantModal(true)}
-                  enableCollapse={showFullLayout}
-                  onCollapse={() => togglePanel('results')}
-                />
-              ) : null}
-            </div>
-            {showFullLayout && resultVisible && resultCollapsed ? (
-              <CollapsedPanelRail side="right" label="运行结果" onExpand={() => togglePanel('results')} />
-            ) : null}
           </div>
         </div>
       </main>

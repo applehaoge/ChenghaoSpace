@@ -30,12 +30,12 @@ export function CodePanel({
   return (
     <section
       className={clsx(
-        'flex flex-col overflow-hidden rounded-3xl bg-slate-950 text-slate-100 shadow-[0_35px_80px_-45px_rgba(23,23,23,0.9)] ring-1 ring-white/5',
+        'flex flex-col overflow-hidden rounded-2xl border border-white/10 bg-slate-950/95 text-slate-100 shadow-[0_20px_60px_-45px_rgba(15,23,42,0.9)]',
         className,
       )}
     >
       <div className="flex flex-1 flex-col gap-4 overflow-hidden px-6 pb-5 pt-6">
-        <div className="relative flex-1 min-h-0 overflow-auto rounded-2xl bg-slate-950/95 shadow-inner scrollbar-hidden">
+        <div className="relative flex-1 min-h-0 overflow-auto rounded-2xl bg-slate-950 shadow-inner scrollbar-hidden">
           <pre className="h-full rounded-2xl bg-transparent p-6 pb-28 text-[13px] leading-relaxed text-green-200">
             {codeSample}
           </pre>

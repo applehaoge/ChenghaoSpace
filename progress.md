@@ -261,5 +261,6 @@ sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
   - 移除左侧常驻任务栏，改为 MissionDrawer 侧滑展示；桌面端仅保留代码 + 结果双栏，移动端继续提供代码/结果切换。
   - Checks: （未运行）UI 调整，待有人手按流程执行 `pnpm --dir server test` 与 `pnpm --dir front build:client`
 - **2025-11-08 KidsCoding 编辑器贴顶**
-  - 去掉代码编辑器面板的白色标题层与外框，改为深色底直接贴在导航栏下方，运行/控制台按钮保留在底部工具条，整体更贴近设计稿。
+  - 搭建统一的渐变包裹层：导航栏与下方编辑器/结果区域共享同一个圆角容器，移除多余阴影，底部暗色背景过渡让视觉成为单一模块。
+  - 代码编辑器重绘为深色卡片（同容器色系）并同步取消导航栏左/下圆角，按钮/渐变保持不变但整体看起来连成一体。
   - Checks: （未运行）待有人手执行 `pnpm --dir server test`、`pnpm --dir front build:client`

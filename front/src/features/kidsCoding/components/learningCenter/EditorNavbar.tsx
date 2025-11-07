@@ -5,6 +5,7 @@ interface EditorNavbarProps {
   onSave: () => void;
   onFormat: () => void;
   onOpenAssistant: () => void;
+  className?: string;
 }
 
 const NAV_ITEMS = [
@@ -12,9 +13,14 @@ const NAV_ITEMS = [
   { label: '保持 · 编程助手', icon: 'fa-robot', active: false },
 ];
 
-export function EditorNavbar({ onOpenMission, onSave, onFormat, onOpenAssistant }: EditorNavbarProps) {
+export function EditorNavbar({ onOpenMission, onSave, onFormat, onOpenAssistant, className }: EditorNavbarProps) {
   return (
-    <nav className="rounded-3xl bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 p-6 text-white shadow-xl shadow-blue-500/30">
+    <nav
+      className={clsx(
+        'bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-600 p-6 text-white shadow-xl shadow-blue-500/30',
+        className,
+      )}
+    >
       <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-4">
           <div className="flex flex-wrap gap-2">
