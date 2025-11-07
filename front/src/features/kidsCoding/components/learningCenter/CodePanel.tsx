@@ -4,53 +4,15 @@ import { RefObject } from 'react';
 
 import {
   ACTION_LINK_CLASS,
+  PANEL_BASE_CLASS,
   SECTION_HEADER_CLASS,
   SECTION_LABEL_CLASS,
 } from '@/features/kidsCoding/constants/learningCenter';
 
-const CODE_SAMPLE = `# AI 国度修复计划 - 任务 01：认识你的 AI 助手
-# 欢迎来到 AI 国度！这个世界需要你的帮助来修复损坏的 AI 系统
-class AIAssistant:
-    def __init__(self, name):
-        self.name = name
-        self.energy = 100
-        self.knowledge = 0
-
-    def greet(self):
-        print(f"你好，我是 {self.name}，你的 AI 助手。")
-        print("很高兴能和你一起修复 AI 国度！")
-
-    def learn(self, points):
-        self.knowledge += points
-        print(f"我学到了新知识！当前知识值：{self.knowledge}")
-
-    def work(self):
-        if self.energy > 0:
-            self.energy -= 10
-            print(f"{self.name} 正在努力工作……")
-            print(f"剩余能量：{self.energy}")
-        else:
-            print(f"{self.name} 太累啦，需要休息！")
-
-    def rest(self):
-        self.energy = min(100, self.energy + 20)
-        print(f"{self.name} 充好电啦！当前能量：{self.energy}")
-
-assistant = AIAssistant("小智")
-assistant.greet()
-assistant.learn(15)
-assistant.work()
-assistant.rest()
-`;
-
-const CONSOLE_SAMPLE = `你好，我是 小智，你的 AI 助手。
-很高兴能和你一起修复 AI 国度！
-我学到了新知识！当前知识值：15
-小智 正在努力工作……
-剩余能量：90
-小智 充好电啦！当前能量：100`;
-
 interface CodePanelProps {
+  className?: string;
+  codeSample: string;
+  consoleSample: string;
   isRunning: boolean;
   isConsoleOpen: boolean;
   consoleRef: RefObject<HTMLDivElement>;
@@ -63,6 +25,9 @@ interface CodePanelProps {
 }
 
 export function CodePanel({
+  className,
+  codeSample,
+  consoleSample,
   isRunning,
   isConsoleOpen,
   consoleRef,
@@ -74,7 +39,7 @@ export function CodePanel({
   onOpenAssistant,
 }: CodePanelProps) {
   return (
-    <>
+    <section className={clsx(PANEL_BASE_CLASS, className)}>
       <div className={clsx(SECTION_HEADER_CLASS, 'gap-3 lg:px-5')}>
         <div className="flex flex-wrap items-center gap-3">
           <span className={SECTION_LABEL_CLASS}>代码编辑器</span>
@@ -113,9 +78,9 @@ export function CodePanel({
       <div className="flex flex-1 flex-col gap-4 overflow-hidden px-5 pb-4 pt-4">
         <div className="relative flex-1 min-h-0 overflow-auto rounded-2xl bg-slate-950/95 shadow-inner scrollbar-hidden">
           <pre className="h-full rounded-2xl bg-transparent p-6 pb-28 text-[13px] leading-relaxed text-green-200">
-            {CODE_SAMPLE}
+            {codeSample}
           </pre>
-          <ConsoleOverlay isOpen={isConsoleOpen} consoleRef={consoleRef} />
+          <ConsoleOverlay isOpen={isConsoleOpen} consoleRef={consoleRef} consoleSample={consoleSample} />
         </div>
 
         <div className="border-t border-slate-200 dark:border-slate-800">
@@ -151,16 +116,17 @@ export function CodePanel({
           </div>
         </div>
       </div>
-    </>
+    </section>
   );
 }
 
 interface ConsoleOverlayProps {
   isOpen: boolean;
+  consoleSample: string;
   consoleRef: RefObject<HTMLDivElement>;
 }
 
-function ConsoleOverlay({ isOpen, consoleRef }: ConsoleOverlayProps) {
+function ConsoleOverlay({ isOpen, consoleRef, consoleSample }: ConsoleOverlayProps) {
   return (
     <AnimatePresence initial={false}>
       {isOpen ? (
@@ -177,7 +143,7 @@ function ConsoleOverlay({ isOpen, consoleRef }: ConsoleOverlayProps) {
             <span>输出控制台</span>
           </div>
           <div ref={consoleRef} className="max-h-60 overflow-auto px-5 pb-5 text-[12px] text-green-200">
-            <pre>{CONSOLE_SAMPLE}</pre>
+            <pre>{consoleSample}</pre>
           </div>
         </motion.div>
       ) : null}

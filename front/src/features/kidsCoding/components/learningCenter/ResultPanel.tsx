@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 
 import {
   ACTION_LINK_CLASS,
+  PANEL_BASE_CLASS,
   SECTION_HEADER_CLASS,
   SECTION_LABEL_CLASS,
   SECTION_TITLE_CLASS,
@@ -10,6 +11,7 @@ import {
 import { AiChatMessage, ResultFocus } from '@/features/kidsCoding/types/learningCenter';
 
 interface ResultPanelProps {
+  className?: string;
   showFullLayout: boolean;
   activeFocus: ResultFocus;
   onFocusChange: (focus: ResultFocus) => void;
@@ -21,6 +23,7 @@ interface ResultPanelProps {
 }
 
 export function ResultPanel({
+  className,
   showFullLayout,
   activeFocus,
   onFocusChange,
@@ -31,7 +34,7 @@ export function ResultPanel({
   onShowAssistantModal,
 }: ResultPanelProps) {
   return (
-    <>
+    <aside className={clsx(PANEL_BASE_CLASS, className)}>
       <div className={clsx(SECTION_HEADER_CLASS, 'text-sm lg:flex-row lg:items-center lg:justify-between')}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className={SECTION_LABEL_CLASS}>运行结果</span>
@@ -59,7 +62,11 @@ export function ResultPanel({
               </button>
             ))}
           </div>
-        ) : null}
+        ) : (
+          <button type="button" onClick={onShowAssistantModal} className={ACTION_LINK_CLASS}>
+            查看教学资料
+          </button>
+        )}
       </div>
 
       <div className="flex flex-1 flex-col gap-3 overflow-hidden px-4 pb-4 pt-4">
@@ -70,11 +77,10 @@ export function ResultPanel({
             aiMessages={aiMessages}
             onAiInputChange={onAiInputChange}
             onSendMessage={onSendMessage}
-            onShowAssistantModal={onShowAssistantModal}
           />
         ) : null}
       </div>
-    </>
+    </aside>
   );
 }
 
@@ -122,16 +128,9 @@ interface AiAssistantCardProps {
   aiInput: string;
   onAiInputChange: (value: string) => void;
   onSendMessage: () => void;
-  onShowAssistantModal: () => void;
 }
 
-function AiAssistantCard({
-  aiMessages,
-  aiInput,
-  onAiInputChange,
-  onSendMessage,
-  onShowAssistantModal,
-}: AiAssistantCardProps) {
+function AiAssistantCard({ aiMessages, aiInput, onAiInputChange, onSendMessage }: AiAssistantCardProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800">
@@ -139,13 +138,6 @@ function AiAssistantCard({
           <i className="fa-solid fa-robot text-blue-500" />
           <span className="font-medium text-slate-800 dark:text-slate-100">AI 编程助手</span>
         </div>
-        <button
-          type="button"
-          onClick={onShowAssistantModal}
-          className="rounded-lg px-3 py-1 text-xs text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
-        >
-          查看教学资料
-        </button>
       </div>
       <div className="flex-1 space-y-3 overflow-auto px-4 py-4 text-sm">
         {aiMessages.map(message => (
