@@ -164,6 +164,47 @@ body {
   }
 }
 
+.kids-coding-editor {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji';
+  line-height: 1.6;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.kids-coding-editor ::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.kids-coding-editor ::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+.kids-coding-editor ::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.kids-coding-editor ::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
+
+.dark .kids-coding-editor ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.dark .kids-coding-editor ::-webkit-scrollbar-thumb {
+  background: rgba(96, 165, 250, 0.3);
+}
+
+.dark .kids-coding-editor ::-webkit-scrollbar-thumb:hover {
+  background: rgba(96, 165, 250, 0.5);
+}
+
 @keyframes chat-typing-caret {
   0%,
   40% {

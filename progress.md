@@ -1,105 +1,109 @@
-﻿- **2025-11-07 KidsCoding 面板溢出修复**
-  - 调整 PANEL_BASE_CLASS，保留任务/结果列的 overflow-hidden，仅让代码面板可滚动，保证底部控制栏可见；顶部按钮成为唯一控制台入口。
+- **2025-11-07 KidsCoding �༭��Ǩ��**
+  - �����ص��ٶ���̱༭����ȫ���� `/kids-coding/editor` ҳ�棨��д `KidsCodingEditorPage`�������� IDE �����ڣ��������� `.kids-coding-editor` ��������ʽ�Ի�ԭԭ��۸С�
+  - ���� `lucide-react` ���������ü��� `useTheme`/Provider����֤ȫվ����ҳ��������������л��±༭����
+  - Checks: pnpm --dir server test; pnpm --dir front build:client���ֶ��������Ʒȷ�ϣ�
+- **2025-11-07 KidsCoding �������޸�**
+  - ���� PANEL_BASE_CLASS����������/����е� overflow-hidden�����ô������ɹ�������֤�ײ��������ɼ���������ť��ΪΨһ����̨��ڡ�
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-- **2025-11-07 KidsCoding 标题栏统一**
-  - 引入 SECTION_HEADER_CLASS，任务/代码/结果三栏标题高度与分隔线完全一致，顶边齐平更规整。
+- **2025-11-07 KidsCoding ������ͳһ**
+  - ���� SECTION_HEADER_CLASS������/����/�����������߶���ָ�����ȫһ�£�������ƽ��������
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-**2025-11-07 KidsCoding 页面加高**
-  - 上调 RESPONSIVE_PANEL_HEIGHT_CLASS 至 md≥560px、lg≈85vh、xl 780px，整页三列同步增高，AI 助手和运行结果不再被压缩。
+**2025-11-07 KidsCoding ҳ��Ӹ�**
+  - �ϵ� RESPONSIVE_PANEL_HEIGHT_CLASS �� md��560px��lg��85vh��xl 780px����ҳ����ͬ�����ߣ�AI ���ֺ����н�����ٱ�ѹ����
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-**2025-11-07 KidsCoding 编辑器高度修复**
-  - 恢复三列 overflow-hidden，并给代码面板增加 min-h-0 / pb-28，确保底部按钮与控制台入口始终可见且三栏高度一致。
+**2025-11-07 KidsCoding �༭���߶��޸�**
+  - �ָ����� overflow-hidden����������������� min-h-0 / pb-28��ȷ���ײ���ť�����̨���ʼ�տɼ��������߶�һ�¡�
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-项目进度记录（PROGRESS.md�?
+��Ŀ���ȼ�¼��PROGRESS.md??
 
-- **2025-11-07 KidsCoding 标题压缩**
-  - 任务说明标题改为单行（徽标 + 标题 + 刷新按钮），删除代码编辑器副标题，只保留标签文本，减少顶部高度浪费。
+- **2025-11-07 KidsCoding ����ѹ��**
+  - ����˵�������Ϊ���У��ձ� + ���� + ˢ�°�ť����ɾ������༭�������⣬ֻ������ǩ�ı������ٶ����߶��˷ѡ�
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-- **2025-11-07 KidsCoding 面板再抬高**
-  - 更新 RESPONSIVE_PANEL_HEIGHT_CLASS 为 md:min-h[480px]/lg:75vh/xl:680px（上限 760px），桌面端视窗进一步拉高，AI 编程助手区域输入框完整可见。
+- **2025-11-07 KidsCoding �����̧��**
+  - ���� RESPONSIVE_PANEL_HEIGHT_CLASS Ϊ md:min-h[480px]/lg:75vh/xl:680px������ 760px����������Ӵ���һ�����ߣ�AI ���������������������ɼ���
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-- **2025-11-07 KidsCoding 面板抬高**
-  - 调整 RESPONSIVE_PANEL_HEIGHT_CLASS 为 md:min-h-[420px] lg:h-[68vh] xl:h-[620px] lg:max-h-[700px]，桌面端视窗恢复更高高度，AI 编程助手输入框不再被裁切。
+- **2025-11-07 KidsCoding ���̧��**
+  - ���� RESPONSIVE_PANEL_HEIGHT_CLASS Ϊ md:min-h-[420px] lg:h-[68vh] xl:h-[620px] lg:max-h-[700px]��������Ӵ��ָ����߸߶ȣ�AI �������������ٱ����С�
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-- **2025-11-07 KidsCoding 自适应高度**
-  - 引入 RESPONSIVE_PANEL_HEIGHT_CLASS（md ≥360px，lg=60vh，xl=520px，上限 600px），三栏在桌面端获得固定视窗且随屏幕高度变化，内部内容超出时使用现有 overflow 滚动。
-  - Checks: pnpm --dir server test; pnpm --dir front build:client
-
-
-
-- **2025-11-07 KidsCoding 400px 对齐**
-  - 将 DESKTOP_PANEL_HEIGHT_CLASS 与 DESKTOP_RESULT_HEIGHT_CLASS 均设为 400px 并保留 lg:h-full，三栏高度一致，顶部/底部自然齐平，后续再调只需改常量。
-  - Checks: pnpm --dir server test; pnpm --dir front build:client
-
-- **2025-11-07 KidsCoding AI ��ѹ��**
-  - ��ȡ�������� DESKTOP_RESULT_HEIGHT_CLASS��400px�������������Ϊ AI �����׷�� lg:self-end lg:h-auto������߶�ѹ��Լ 1/3�������м���ʹ�� 600px ���������� items-stretch���ײ�������ƽ��
-  - Checks: pnpm --dir server test; pnpm --dir front build:client
-
-- **2025-11-07 KidsCoding 高度微调**
-  - 调整 DESKTOP_PANEL_HEIGHT_CLASS �?min-h �?680px 降到 600px，三栏依旧通过 h-full 联动贴底，但整体高度更紧凑、易维护�?
+- **2025-11-07 KidsCoding ����Ӧ�߶�**
+  - ���� RESPONSIVE_PANEL_HEIGHT_CLASS��md ��360px��lg=60vh��xl=520px������ 600px��������������˻�ù̶��Ӵ�������Ļ�߶ȱ仯���ڲ����ݳ���ʱʹ������ overflow ������
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
 
-- **2025-11-06 少儿编程主页迁移**
-  - 迁入 kidsCoding Hero/Features/课程/家长/价格/打卡组件，并封装上下文与主题 Hook
-  - 新增编程学堂 `/kids-coding/editor` 页面（含编程助手模态、AI 对话、全屏演示），导航入口联�?
-  - 抽离 `KidsCodingProvider` 共享认证状态，确保主页与学堂的登录信息一�?
-  - 恢复编程学堂左右侧边栏的折叠/展开操作，与原项目交互一�?
+
+- **2025-11-07 KidsCoding 400px ����**
+  - �� DESKTOP_PANEL_HEIGHT_CLASS �� DESKTOP_RESULT_HEIGHT_CLASS ����Ϊ 400px ������ lg:h-full�������߶�һ�£�����/�ײ���Ȼ��ƽ�������ٵ�ֻ��ĳ�����
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-07 KidsCoding AI ?????**
+  - ??????????? DESKTOP_RESULT_HEIGHT_CLASS??400px?????????????? AI ???????? lg:self-end lg:h-auto???????????? 1/3???????��?????? 600px ?????????? items-stretch??????????????
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-07 KidsCoding �߶�΢��**
+  - ���� DESKTOP_PANEL_HEIGHT_CLASS ??min-h ??680px ���� 600px����������ͨ�� h-full �������ף�������߶ȸ����ա���ά��??
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+- **2025-11-06 �ٶ������ҳǨ��**
+  - Ǩ�� kidsCoding Hero/Features/�γ�/�ҳ�/�۸�/�����������װ������������ Hook
+  - �������ѧ�� `/kids-coding/editor` ҳ�棨���������ģ̬��AI �Ի���ȫ����ʾ�������������??
+  - ���� `KidsCodingProvider` ������֤״̬��ȷ����ҳ��ѧ�õĵ�¼��Ϣһ??
+  - �ָ����ѧ�����Ҳ�������۵�/չ����������ԭ��Ŀ����һ??
   - Checks: pnpm --dir front build:client
 
-- **2025-11-05 缁勪欢閲嶆瀯涓庡伐浣滃尯鏁寸悊**
-  - 鎻愮偧姣忔棩鎵撳�?杩愬娍鍖哄煙涓虹嫭绔?DailyProgressPanel 缁勪欢锛孧ainContent 浠呬繚鐣欐暟鎹�?
-  - 鏂板�?pnpm-workspace.yaml 涓庢牴绾?package.json锛岀粺涓�?front/server 鏋勫缓涓庢祴璇曞叆鍙?
-  - 鏂板璇煶杈撳叆鎸夐挳锛屽皝瑁?useSpeechToText Hook锛岃闊宠浆鏂囧瓧鑷姩濉厖杈撳叆�?
+- **2025-11-05 组件重构与工作区整理**
+  - 提炼每日打�??运势区域为独�?DailyProgressPanel 组件，MainContent 仅保留数据�??
+  - 新�??pnpm-workspace.yaml 与根�?package.json，统�??front/server 构建与测试入�?
+  - 新增语音输入按钮，封�?useSpeechToText Hook，语音转文字自动填充输入??
 
 
-- **2025-11-05 锟斤拷页锟斤拷锟斤拷锟斤拷一锟藉�?*
-  - 锟津卡成癸拷锟斤拷锟斤拷锟斤拷锟斤拷锟皆讹拷锟叫伙拷为锟斤拷锟狡匡拷片锟斤拷锟狡筹拷双锟叫诧拷锟斤拷锟斤拷锟酵放癸拷锟秸硷拷
-  - 锟斤拷锟狡匡拷片展示锟斤拷燃锟斤拷锟斤拷�?锟斤拷锟侥帮拷锟斤拷锟斤拷签锟斤拷示锟斤拷未锟斤拷时锟斤拷锟斤拷锟斤拷锟轿徽�?
--  锟斤拷锟轿伙拷锟斤拷锟轿拷锟斤拷锟?300锟斤�?50 Medium Rectangle 锟竭寸，锟狡讹拷锟斤拷展示锟侥帮拷锟斤拷锟斤拷协锟斤�?
--  锟睫革拷锟津卡猴拷锟斤拷位锟斤拷失锟斤拷锟斤拷锟解，锟斤拷锟斤拷展示时锟斤拷锟斤拷锟斤拷员锟斤拷锟斤拷锟斤拷每占�?
--  锟斤拷锟斤拷锟斤拷页锟斤拷锟斤拷/锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷祝锟斤拷谩锟斤拷群瓶占洹逼凤拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷屑锟斤拷
-  - 锟斤拷锟斤拷锟狡凤拷坪锟斤拷锟斤拷锟斤拷斜锟斤拷锟轿拷锟斤拷妆锟狡斤拷锟斤拷锟斤拷锟斤拷锟捷憋拷签锟诫按钮去锟斤拷锟斤拷锟斤拷锟斤拷强锟斤拷锟斤拷锟缴撅拷锟斤拷锟斤拷锟斤拷锟斤拷\n  - 去锟斤拷品锟斤拷 BETA 锟斤拷签锟斤拷锟脚大“橙浩空间”锟斤拷锟斤拷强锟斤拷品锟斤拷识锟斤�?
-  - 锟斤拷一锟斤拷微锟斤拷锟斤拷锟斤拷锟斤拷啵凤拷锟斤拷锟斤拷一毡辍拷锟斤拷狻拷锟斤拷锟斤拷目锟斤拷同一锟斤拷锟斤拷
+- **2025-11-05 ��ҳ������һ��??*
+  - �򿨳ɹ����������Զ��л�Ϊ���ƿ�Ƭ���Ƴ�˫�в������ͷŹ��ռ�
+  - ���ƿ�Ƭչʾ��ȼ����??���İ�����ǩ��ʾ��δ��ʱ�������λ�??
+-  ���λ����Ϊ����?300��??50 Medium Rectangle �ߴ磬�ƶ���չʾ�İ�����Э��??
+-  �޸��򿨺���λ��ʧ�����⣬����չʾʱ������Ա������ÿռ??
+-  ������ҳ����/������������ף��á��Ⱥƿռ䡱Ʒ�����������м��
+  - �����Ʒ�ƺ������б���Ϊ���ױ�ƽ��������ݱ�ǩ�밴ťȥ��������ǿ�����ɾ���������\n  - ȥ��Ʒ�� BETA ��ǩ���Ŵ󡰳Ⱥƿռ䡱����ǿ��Ʒ��ʶ��??
+  - ��һ��΢��������࣬ȷ�����һձꡢ���⡢�����Ŀ��ͬһ����
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
-## 馃�?姒傝�?
-- 椤圭洰鍚嶇О锛欳henghaoSpace
-- 绫诲瀷锛欰I Chat Demo锛堝墠鍚庣鑷爺锟?
-- 褰撳墠鑳藉姏锛氳亰锟?UI銆丏oubao Provider 鎺ュ叆銆侀檮浠朵笂涓嬫枃銆佷細璇濊锟?
-- 鐩爣锛氫竴鍛ㄥ唴瀹屾垚鍙姇绠€鍘嗙�?Demo锛圧AG銆佸�?Provider銆佸鍣ㄥ寲閮ㄧ讲銆佸浘鏂囨秷鎭€佹寔涔呰蹇嗭級
+## �??概�??
+- 项目名称：ChenghaoSpace
+- 类型：AI Chat Demo（前后端自研�?
+- 当前能力：聊�?UI、Doubao Provider 接入、附件上下文、会话记�?
+- 目标：一周内完成可投简历�??Demo（RAG、�??Provider、容器化部署、图文消息、持久记忆）
 
 
 
-鐜板湪鐨勮瘔姹傛槸锛氭妸 doubao-seed-1-6-flash 妯″瀷姝ｅ紡鎺ュ叆褰撳墠椤圭洰锛岃鍚庣鑳芥妸鐢ㄦ埛涓婁紶鐨勫浘鐗囬€佺粰妯″瀷璇嗗埆骞惰繑鍥炴枃瀛楁弿杩帮紝鑰岀幇鍦ㄨ繖鍧楀姛鑳借繕娌℃墦閫氾拷?
+现在的诉求是：把 doubao-seed-1-6-flash 模型正式接入当前项目，让后端能把用户上传的图片送给模型识别并返回文字描述，而现在这块功能还没打通�?
 
-鍙互鍒嗘垚杩欎簺姝ラ鏉ュ疄鐜帮�?
+可以分成这些步骤来实现�??
 
-姊崇悊杈撳叆杈撳嚭绾︽潫锛氱‘璁ゅ墠绔笂浼犵殑闄勪欢鍦ㄥ悗绔槸鎬庢牱瀛樺偍鐨勶紙渚嬪淇濆瓨璺緞銆佹敮鎸佺�?MIME锛夛紝浠ュ強甯屾湜杩斿洖缁欏墠绔殑鍥剧墖鎻忚堪/璀﹀憡瀛楁鏍煎紡�?
-灏佽�?Doubao 鍥剧墖鍒嗘瀽鏈嶅姟锛氬�?server/src/services 涓嬫柊澧炰竴涓笓闂ㄨ皟�?Doubao 鐨勫浘鍍忚瘑鍒ā鍧楋紙鍙弬鑰冪幇锟?imageAnalyzer.ts 缁撴瀯锛夛紝璐熻矗鎶婂浘鐗囪浆鎴愬悎閫傜�?image_url锛堟�?base64 data URL锛夊苟璋冪敤 chat/completions 鎺ュ彛锟?
-鎵╁�?provider factory锛氬�?providers/doubaoProvider.ts 閲岃ˉ鍏呬竴涓鐞嗗浘鐗囩殑鍏ュ彛锛屾垨鏂板�?DoubaoImageService锛屼粠鐜鍙橀噺璇诲彇妯″瀷銆丄PI base锛屽苟澶嶇敤 proxy 閫昏緫锟?
-鏆撮湶鍚庣鎺ュ彛锛氬湪 Fastify 璺敱閲屾墿�?/api/upload 鎴栨柊锟?/api/image-insight锛屽湪闄勪欢鎵爜娴佺▼閲岃皟鐢ㄦ柊鏈嶅姟锛屾妸鐢熸垚锟?caption銆乽sage 淇℃伅淇濆瓨鍒版暟鎹簱/鍐呭瓨骞惰繑鍥炵粰鍓嶇�?
-鍓嶇鎺ュ叆灞曠ず锛氬湪 front/src/components/chat/ChatInterface.tsx 绛夊鐩戝惉鍚庣杩斿洖鐨勫浘鐗囨弿杩帮紝娓叉煋鍦ㄩ檮浠跺崱鐗囨�?AI 鍥炲閲岋紝鍚屾椂纭繚 Toast/鎻愮ず鏂囨瑕嗙洊澶辫触鍦烘櫙锟?
-琛ュ厖娴嬭瘯涓庢枃妗ｏ細涓烘柊鏈嶅姟�?Vitest 鍗曟祴锛坢ock fetch锛夛紝骞跺湪 progress.md銆丷EADME.md 鏇存柊鏂扮殑鑷姝ラ锛岀‘锟?pnpm --dir server test �?pnpm --dir front smoke 閮介€氳繃锟?
-鎸夎繖涓『搴忓仛锛屽氨鑳芥妸鈥滄ā鍨嬭瘑鍒浘鐗団€濊繖鏉￠摼璺ǔ濡ユ帴鍏ョ幇鏈夐」鐩拷?
+梳理输入输出约束：确认前端上传的附件在后端是怎样存储的（例如保存路径、支持�??MIME），以及希望返回给前端的图片描述/警告字段格式??
+封�??Doubao 图片分析服务：�??server/src/services 下新增一个专门调??Doubao 的图像识别模块（可参考现�?imageAnalyzer.ts 结构），负责把图片转成合适�??image_url（�??base64 data URL）并调用 chat/completions 接口�?
+扩�??provider factory：�??providers/doubaoProvider.ts 里补充一个处理图片的入口，或新�??DoubaoImageService，从环境变量读取模型、API base，并复用 proxy 逻辑�?
+暴露后端接口：在 Fastify 路由里扩??/api/upload 或新�?/api/image-insight，在附件扫码流程里调用新服务，把生成�?caption、usage 信息保存到数据库/内存并返回给前端??
+前端接入展示：在 front/src/components/chat/ChatInterface.tsx 等处监听后端返回的图片描述，渲染在附件卡片�??AI 回复里，同时确保 Toast/提示文案覆盖失败场景�?
+补充测试与文档：为新服务??Vitest 单测（mock fetch），并在 progress.md、README.md 更新新的自检步骤，确�?pnpm --dir server test ??pnpm --dir front smoke 都通过�?
+按这个顺序做，就能把“模型识别图片”这条链路稳妥接入现有项目�?
 
-閭ｄ綘涓€姝ヤ竴姝ュ幓鍋氾紝姣忓仛涓€姝ラ兘瑕佹祴璇曢€氳繃浜嗗啀鍋氫笅涓€姝ワ紙浼佷笟鏄惁瑕佺暀涓嬪崟娴嬶紵锛燂級锛屼笉寰楁敼鍔ㄦ棤鍏冲姛鑳斤紝鏃犲叧浠ｇ爜
+那你一步一步去做，每做一步都要测试通过了再做下一步（企业是否要留下单测？？），不得改动无关功能，无关代码
 
 
-## 馃殌 閲嶈鍙樻洿鏃ュ織锛堝€掑簭�?
-- **2025-11-04 锟斤拷页锟劫讹拷锟斤拷锟斤拷锟斤�?*
-  - 锟狡筹拷锟斤拷页锟斤拷锟斤拷锟洁功锟杰憋拷签锟斤拷锟斤拷锟斤拷锟斤拷 AI 锟绞达拷说锟斤拷锟斤拷锟节筹拷锟秸硷�?
-  - 锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟劫讹拷锟斤拷炭锟斤拷谩锟斤拷锟脚ワ拷锟酵拷�?`VITE_KIDS_CODING_URL` 锟斤拷锟斤拷锟斤拷转锟斤拷锟解部学习站锟斤拷
-  - 锟斤拷锟斤拷锟斤拷瞥锟斤拷锟绞碉拷使锟斤拷艿锟阶拷锟斤拷锟节ｏ拷锟斤拷锟斤拷锟斤拷劢锟斤拷锟斤拷锟斤拷锟斤拷俣锟斤拷锟教讹拷位
-  - 锟斤拷页锟斤拷锟斤拷锟绞碉拷锟斤拷锟斤拷婊晃匡拷沾�?+ 锟斤拷锟斤拷锟斤拷锟斤拷模锟介，支锟街憋拷锟截存储锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷
-  - 微锟斤拷锟斤拷锟斤拷锟斤拷啵拷锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷锟街拷锟斤拷锟斤拷锟斤拷
+## 🚀 重要变更日志（倒序??
+- **2025-11-04 ��ҳ�ٶ�������??*
+  - �Ƴ���ҳ�����๦�ܱ�ǩ�������� AI �ʴ�˵�����ڳ��ռ�??
+  - �����������ٶ���̿��á���ť��ͨ�??`VITE_KIDS_CODING_URL` ������ת���ⲿѧϰվ��
+  - ������Ƴ���ʵ�ʹ��ܵ�ר����ڣ�������۽��������ٶ���̶�λ
+  - ��ҳ�����ʵ�����滻Ϊÿ�մ??+ ��������ģ�飬֧�ֱ��ش洢����������
+  - ΢��������࣬������������֮�������
   - Checks: pnpm --dir front build:client
 - **2025-10-31 Chat scroll affordance**
   - Auto-scroll stays enabled when the user is at the bottom; manual scrolling pauses it
@@ -111,101 +115,101 @@
   - Applies setAutoScrollEnabled/scrollToLatest before dispatching request
   - Checks: pnpm --dir front build:client
 
-- **2025-10-31 椤甸潰婊氬姩鎺у埗璋冩�?*
-  - Home 绾у埆鎺у埗 html/body overflow锛岀粺涓€鍙栨秷棣栭�?鑱婂ぉ鍏ㄥ眬婊氬姩锟?
-  - MainContent 寮曞叆鍐呭眰闅愯棌婊氬姩鏉★紝鍙充晶鍐呭淇濇寔鍙祻锟?
-  - 渚ц竟鏍忓搴︽牴鎹旱鍚戝睆骞曡嚜鍔ㄦ斁澶э紝棣栭�?鑱婂ぉ淇濇寔涓€鑷磋锟?
-  - 鑱婂ぉ鐣岄潰鐢辫鍙ｅ搴︽帶鍒讹紙maxWidth 92vw锛夛紝瓒呭灞忚緭鍏ュ尯鑷€傚簲鎷変几
-  - 渚ц竟鏍忔敼锟?flex h-full锛屽亸楂樺睆骞曚换鍔″垪琛ㄨ嚜鍔ㄨ创�?
+- **2025-10-31 页面滚动控制调�??*
+  - Home 级别控制 html/body overflow，统一取消首�??聊天全局滚动�?
+  - MainContent 引入内层隐藏滚动条，右侧内容保持可浏�?
+  - 侧边栏宽度根据纵向屏幕自动放大，首�??聊天保持一致视�?
+  - 聊天界面由视口宽度控制（maxWidth 92vw），超宽屏输入区自适应拉伸
+  - 侧边栏改�?flex h-full，偏高屏幕任务列表自动贴??
 
-- **2025-10-29 骞抽摵鍚庣鐩�?+ 鍗曞厓娴嬭瘯鎵╁�?+ 鍗忎綔瑙勮寖**
-  - �?server/server/src 骞抽摵锟?server/src锛屾竻鐞嗗巻鍙叉瀯寤轰骇�?
-  - 鏇存柊鏋勫缓鑴氭湰锛宲npm --dir server build / pnpm --dir server test 鍧囧凡閫氳繃
-  - 寮曞�?Vitest锛屾柊锟?
-sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
-  - 鏂板�?smoke.ps1 �?pnpm --dir front smoke 鑴氭湰锛屾矇娣€鏈€灏忓寲鑷娴佺�?
-  - README 澧炶ˉ AI 鎻愮ず璇嶃€佹墜鍔ㄩ獙璇佹竻鍗曞強鑴氭湰璇存�?
-  - 淇鍙戦€佸悗闄勪欢鍗＄墖寤惰繜娑堝け鐨勯棶棰橈紙鍙戦€佸け璐ユ椂鑷姩鎭㈠闄勪欢锟?
-  - 淇棣栭〉涓婁紶娑堟伅鍦ㄨ亰澶╃晫闈笉鏄剧ず闄勪欢鍗＄墖鐨勯棶棰橈紝鏀寔鍒濆娑堟伅鐨勯檮浠跺悓姝ュ睍锟?
-- **2025-10-28 闄勪欢涓婁笅鏂囦笌涓婁紶鎸佷箙锟?*
-  - Fastify 澧炲�?/uploads/:fileName 闈欐€佽矾鐢憋紝缁熶竴鐢熸垚涓嬭浇鍦板潃
-  - 鍓嶇涓婁紶閽╁瓙淇濆瓨杩滅�?URL锛屽埛鏂板悗鍥剧墖浠嶈兘灞曠�?
-  - 鏈湴瀛樻。璇诲彇鏃惰嚜鍔ㄨˉ榻愬巻鍙查檮浠剁殑璁块棶閾炬帴
-- **2025-10-27 澶氫細璇濋殧�?+ Streaming 鍗囩骇锛堣繘琛屼腑锟?*
-  - 鏂板娑堟伅浠撳�?messagesRegistryRef锛岄槻姝㈠垏鎹㈠璇濅覆�?
-  - Streaming �?sessionId 缁戝畾锛岄伩鍏嶈法浼氳瘽姹℃�?
-- **2025-10-27 Loading Toast 鐢熷懡鍛ㄦ湡绠＄�?*
-  - 浣跨�?	ry/finally 纭�?toast 姝ｇ‘鍏抽棴
-  - 淇澶辫触璇锋眰瀵艰�?Spinner 鍗℃鐨勯棶�?
-- **2025-10-27 椤甸潰妯″潡鍖栬皟锟?*
-  - Home 椤甸潰鎷嗗垎�?chat/�?ttachments/銆乭ome/ 妯″潡
-  - 鑱岃矗鏇磋仛鐒︼紝澶嶇敤鎬ф彁�?
-- **2025-10-23 Markdown 浠ｇ爜鍧楀鍒舵寜�?*
-  - 鎵€鏈変唬鐮佸潡鎻愪緵鐙珛澶嶅埗鎸夐挳锛屽吋瀹规�?Clipboard API 鍦烘�?
-  - Toast 鎻愮ず鎴愬姛 / 澶辫�?
-- **2025-10-23 杈撳叆浜や簰浼樺�?*
-  - Enter 鍙戦€佹秷鎭紝Shift+Enter 鎹㈣�?
-  - 瀵瑰叾浠栬緭鍏ュ満鏅棤鍓綔�?
-- **2025-10-23 浼氳瘽鍒濆鍖栦慨锟?*
-  - 寮曞�?lastConversationIdRef锛岃В�?StrictMode 鍙屾覆鏌撳鑷寸殑閲嶅瀵硅�?
-- **2025-10-22 浼氳瘽璁板繂鎸佷箙锟?*
-  - ConversationMemoryManager 鏀寔鏂囦欢鎸佷箙鍖栵紝榛樿鐩�?server_data/memory
-  - 璁″垝鎵╁�?Redis / pgvector
-- **2025-10-22 鑷€傚簲涓存椂鏂规�?*
-  - 瀹藉睆缂╂斁涓庢孩鍑轰繚鎶わ紝鏆傛椂瑙勯伩鏂眰闂�?
-- **2025-10-22 Provider 璺敱淇**
-  - .env 閰嶇疆瀵归綈锛岀鍙ｅ崰鐢ㄦ竻锟?
-  - /api/chat 杩斿�?provider: doubao
-- **2025-10-21 棣栭�?UI 杩�?*
-  - 鑱婂ぉ鍖哄煙鍗＄墖鍖栥€佸巻鍙插尯鍙姌鍙犮€佹帹鑽愭彁绀哄睍�?
-- **2025-10-21 鍓嶇鎺ュ叆璞嗗寘妯″�?*
-  -  iService 璋冪�?/api/chat
-  - 鏀寔妯″瀷杈撳嚭娴佸紡鍝嶅簲
-- **2025-10-21 Doubao Provider 閫傞�?*
-  - 鏂板�?DoubaoProvider锛岄粯璁ゆā锟?doubao-seed-1-6-flash
-- **2025-10-20 鐜涓庝唬鐞嗛厤锟?*
-  - .env.example 琛ラ綈锟?gitignore 灞忚斀鏁忔劅鏂囦欢
-  - 鎴愬姛缁曡繃 OpenAI 缃戠粶闄愬埗
+- **2025-10-29 平铺后端目�??+ 单元测试扩�??+ 协作规范**
+  - ??server/server/src 平铺�?server/src，清理历史构建产??
+  - 更新构建脚本，pnpm --dir server build / pnpm --dir server test 均已通过
+  - 引�??Vitest，新�?
+sHelpers??ttachmentContext 与前�? iService 单元测试
+  - 新�??smoke.ps1 ??pnpm --dir front smoke 脚本，沉淀最小化自检流�??
+  - README 增补 AI 提示词、手动验证清单及脚本说�??
+  - 修复发送后附件卡片延迟消失的问题（发送失败时自动恢复附件�?
+  - 修复首页上传消息在聊天界面不显示附件卡片的问题，支持初始消息的附件同步展�?
+- **2025-10-28 附件上下文与上传持久�?*
+  - Fastify 增�??/uploads/:fileName 静态路由，统一生成下载地址
+  - 前端上传钩子保存远�??URL，刷新后图片仍能展�??
+  - 本地存档读取时自动补齐历史附件的访问链接
+- **2025-10-27 多会话隔??+ Streaming 升级（进行中�?*
+  - 新增消息仓�??messagesRegistryRef，防止切换对话串??
+  - Streaming ??sessionId 绑定，避免跨会话污�??
+- **2025-10-27 Loading Toast 生命周期管�??*
+  - 使�??	ry/finally 确�??toast 正确关闭
+  - 修复失败请求导�??Spinner 卡死的问??
+- **2025-10-27 页面模块化调�?*
+  - Home 页面拆分??chat/??ttachments/、home/ 模块
+  - 职责更聚焦，复用性提??
+- **2025-10-23 Markdown 代码块复制按??*
+  - 所有代码块提供独立复制按钮，兼容�??Clipboard API 场�??
+  - Toast 提示成功 / 失�??
+- **2025-10-23 输入交互优�??*
+  - Enter 发送消息，Shift+Enter 换�??
+  - 对其他输入场景无副作??
+- **2025-10-23 会话初始化修�?*
+  - 引�??lastConversationIdRef，解??StrictMode 双渲染导致的重复对�??
+- **2025-10-22 会话记忆持久�?*
+  - ConversationMemoryManager 支持文件持久化，默认目�??server_data/memory
+  - 计划扩�??Redis / pgvector
+- **2025-10-22 自适应临时方�??*
+  - 宽屏缩放与溢出保护，暂时规避断层问�??
+- **2025-10-22 Provider 路由修复**
+  - .env 配置对齐，端口占用清�?
+  - /api/chat 返�??provider: doubao
+- **2025-10-21 首�??UI 迭�??*
+  - 聊天区域卡片化、历史区可折叠、推荐提示展??
+- **2025-10-21 前端接入豆包模�??*
+  -  iService 调�??/api/chat
+  - 支持模型输出流式响应
+- **2025-10-21 Doubao Provider 适�??*
+  - 新�??DoubaoProvider，默认模�?doubao-seed-1-6-flash
+- **2025-10-20 环境与代理配�?*
+  - .env.example 补齐�?gitignore 屏蔽敏感文件
+  - 成功绕过 OpenAI 网络限制
 
-## 馃攳 璇婃柇鎽樿
-- 鍏稿瀷闂锛欵TIMEDOUT �?妫€鏌ヤ唬鐞嗕笌缃戠粶杩為€氾拷?
-- 甯哥敤娴嬭瘯鍛戒护锟?
+## 🔍 诊断摘要
+- 典型问题：ETIMEDOUT ??检查代理与网络连通�?
+- 常用测试命令�?
   `ash
   curl -v http://localhost:8082/v1/models
   curl -sS -X POST -H "Content-Type: application/json" \
-    -d '{"query":"娴嬭瘯OpenAI杩炴�?}' \
+    -d '{"query":"测试OpenAI连�??}' \
     http://localhost:8302/api/chat -w '\nHTTP_STATUS:%{http_code}\n'
   `
 
-## 馃寪 浠ｇ悊閰嶇疆澶囧�?
-- Windows 涓存椂绀轰緥�?
+## 🌐 代理配置备�??
+- Windows 临时示例??
   `powershell
   ='http://127.0.0.1:33210'
   ='http://127.0.0.1:33210'
   ='socks5://127.0.0.1:33211'
   pnpm --dir server dev
   `
-- 瀵嗛挜涓庝唬鐞嗗嚟鎹粎淇濈暀鍦ㄦ湰鍦帮紝閮ㄧ讲鏃舵敼鐢ㄧ幆澧冨彉閲忔墭绠★拷?
+- 密钥与代理凭据仅保留在本地，部署时改用环境变量托管�?
 - **2025-10-29 Doubao connectivity smoke test**
   - Added server/scripts/test-doubao-image.mjs to verify doubao-seed-1-6-flash reads image prompts without touching app code
   - Confirmed connectivity and successful image caption response using local base64 upload sample
-- **2025-10-30 璞嗗寘鍥惧儚鎻忚堪鎺ュ叆**
-  - 鏂板�?server/src/services/doubaoImageService.ts锛屽皝瑁呰眴鍖呭浘鍍忚瘑鍒苟鍥炶惤�?OpenAI 鍏冩暟鎹拷?
-  - 鎵╁�?processChatRequest 瑙ｆ瀽闄勪欢涓婁笅鏂囷紝杩斿�?caption銆亀arnings銆乽sage 绛変俊鎭拷?
-  - 鍓嶇鍚屾灞曠ず鍥惧儚鎻忚堪涓庤鍛婏紝琛ュ厖 toast 鎻愮ず鍙婇檮浠跺崱鐗囨牱寮忥�?
-  - 娴嬭瘯锛歱npm --dir server test锛沺npm --dir front build:client�?
-- **2025-10-30 鏂囨。瑙ｆ瀽鎺ュ叆**
-  - 鏂板�?documentParser 鏈嶅姟锛岀粺涓€澶勭悊 TXT/PDF/DOCX锛屽苟鍦ㄩ檮浠朵笂涓嬫枃鐢熸垚鎽樿涓庤鍛婏拷?
-  - 鎵╁�?buildAttachmentContext 鏀寔鍥剧�?+ 鏂囨。鍒嗘敮锛屾暣鐞嗕笂涓嬫枃鍧楀苟杩斿洖缁熶竴缁撴瀯锟?
-  - 娴嬭瘯锛歱npm --dir server test锛沺npm --dir server build�?
-- **2025-10-30 Excel 瑙ｆ瀽鏀寔**
-  - 鎵╁�?documentParser 鏀寔 XLSX锛岄檺鍒惰〃鏍艰鍒楀苟鐢熸垚琛ㄥ�?鏁版嵁鎽樿�?
-  - 缁熶竴涓婁笅鏂囪緭鍑猴紝attachmentContext 鑷姩鎷兼帴宸ヤ綔琛ㄦ憳瑕佷笌璀﹀憡锟?
-  - 娴嬭瘯锛歱npm --dir server test�?
-- **2025-10-30 鏂板缓瀵硅瘽琛屼负浼樺�?*
-  - 鐐瑰嚮鈥滃紑鍚柊鑱婂ぉ鈥濅粎閲嶇疆鐣岄潰锛岀瓑寰呯敤鎴疯緭鍏ュ悗鍐嶅垱寤轰細璇濓�?
-  - 鍒濇鍔犺浇浠嶉粯璁ら€変腑鏈€杩戜細璇濓紝鎵嬪姩杩涘叆鏂板璇濇椂闅忔満鍒嗛厤鍥炬爣涓庨鑹诧拷?
-  - 楠岃瘉锛歱npm --dir front build:client�?
+- **2025-10-30 豆包图像描述接入**
+  - 新�??server/src/services/doubaoImageService.ts，封装豆包图像识别并回落??OpenAI 元数据�?
+  - 扩�??processChatRequest 解析附件上下文，返�??caption、warnings、usage 等信息�?
+  - 前端同步展示图像描述与警告，补充 toast 提示及附件卡片样式�??
+  - 测试：pnpm --dir server test；pnpm --dir front build:client??
+- **2025-10-30 文档解析接入**
+  - 新�??documentParser 服务，统一处理 TXT/PDF/DOCX，并在附件上下文生成摘要与警告�?
+  - 扩�??buildAttachmentContext 支持图�??+ 文档分支，整理上下文块并返回统一结构�?
+  - 测试：pnpm --dir server test；pnpm --dir server build??
+- **2025-10-30 Excel 解析支持**
+  - 扩�??documentParser 支持 XLSX，限制表格行列并生成表�??数据摘要??
+  - 统一上下文输出，attachmentContext 自动拼接工作表摘要与警告�?
+  - 测试：pnpm --dir server test??
+- **2025-10-30 新建对话行为优�??*
+  - 点击“开启新聊天”仅重置界面，等待用户输入后再创建会话�??
+  - 初次加载仍默认选中最近会话，手动进入新对话时随机分配图标与颜色�?
+  - 验证：pnpm --dir front build:client??
 - **2025-10-31 Streaming output cadence**
   - useConversationController introduces token-level buffering with adaptive flush cadence for GPT-like typing
   - Adaptive delay + auto-scroll now smooth the early cadence while the caret indicator shows ongoing generation
@@ -230,37 +234,38 @@ sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
   - Checks: pnpm --dir front build:client
 
 
-- **2025-11-07 学习中心布局拆分**
-  - 将 Mission/Code/Result 栏抽成独立组件，KidsCodingEditorPage 仅保留状态与布局，清理 render 函数和重复 JSX，三栏高度保持一致
-  - ResultPanel 加上移动端教学资料入口并统一标题样式，CodePanel 承担控制台遮罩，避免再出现按钮被遮挡
-  - 测试：pnpm --dir server test；pnpm --dir front build:client
+- **2025-11-07 ѧϰ���Ĳ��ֲ��**
+  - �� Mission/Code/Result ����ɶ��������KidsCodingEditorPage ������״̬�벼�֣����� render �������ظ� JSX�������߶ȱ���һ��
+  - ResultPanel �����ƶ��˽�ѧ������ڲ�ͳһ������ʽ��CodePanel �е�����̨���֣������ٳ��ְ�ť���ڵ�
+  - ���ԣ�pnpm --dir server test��pnpm --dir front build:client
 
-- **2025-11-07 学习中心头部对齐**
-  - CodePanel 头部恢复与其他面板一致的 padding/单行布局，查看控制台 不再换行；ResultPanel 去掉“可视化 & AI 助手”标题，保持此前精简样式
-  - 测试：pnpm --dir server test；pnpm --dir front build:client
-- **2025-11-07 学习中心折叠面板**
-  - 新增 usePanelCollapse Hook 管理任务/运行结果折叠状态，并为 MissionPanel、ResultPanel 提供独立的折叠按钮，布局更易维护
-  - ResultPanel/MissionPanel 内容在折叠时完全收起，保留统一标题栏；测试覆盖：pnpm --dir server test；pnpm --dir front build:client
-- **2025-11-07 学习中心左右折叠**
-  - MissionPanel/ResultPanel 改为整列折叠，新增 CollapsedPanelRail 触发条，编辑器宽度可按需扩展，逻辑集中在 usePanelCollapse Hook
-  - KidsCodingEditorPage 根据折叠状态实时变更 grid 模板，桌面端可独立展开/收起两侧栏；测试：pnpm --dir server test；pnpm --dir front build:client
-- **2025-11-07 折叠箭头美化**
-  - CollapsedPanelRail 改成极简圆形箭头按钮，左右只留小小的箭头提示，展开/收起更符合视觉要求
-  - KidsCodingEditorPage 更新调用签名；测试：pnpm --dir server test；pnpm --dir front build:client
-- **2025-11-07 折叠箭头瘦身**
-  - CollapsedPanelRail 改为 8px 圆形箭头 + 透明窄条，最大限度减少占位，仅作为提示
-  - 测试：pnpm --dir server test；pnpm --dir front build:client
-- **2025-11-07 折叠箭头 2px 版本**
-  - CollapsedPanelRail 仅保留 2px 竖线 + 小三角，完全贴边，点击范围仍覆盖整条细线
-  - 测试：pnpm --dir server test；pnpm --dir front build:client
-- **2025-11-07 KidsCoding 标题栏与控制台位置**
-  - 让任务/代码/结果三块的抬头保持同一行高度：代码编辑器顶部按钮强制单行滚动显示，并把“查看控制台”挪到运行按钮下方的辅助链接。
+- **2025-11-07 ѧϰ����ͷ������**
+  - CodePanel ͷ���ָ����������һ�µ� padding/���в��֣��鿴����̨ ���ٻ��У�ResultPanel ȥ�������ӻ� & AI ���֡����⣬���ִ�ǰ������ʽ
+  - ���ԣ�pnpm --dir server test��pnpm --dir front build:client
+- **2025-11-07 ѧϰ�����۵����**
+  - ���� usePanelCollapse Hook ��������/���н���۵�״̬����Ϊ MissionPanel��ResultPanel �ṩ�������۵���ť�����ָ���ά��
+  - ResultPanel/MissionPanel �������۵�ʱ��ȫ���𣬱���ͳһ�����������Ը��ǣ�pnpm --dir server test��pnpm --dir front build:client
+- **2025-11-07 ѧϰ���������۵�**
+  - MissionPanel/ResultPanel ��Ϊ�����۵������� CollapsedPanelRail ���������༭�����ȿɰ�����չ���߼������� usePanelCollapse Hook
+  - KidsCodingEditorPage �����۵�״̬ʵʱ��� grid ģ�壬����˿ɶ���չ��/���������������ԣ�pnpm --dir server test��pnpm --dir front build:client
+- **2025-11-07 �۵���ͷ����**
+  - CollapsedPanelRail �ĳɼ���Բ�μ�ͷ��ť������ֻ��СС�ļ�ͷ��ʾ��չ��/����������Ӿ�Ҫ��
+  - KidsCodingEditorPage ���µ���ǩ�������ԣ�pnpm --dir server test��pnpm --dir front build:client
+- **2025-11-07 �۵���ͷ����**
+  - CollapsedPanelRail ��Ϊ 8px Բ�μ�ͷ + ͸��խ��������޶ȼ���ռλ������Ϊ��ʾ
+  - ���ԣ�pnpm --dir server test��pnpm --dir front build:client
+- **2025-11-07 �۵���ͷ 2px �汾**
+  - CollapsedPanelRail ������ 2px ���� + С���ǣ���ȫ���ߣ������Χ�Ը�������ϸ��
+  - ���ԣ�pnpm --dir server test��pnpm --dir front build:client
+- **2025-11-07 KidsCoding �����������̨λ��**
+  - ������/����/��������̧ͷ����ͬһ�и߶ȣ�����༭��������ťǿ�Ƶ��й�����ʾ�����ѡ��鿴����̨��Ų�����а�ť�·��ĸ������ӡ�
   - Checks: pnpm --dir server test; pnpm --dir front build:client
-- **2025-11-08 KidsCoding 编辑器导航布局**
-  - 前端 KidsCoding Editor 页面新增渐变导航栏，原本散落在代码面板顶部的保存/格式化/助手按钮统一收口，并加上任务说明按钮触发抽屉。
-  - 移除左侧常驻任务栏，改为 MissionDrawer 侧滑展示；桌面端仅保留代码 + 结果双栏，移动端继续提供代码/结果切换。
-  - Checks: （未运行）UI 调整，待有人手按流程执行 `pnpm --dir server test` 与 `pnpm --dir front build:client`
-- **2025-11-08 KidsCoding 编辑器贴顶**
-  - 搭建统一的渐变包裹层：导航栏与下方编辑器/结果区域共享同一个圆角容器，移除多余阴影，底部暗色背景过渡让视觉成为单一模块。
-  - 代码编辑器重绘为深色卡片（同容器色系）并同步取消导航栏左/下圆角，按钮/渐变保持不变但整体看起来连成一体。
-  - Checks: （未运行）待有人手执行 `pnpm --dir server test`、`pnpm --dir front build:client`
+- **2025-11-08 KidsCoding �༭����������**
+  - ǰ�� KidsCoding Editor ҳ���������䵼������ԭ��ɢ���ڴ�����嶥���ı���/��ʽ��/���ְ�ťͳһ�տڣ�����������˵����ť�������롣
+  - �Ƴ���ೣפ����������Ϊ MissionDrawer �໬չʾ������˽��������� + ���˫�����ƶ��˼����ṩ����/����л���
+  - Checks: ��δ���У�UI �������������ְ�����ִ�� `pnpm --dir server test` �� `pnpm --dir front build:client`
+- **2025-11-08 KidsCoding �༭������**
+  - �ͳһ�Ľ�������㣺���������·��༭��/���������ͬһ��Բ���������Ƴ�������Ӱ���ײ���ɫ�����������Ӿ���Ϊ��һģ�顣
+  - ����༭���ػ�Ϊ��ɫ��Ƭ��ͬ����ɫϵ����ͬ��ȡ����������/��Բ�ǣ���ť/���䱣�ֲ��䵫���忴��������һ�塣
+  - Checks: ��δ���У���������ִ�� `pnpm --dir server test`��`pnpm --dir front build:client`
+
