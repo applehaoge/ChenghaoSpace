@@ -7,7 +7,9 @@ import { ProgrammingAssistantModal } from '@/features/kidsCoding/components/Prog
 import { MissionPanel } from '@/features/kidsCoding/components/learningCenter/MissionPanel';
 import { CodePanel } from '@/features/kidsCoding/components/learningCenter/CodePanel';
 import { ResultPanel } from '@/features/kidsCoding/components/learningCenter/ResultPanel';
+import { CollapsedPanelRail } from '@/features/kidsCoding/components/learningCenter/CollapsedPanelRail';
 import { RESPONSIVE_PANEL_HEIGHT_CLASS } from '@/features/kidsCoding/constants/learningCenter';
+import { usePanelCollapse } from '@/features/kidsCoding/hooks/usePanelCollapse';
 import { AiChatMessage, MissionContent, ResultFocus } from '@/features/kidsCoding/types/learningCenter';
 
 const CODE_SAMPLE = `# AI 国度修复计划 - 任务 01：认识你的 AI 助手
@@ -84,6 +86,7 @@ export function KidsCodingEditorPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [showAssistantModal, setShowAssistantModal] = useState(false);
+  const { collapsed, togglePanel, setPanelCollapsed } = usePanelCollapse();
 
   const showFullLayout = screenWidth >= 1280;
   const isLaptop = screenWidth >= 1024;
@@ -100,6 +103,13 @@ export function KidsCodingEditorPage() {
       setIsConsoleOpen(false);
     }
   }, [isLaptop]);
+
+  useEffect(() => {
+    if (!showFullLayout) {
+      setPanelCollapsed('mission', false);
+      setPanelCollapsed('results', false);
+    }
+  }, [showFullLayout, setPanelCollapsed]);
 
   const handleRunCode = () => {
     if (isRunning) return;
@@ -145,6 +155,16 @@ export function KidsCodingEditorPage() {
   const missionVisible = showFullLayout || mobileSection === 'mission';
   const codeVisible = showFullLayout || mobileSection === 'code';
   const resultVisible = showFullLayout || mobileSection === 'results';
+  const missionCollapsed = showFullLayout && collapsed.mission;
+  const resultCollapsed = showFullLayout && collapsed.results;
+
+  const desktopColumns = (() => {
+    if (!showFullLayout) return 'grid-cols-1';
+    if (missionCollapsed && resultCollapsed) return 'grid-cols-1';
+    if (missionCollapsed) return 'grid-cols-[minmax(0,1fr)_380px]';
+    if (resultCollapsed) return 'grid-cols-[320px_minmax(0,1fr)]';
+    return 'grid-cols-[320px_minmax(0,1fr)_380px]';
+  })();
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
@@ -175,46 +195,59 @@ export function KidsCodingEditorPage() {
             </div>
           ) : null}
 
-          <div
-            className={clsx(
-              'grid gap-4 lg:flex-1 lg:gap-6',
-              showFullLayout ? 'grid-cols-[320px_minmax(0,1fr)_380px] lg:items-stretch' : 'grid-cols-1',
-            )}
-          >
-            {missionVisible ? (
-              <MissionPanel
-                content={MISSION_CONTENT}
-                className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
-              />
+          <div className={clsx('flex gap-4 lg:gap-6', showFullLayout ? 'items-stretch' : 'flex-col')}>
+            {showFullLayout && missionVisible && missionCollapsed ? (
+              <CollapsedPanelRail side="left" label="任务说明" onExpand={() => togglePanel('mission')} />
             ) : null}
-            {codeVisible ? (
-              <CodePanel
-                className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
-                codeSample={CODE_SAMPLE}
-                consoleSample={CONSOLE_SAMPLE}
-                isRunning={isRunning}
-                isConsoleOpen={isConsoleOpen}
-                consoleRef={consoleRef}
-                onToggleConsole={() => setIsConsoleOpen(previous => !previous)}
-                onRunCode={handleRunCode}
-                onReset={handleReset}
-                onSave={handleSave}
-                onFormat={handleFormat}
-                onOpenAssistant={() => setShowAssistantModal(true)}
-              />
-            ) : null}
-            {resultVisible ? (
-              <ResultPanel
-                className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
-                showFullLayout={showFullLayout}
-                activeFocus={activeMobileResult}
-                onFocusChange={setActiveMobileResult}
-                aiMessages={aiMessages}
-                aiInput={aiInput}
-                onAiInputChange={setAiInput}
-                onSendMessage={handleSendAiMessage}
-                onShowAssistantModal={() => setShowAssistantModal(true)}
-              />
+            <div
+              className={clsx(
+                'grid flex-1 gap-4 lg:gap-6',
+                showFullLayout ? desktopColumns : 'grid-cols-1',
+                showFullLayout && 'lg:items-stretch',
+              )}
+            >
+              {missionVisible && !missionCollapsed ? (
+                <MissionPanel
+                  content={MISSION_CONTENT}
+                  className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
+                  enableCollapse={showFullLayout}
+                  onCollapse={() => togglePanel('mission')}
+                />
+              ) : null}
+              {codeVisible ? (
+                <CodePanel
+                  className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
+                  codeSample={CODE_SAMPLE}
+                  consoleSample={CONSOLE_SAMPLE}
+                  isRunning={isRunning}
+                  isConsoleOpen={isConsoleOpen}
+                  consoleRef={consoleRef}
+                  onToggleConsole={() => setIsConsoleOpen(previous => !previous)}
+                  onRunCode={handleRunCode}
+                  onReset={handleReset}
+                  onSave={handleSave}
+                  onFormat={handleFormat}
+                  onOpenAssistant={() => setShowAssistantModal(true)}
+                />
+              ) : null}
+              {resultVisible && !resultCollapsed ? (
+                <ResultPanel
+                  className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
+                  showFullLayout={showFullLayout}
+                  activeFocus={activeMobileResult}
+                  onFocusChange={setActiveMobileResult}
+                  aiMessages={aiMessages}
+                  aiInput={aiInput}
+                  onAiInputChange={setAiInput}
+                  onSendMessage={handleSendAiMessage}
+                  onShowAssistantModal={() => setShowAssistantModal(true)}
+                  enableCollapse={showFullLayout}
+                  onCollapse={() => togglePanel('results')}
+                />
+              ) : null}
+            </div>
+            {showFullLayout && resultVisible && resultCollapsed ? (
+              <CollapsedPanelRail side="right" label="运行结果" onExpand={() => togglePanel('results')} />
             ) : null}
           </div>
         </div>

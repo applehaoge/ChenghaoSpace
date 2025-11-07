@@ -6,7 +6,6 @@ import {
   PANEL_BASE_CLASS,
   SECTION_HEADER_CLASS,
   SECTION_LABEL_CLASS,
-  SECTION_TITLE_CLASS,
 } from '@/features/kidsCoding/constants/learningCenter';
 import { AiChatMessage, ResultFocus } from '@/features/kidsCoding/types/learningCenter';
 
@@ -20,6 +19,8 @@ interface ResultPanelProps {
   onAiInputChange: (value: string) => void;
   onSendMessage: () => void;
   onShowAssistantModal: () => void;
+  enableCollapse?: boolean;
+  onCollapse?: () => void;
 }
 
 export function ResultPanel({
@@ -32,41 +33,59 @@ export function ResultPanel({
   onAiInputChange,
   onSendMessage,
   onShowAssistantModal,
+  enableCollapse = false,
+  onCollapse,
 }: ResultPanelProps) {
   return (
     <aside className={clsx(PANEL_BASE_CLASS, className)}>
       <div className={clsx(SECTION_HEADER_CLASS, 'text-sm lg:flex-row lg:items-center lg:justify-between')}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
           <span className={SECTION_LABEL_CLASS}>运行结果</span>
-          <span className={SECTION_TITLE_CLASS}>可视化 & AI 助手</span>
         </div>
-        {!showFullLayout ? (
-          <div className="mt-3 flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-300 lg:mt-0">
-            {[
-              { key: 'visualization', label: '可视化', icon: 'fa-display' },
-              { key: 'ai', label: 'AI 助手', icon: 'fa-robot' },
-            ].map(option => (
-              <button
-                key={option.key}
-                type="button"
-                onClick={() => onFocusChange(option.key as ResultFocus)}
-                className={clsx(
-                  'flex items-center gap-1 rounded-lg px-3 py-1 transition',
-                  activeFocus === option.key
-                    ? 'bg-blue-600 text-white'
-                    : 'text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700',
-                )}
-              >
-                <i className={`fa-solid ${option.icon}`} />
-                {option.label}
-              </button>
-            ))}
-          </div>
-        ) : (
-          <button type="button" onClick={onShowAssistantModal} className={ACTION_LINK_CLASS}>
-            查看教学资料
-          </button>
-        )}
+        <div
+          className={clsx(
+            'flex items-center gap-2',
+            !showFullLayout && 'mt-3 flex-wrap lg:mt-0',
+          )}
+        >
+          {!showFullLayout ? (
+            <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-300">
+              {[
+                { key: 'visualization', label: '可视化', icon: 'fa-display' },
+                { key: 'ai', label: 'AI 助手', icon: 'fa-robot' },
+              ].map(option => (
+                <button
+                  key={option.key}
+                  type="button"
+                  onClick={() => onFocusChange(option.key as ResultFocus)}
+                  className={clsx(
+                    'flex items-center gap-1 rounded-lg px-3 py-1 transition',
+                    activeFocus === option.key
+                      ? 'bg-blue-600 text-white'
+                      : 'text-slate-500 hover:bg-slate-200 dark:text-slate-300 dark:hover:bg-slate-700',
+                  )}
+                >
+                  <i className={`fa-solid ${option.icon}`} />
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <button type="button" onClick={onShowAssistantModal} className={ACTION_LINK_CLASS}>
+              查看教学资料
+            </button>
+          )}
+          {enableCollapse && onCollapse ? (
+            <button
+              type="button"
+              onClick={onCollapse}
+              title="折叠运行结果"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
+            >
+              <i className="fa-solid fa-chevron-right" />
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-3 overflow-hidden px-4 pb-4 pt-4">
@@ -180,7 +199,7 @@ function AiAssistantCard({
           <input
             value={aiInput}
             onChange={event => onAiInputChange(event.target.value)}
-            placeholder="向 AI 编程助手提问，例如“帮我优化能量管理”"
+            placeholder='向 AI 编程助手提问，例如“帮我优化能量管理”'
             className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
           />
           <button

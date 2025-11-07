@@ -40,8 +40,8 @@ export function CodePanel({
 }: CodePanelProps) {
   return (
     <section className={clsx(PANEL_BASE_CLASS, className)}>
-      <div className={clsx(SECTION_HEADER_CLASS, 'gap-3 lg:px-5')}>
-        <div className="flex flex-wrap items-center gap-3">
+      <div className={clsx(SECTION_HEADER_CLASS, 'gap-3')}>
+        <div className="flex items-center gap-3 whitespace-nowrap">
           <span className={SECTION_LABEL_CLASS}>代码编辑器</span>
           <button type="button" onClick={onToggleConsole} className={ACTION_LINK_CLASS}>
             {isConsoleOpen ? '隐藏控制台' : '查看控制台'}

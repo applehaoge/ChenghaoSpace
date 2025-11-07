@@ -235,3 +235,21 @@ sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
   - ResultPanel 加上移动端教学资料入口并统一标题样式，CodePanel 承担控制台遮罩，避免再出现按钮被遮挡
   - 测试：pnpm --dir server test；pnpm --dir front build:client
 
+- **2025-11-07 学习中心头部对齐**
+  - CodePanel 头部恢复与其他面板一致的 padding/单行布局，查看控制台 不再换行；ResultPanel 去掉“可视化 & AI 助手”标题，保持此前精简样式
+  - 测试：pnpm --dir server test；pnpm --dir front build:client
+- **2025-11-07 学习中心折叠面板**
+  - 新增 usePanelCollapse Hook 管理任务/运行结果折叠状态，并为 MissionPanel、ResultPanel 提供独立的折叠按钮，布局更易维护
+  - ResultPanel/MissionPanel 内容在折叠时完全收起，保留统一标题栏；测试覆盖：pnpm --dir server test；pnpm --dir front build:client
+- **2025-11-07 学习中心左右折叠**
+  - MissionPanel/ResultPanel 改为整列折叠，新增 CollapsedPanelRail 触发条，编辑器宽度可按需扩展，逻辑集中在 usePanelCollapse Hook
+  - KidsCodingEditorPage 根据折叠状态实时变更 grid 模板，桌面端可独立展开/收起两侧栏；测试：pnpm --dir server test；pnpm --dir front build:client
+- **2025-11-07 折叠箭头美化**
+  - CollapsedPanelRail 改成极简圆形箭头按钮，左右只留小小的箭头提示，展开/收起更符合视觉要求
+  - KidsCodingEditorPage 更新调用签名；测试：pnpm --dir server test；pnpm --dir front build:client
+- **2025-11-07 折叠箭头瘦身**
+  - CollapsedPanelRail 改为 8px 圆形箭头 + 透明窄条，最大限度减少占位，仅作为提示
+  - 测试：pnpm --dir server test；pnpm --dir front build:client
+- **2025-11-07 折叠箭头 2px 版本**
+  - CollapsedPanelRail 仅保留 2px 竖线 + 小三角，完全贴边，点击范围仍覆盖整条细线
+  - 测试：pnpm --dir server test；pnpm --dir front build:client
