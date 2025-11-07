@@ -6,6 +6,22 @@ import { toast } from 'sonner';
 import { useKidsCodingTheme } from '@/features/kidsCoding/hooks/useTheme';
 import { KidsCodingAuthContext } from '@/features/kidsCoding/contexts/authContext';
 import { ProgrammingAssistantModal } from '@/features/kidsCoding/components/ProgrammingAssistantModal';
+import { MissionPanel } from '@/features/kidsCoding/components/learningCenter/MissionPanel';
+import { CodePanel } from '@/features/kidsCoding/components/learningCenter/CodePanel';
+import { ResultPanel } from '@/features/kidsCoding/components/learningCenter/ResultPanel';
+import {
+  ACTION_LINK_CLASS,
+  PANEL_BASE_CLASS,
+  RESPONSIVE_PANEL_HEIGHT_CLASS,
+  SECTION_HEADER_CLASS,
+  SECTION_LABEL_CLASS,
+  SECTION_TITLE_CLASS,
+} from '@/features/kidsCoding/constants/learningCenter';
+import {
+  AiChatMessage,
+  MissionContent,
+  ResultFocus,
+} from '@/features/kidsCoding/types/learningCenter';
 
 const CODE_SAMPLE = `# AI 国度修复计划 - 任务 01：认识你的 AI 助手
 # 欢迎来到 AI 国度！这个世界需要你的帮助来修复损坏的 AI 系统
@@ -49,12 +65,6 @@ const CONSOLE_SAMPLE = `你好！我是 小智，你的 AI 助手。
 剩余能量：90
 小智 充好电啦！当前能量：100`;
 
-type AiChatMessage = {
-  id: number;
-  text: string;
-  isAI: boolean;
-};
-
 const INITIAL_CHAT: AiChatMessage[] = [
   { id: 1, text: '你好，我是 AI 编程助手小智，随时准备陪伴你完成挑战。', isAI: true },
   { id: 2, text: '我想知道怎么让 AI 助手记录知识值。', isAI: false },
@@ -74,18 +84,7 @@ const MISSION_CONTENT = {
 };
 
 type MobileSection = 'mission' | 'code' | 'results';
-type ResultFocus = 'visualization' | 'ai';
-
 const getInitialWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1280);
-const RESPONSIVE_PANEL_HEIGHT_CLASS = 'md:min-h-[560px] lg:h-[85vh] xl:h-[780px] lg:max-h-[900px]';
-const SECTION_LABEL_CLASS = 'text-xs uppercase tracking-wide text-blue-500 dark:text-blue-400';
-const SECTION_TITLE_CLASS = 'text-sm font-semibold text-slate-900 dark:text-slate-100';
-const ACTION_LINK_CLASS =
-  'text-xs font-medium text-blue-600 transition hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300';
-const PANEL_BASE_CLASS =
-  'flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
-const SECTION_HEADER_CLASS =
-  'flex min-h-[72px] items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800';
 
 export function KidsCodingEditorPage() {
   const { theme, toggleTheme } = useKidsCodingTheme();
