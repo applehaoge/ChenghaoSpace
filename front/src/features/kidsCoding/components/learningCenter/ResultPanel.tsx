@@ -77,6 +77,8 @@ export function ResultPanel({
             aiMessages={aiMessages}
             onAiInputChange={onAiInputChange}
             onSendMessage={onSendMessage}
+            onShowAssistantModal={onShowAssistantModal}
+            showResourceAction={!showFullLayout}
           />
         ) : null}
       </div>
@@ -128,9 +130,18 @@ interface AiAssistantCardProps {
   aiInput: string;
   onAiInputChange: (value: string) => void;
   onSendMessage: () => void;
+  onShowAssistantModal: () => void;
+  showResourceAction: boolean;
 }
 
-function AiAssistantCard({ aiMessages, aiInput, onAiInputChange, onSendMessage }: AiAssistantCardProps) {
+function AiAssistantCard({
+  aiMessages,
+  aiInput,
+  onAiInputChange,
+  onSendMessage,
+  onShowAssistantModal,
+  showResourceAction,
+}: AiAssistantCardProps) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-inner dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800">
@@ -138,6 +149,15 @@ function AiAssistantCard({ aiMessages, aiInput, onAiInputChange, onSendMessage }
           <i className="fa-solid fa-robot text-blue-500" />
           <span className="font-medium text-slate-800 dark:text-slate-100">AI 编程助手</span>
         </div>
+        {showResourceAction ? (
+          <button
+            type="button"
+            onClick={onShowAssistantModal}
+            className="rounded-lg px-3 py-1 text-xs text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
+          >
+            查看教学资料
+          </button>
+        ) : null}
       </div>
       <div className="flex-1 space-y-3 overflow-auto px-4 py-4 text-sm">
         {aiMessages.map(message => (

@@ -229,3 +229,9 @@ sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
 
   - Checks: pnpm --dir front build:client
 
+
+- **2025-11-07 学习中心布局拆分**
+  - 将 Mission/Code/Result 栏抽成独立组件，KidsCodingEditorPage 仅保留状态与布局，清理 render 函数和重复 JSX，三栏高度保持一致
+  - ResultPanel 加上移动端教学资料入口并统一标题样式，CodePanel 承担控制台遮罩，避免再出现按钮被遮挡
+  - 测试：pnpm --dir server test；pnpm --dir front build:client
+
