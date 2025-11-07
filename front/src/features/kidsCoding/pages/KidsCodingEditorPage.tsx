@@ -431,10 +431,14 @@ export function KidsCodingEditorPage() {
                       <i className="fa-solid fa-circle-nodes me-2 text-emerald-500" />
                       AI 纠错已开启
                     </span>
-                    <span>
-                      <i className="fa-solid fa-cloud-arrow-up me-2 text-blue-500" />
-                      自动保存每 30 秒
-                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setIsConsoleOpen(previous => !previous)}
+                      className="inline-flex items-center gap-2 rounded-xl border border-blue-200 px-3 py-1.5 text-xs font-medium text-blue-600 transition active:scale-95 dark:border-blue-900/40 dark:text-blue-400"
+                    >
+                      <i className="fa-solid fa-terminal" />
+                      {isConsoleOpen ? '隐藏控制台' : '查看控制台'}
+                    </button>
                   </div>
                 </div>
                 <div className="flex flex-1 flex-col">
