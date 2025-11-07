@@ -425,7 +425,7 @@ export function KidsCodingEditorPage() {
                     </button>
                   </div>
                 </div>
-                <div className="flex flex-1 flex-col overflow-hidden">
+                <div className="flex flex-1 flex-col gap-4 overflow-hidden px-5 pb-4 pt-4">
                   <div className="relative flex-1 min-h-0 overflow-auto rounded-2xl bg-slate-950/95 shadow-inner scrollbar-hidden">
                     <pre className="h-full rounded-2xl bg-transparent p-6 pb-28 text-[13px] leading-relaxed text-green-200">{CODE_SAMPLE}</pre>
                     {renderConsoleOverlay()}
@@ -504,7 +504,7 @@ export function KidsCodingEditorPage() {
                   ) : null}
                 </div>
 
-                <div className="flex flex-1 flex-col gap-3 overflow-hidden px-4 pb-4 pt-3">
+                <div className="flex flex-1 flex-col gap-3 overflow-hidden px-4 pb-4 pt-4">
                   {(showFullLayout || activeMobileResult === 'visualization') ? renderVisualization() : null}
                   {(showFullLayout || activeMobileResult === 'ai') ? renderAiAssistant() : null}
                 </div>
