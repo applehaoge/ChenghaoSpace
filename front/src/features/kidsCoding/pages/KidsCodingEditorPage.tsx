@@ -78,6 +78,10 @@ type ResultFocus = 'visualization' | 'ai';
 
 const getInitialWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1280);
 const RESPONSIVE_PANEL_HEIGHT_CLASS = 'md:min-h-[480px] lg:h-[75vh] xl:h-[680px] lg:max-h-[760px]';
+const SECTION_LABEL_CLASS = 'text-xs uppercase tracking-wide text-blue-500 dark:text-blue-400';
+const SECTION_TITLE_CLASS = 'text-sm font-semibold text-slate-900 dark:text-slate-100';
+const ACTION_LINK_CLASS =
+  'text-xs font-medium text-blue-600 transition hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300';
 const PANEL_BASE_CLASS =
   'flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900';
 
@@ -316,9 +320,9 @@ export function KidsCodingEditorPage() {
             {missionVisible ? (
               <aside className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
                 <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-slate-800">
-                  <div>
-                    <p className="text-xs uppercase text-blue-500">任务说明</p>
-                    <h2 className="text-lg font-semibold">{MISSION_CONTENT.title}</h2>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className={SECTION_LABEL_CLASS}>任务说明</span>
+                    <span className={SECTION_TITLE_CLASS}>{MISSION_CONTENT.title}</span>
                   </div>
                   <button
                     type="button"
@@ -389,12 +393,9 @@ export function KidsCodingEditorPage() {
             {codeVisible ? (
               <section className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
                 <div className="border-b border-slate-200 px-5 py-4 dark:border-slate-800">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                      <p className="text-xs uppercase text-blue-500">代码编辑器</p>
-                      <h2 className="text-lg font-semibold">AI 助手核心逻辑</h2>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <span className={SECTION_LABEL_CLASS}>代码编辑器</span>
+                    <div className="ml-auto flex flex-wrap items-center gap-2">
                       <button
                         type="button"
                         onClick={handleSave}
@@ -486,9 +487,9 @@ export function KidsCodingEditorPage() {
             {resultVisible ? (
               <aside className={clsx(PANEL_BASE_CLASS, showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}>
                 <div className="flex flex-col border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800 lg:flex-row lg:items-center lg:justify-between">
-                  <div>
-                    <p className="text-xs uppercase text-blue-500">运行结果</p>
-                    <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">可视化 + AI 助手</h2>
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <span className={SECTION_LABEL_CLASS}>运行结果</span>
+                    <span className={SECTION_TITLE_CLASS}>可视化 & AI 助手</span>
                   </div>
                   {!showFullLayout ? (
                     <div className="mt-3 flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-300 lg:mt-0">

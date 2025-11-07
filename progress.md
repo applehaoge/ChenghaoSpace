@@ -1,4 +1,8 @@
-# 项目进度记录（PROGRESS.md�?
+﻿# 项目进度记录（PROGRESS.md�?
+
+- **2025-11-07 KidsCoding 标题压缩**
+  - 任务说明标题改为单行（徽标 + 标题 + 刷新按钮），删除代码编辑器副标题，只保留标签文本，减少顶部高度浪费。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
 
 - **2025-11-07 KidsCoding 面板再抬高**
   - 更新 RESPONSIVE_PANEL_HEIGHT_CLASS 为 md:min-h[480px]/lg:75vh/xl:680px（上限 760px），桌面端视窗进一步拉高，AI 编程助手区域输入框完整可见。
@@ -208,3 +212,4 @@ sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
 
 
   - Checks: pnpm --dir front build:client
+
