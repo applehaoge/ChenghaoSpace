@@ -253,3 +253,6 @@ sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
 - **2025-11-07 折叠箭头 2px 版本**
   - CollapsedPanelRail 仅保留 2px 竖线 + 小三角，完全贴边，点击范围仍覆盖整条细线
   - 测试：pnpm --dir server test；pnpm --dir front build:client
+- **2025-11-07 KidsCoding 标题栏与控制台位置**
+  - 让任务/代码/结果三块的抬头保持同一行高度：代码编辑器顶部按钮强制单行滚动显示，并把“查看控制台”挪到运行按钮下方的辅助链接。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
