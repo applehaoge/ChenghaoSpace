@@ -166,7 +166,7 @@ export function KidsCodingEditorPage() {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
       <main className="flex flex-1 flex-col py-6">
-        <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4">
+        <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-0 px-4">
           <EditorNavbar
             onOpenMission={() => setIsMissionDrawerOpen(true)}
             onSave={handleSave}
@@ -175,7 +175,7 @@ export function KidsCodingEditorPage() {
           />
 
           {!showFullLayout ? (
-            <div className="flex gap-2 rounded-2xl bg-white p-2 shadow-sm dark:bg-slate-900">
+            <div className="mt-4 flex gap-2 rounded-2xl bg-white p-2 shadow-sm dark:bg-slate-900">
               {[
                 { key: 'code', label: '代码', icon: 'fa-code' },
                 { key: 'results', label: '结果', icon: 'fa-display' },
@@ -198,7 +198,13 @@ export function KidsCodingEditorPage() {
             </div>
           ) : null}
 
-          <div className={clsx('flex gap-4 lg:gap-6', showFullLayout ? 'items-stretch' : 'flex-col')}>
+          <div
+            className={clsx(
+              'flex gap-4 lg:gap-6',
+              showFullLayout ? 'items-stretch' : 'flex-col',
+              showFullLayout ? 'mt-0' : 'mt-4',
+            )}
+          >
             <div
               className={clsx(
                 'grid flex-1 gap-4 lg:gap-6',
