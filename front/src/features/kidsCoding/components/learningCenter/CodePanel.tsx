@@ -1,4 +1,4 @@
-import clsx from 'clsx';
+﻿import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefObject } from 'react';
 
@@ -19,9 +19,6 @@ interface CodePanelProps {
   onToggleConsole: () => void;
   onRunCode: () => void;
   onReset: () => void;
-  onSave: () => void;
-  onFormat: () => void;
-  onOpenAssistant: () => void;
 }
 
 export function CodePanel({
@@ -34,41 +31,15 @@ export function CodePanel({
   onToggleConsole,
   onRunCode,
   onReset,
-  onSave,
-  onFormat,
-  onOpenAssistant,
 }: CodePanelProps) {
   return (
     <section className={clsx(PANEL_BASE_CLASS, className)}>
       <div className={clsx(SECTION_HEADER_CLASS, 'gap-3')}>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-1">
           <span className={SECTION_LABEL_CLASS}>代码编辑器</span>
-        </div>
-        <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap">
-          <button
-            type="button"
-            onClick={onSave}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            <i className="fa-solid fa-floppy-disk me-2" />
-            保存进度
-          </button>
-          <button
-            type="button"
-            onClick={onFormat}
-            className="rounded-xl border border-slate-200 px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-100 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-          >
-            <i className="fa-solid fa-wand-magic-sparkles me-2" />
-            自动格式化
-          </button>
-          <button
-            type="button"
-            onClick={onOpenAssistant}
-            className="rounded-xl border border-blue-200 px-4 py-2 text-sm text-blue-600 transition hover:bg-blue-50 dark:border-blue-900/40 dark:text-blue-400 dark:hover:bg-blue-900/20"
-          >
-            <i className="fa-solid fa-robot me-2" />
-            编程助手
-          </button>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            所有全局动作已经移动到上方导航栏，这里保持画布纯净，专注于写代码与观察输出。
+          </p>
         </div>
       </div>
 

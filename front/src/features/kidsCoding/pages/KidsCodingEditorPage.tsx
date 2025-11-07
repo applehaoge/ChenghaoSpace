@@ -4,10 +4,11 @@ import clsx from 'clsx';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { ProgrammingAssistantModal } from '@/features/kidsCoding/components/ProgrammingAssistantModal';
-import { MissionPanel } from '@/features/kidsCoding/components/learningCenter/MissionPanel';
 import { CodePanel } from '@/features/kidsCoding/components/learningCenter/CodePanel';
 import { ResultPanel } from '@/features/kidsCoding/components/learningCenter/ResultPanel';
 import { CollapsedPanelRail } from '@/features/kidsCoding/components/learningCenter/CollapsedPanelRail';
+import { EditorNavbar } from '@/features/kidsCoding/components/learningCenter/EditorNavbar';
+import { MissionDrawer } from '@/features/kidsCoding/components/learningCenter/MissionDrawer';
 import { RESPONSIVE_PANEL_HEIGHT_CLASS } from '@/features/kidsCoding/constants/learningCenter';
 import { usePanelCollapse } from '@/features/kidsCoding/hooks/usePanelCollapse';
 import { AiChatMessage, MissionContent, ResultFocus } from '@/features/kidsCoding/types/learningCenter';
@@ -72,7 +73,7 @@ const MISSION_CONTENT = {
   hints: ['类（class）是创建对象的蓝图', '__init__ 会在实例化时自动执行', '在方法中通过 self 访问和修改属性', '逐步运行代码，关注控制台输出'],
 };
 
-type MobileSection = 'mission' | 'code' | 'results';
+type MobileSection = 'code' | 'results';
 const getInitialWidth = () => (typeof window !== 'undefined' ? window.innerWidth : 1280);
 
 export function KidsCodingEditorPage() {
@@ -86,6 +87,7 @@ export function KidsCodingEditorPage() {
   const [isRunning, setIsRunning] = useState(false);
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [showAssistantModal, setShowAssistantModal] = useState(false);
+  const [isMissionDrawerOpen, setIsMissionDrawerOpen] = useState(false);
   const { collapsed, togglePanel, setPanelCollapsed } = usePanelCollapse();
 
   const showFullLayout = screenWidth >= 1280;
@@ -106,7 +108,6 @@ export function KidsCodingEditorPage() {
 
   useEffect(() => {
     if (!showFullLayout) {
-      setPanelCollapsed('mission', false);
       setPanelCollapsed('results', false);
     }
   }, [showFullLayout, setPanelCollapsed]);
@@ -152,28 +153,30 @@ export function KidsCodingEditorPage() {
     }, 500);
   };
 
-  const missionVisible = showFullLayout || mobileSection === 'mission';
   const codeVisible = showFullLayout || mobileSection === 'code';
   const resultVisible = showFullLayout || mobileSection === 'results';
-  const missionCollapsed = showFullLayout && collapsed.mission;
   const resultCollapsed = showFullLayout && collapsed.results;
 
   const desktopColumns = (() => {
     if (!showFullLayout) return 'grid-cols-1';
-    if (missionCollapsed && resultCollapsed) return 'grid-cols-1';
-    if (missionCollapsed) return 'grid-cols-[minmax(0,1fr)_380px]';
-    if (resultCollapsed) return 'grid-cols-[320px_minmax(0,1fr)]';
-    return 'grid-cols-[320px_minmax(0,1fr)_380px]';
+    if (resultCollapsed) return 'grid-cols-1';
+    return 'grid-cols-[minmax(0,1fr)_380px]';
   })();
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100">
       <main className="flex flex-1 flex-col py-6">
         <div className="mx-auto flex h-full w-full max-w-7xl flex-col gap-6 px-4">
+          <EditorNavbar
+            onOpenMission={() => setIsMissionDrawerOpen(true)}
+            onSave={handleSave}
+            onFormat={handleFormat}
+            onOpenAssistant={() => setShowAssistantModal(true)}
+          />
+
           {!showFullLayout ? (
             <div className="flex gap-2 rounded-2xl bg-white p-2 shadow-sm dark:bg-slate-900">
               {[
-                { key: 'mission', label: '任务', icon: 'fa-map' },
                 { key: 'code', label: '代码', icon: 'fa-code' },
                 { key: 'results', label: '结果', icon: 'fa-display' },
               ].map(item => (
@@ -196,9 +199,6 @@ export function KidsCodingEditorPage() {
           ) : null}
 
           <div className={clsx('flex gap-4 lg:gap-6', showFullLayout ? 'items-stretch' : 'flex-col')}>
-            {showFullLayout && missionVisible && missionCollapsed ? (
-              <CollapsedPanelRail side="left" label="任务说明" onExpand={() => togglePanel('mission')} />
-            ) : null}
             <div
               className={clsx(
                 'grid flex-1 gap-4 lg:gap-6',
@@ -206,14 +206,6 @@ export function KidsCodingEditorPage() {
                 showFullLayout && 'lg:items-stretch',
               )}
             >
-              {missionVisible && !missionCollapsed ? (
-                <MissionPanel
-                  content={MISSION_CONTENT}
-                  className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
-                  enableCollapse={showFullLayout}
-                  onCollapse={() => togglePanel('mission')}
-                />
-              ) : null}
               {codeVisible ? (
                 <CodePanel
                   className={clsx(showFullLayout && RESPONSIVE_PANEL_HEIGHT_CLASS)}
@@ -225,9 +217,6 @@ export function KidsCodingEditorPage() {
                   onToggleConsole={() => setIsConsoleOpen(previous => !previous)}
                   onRunCode={handleRunCode}
                   onReset={handleReset}
-                  onSave={handleSave}
-                  onFormat={handleFormat}
-                  onOpenAssistant={() => setShowAssistantModal(true)}
                 />
               ) : null}
               {resultVisible && !resultCollapsed ? (
@@ -258,6 +247,12 @@ export function KidsCodingEditorPage() {
           <ProgrammingAssistantModal onClose={() => setShowAssistantModal(false)} />
         ) : null}
       </AnimatePresence>
+
+      <MissionDrawer
+        open={isMissionDrawerOpen}
+        onClose={() => setIsMissionDrawerOpen(false)}
+        content={MISSION_CONTENT}
+      />
     </div>
   );
 }

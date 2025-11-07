@@ -256,3 +256,7 @@ sHelpers�?ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
 - **2025-11-07 KidsCoding 标题栏与控制台位置**
   - 让任务/代码/结果三块的抬头保持同一行高度：代码编辑器顶部按钮强制单行滚动显示，并把“查看控制台”挪到运行按钮下方的辅助链接。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-08 KidsCoding 编辑器导航布局**
+  - 前端 KidsCoding Editor 页面新增渐变导航栏，原本散落在代码面板顶部的保存/格式化/助手按钮统一收口，并加上任务说明按钮触发抽屉。
+  - 移除左侧常驻任务栏，改为 MissionDrawer 侧滑展示；桌面端仅保留代码 + 结果双栏，移动端继续提供代码/结果切换。
+  - Checks: （未运行）UI 调整，待有人手按流程执行 `pnpm --dir server test` 与 `pnpm --dir front build:client`
