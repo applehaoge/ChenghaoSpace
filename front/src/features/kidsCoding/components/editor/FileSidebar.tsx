@@ -109,7 +109,7 @@ function CollapseHandle({
         onClick={onToggle}
         aria-label={isCollapsed ? '展开文件面板' : '收起文件面板'}
         aria-expanded={!isCollapsed}
-        className={`absolute top-1/2 -right-5 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors ${buttonColors}`}
+        className={`absolute top-1/2 ${isCollapsed ? '-right-3' : '-right-5'} flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors ${buttonColors}`}
       >
         <span
           className={`flex h-7 w-7 items-center justify-center rounded-full ${
