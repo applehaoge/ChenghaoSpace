@@ -8,6 +8,7 @@ import {
   Moon,
   Sun,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 interface KidsCodingEditorHeaderProps {
   isDark: boolean;
@@ -30,6 +31,8 @@ const NAV_ITEMS = [
 ];
 
 export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditorHeaderProps) {
+  const navigate = useNavigate();
+
   return (
     <motion.header
       initial={{ opacity: 0, y: -20 }}
@@ -57,26 +60,26 @@ export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditor
         </nav>
       </div>
 
-      <div
-        className={`flex space-x-1 rounded-full p-1 ${
-          isDark ? 'bg-gray-700/50' : 'bg-white/30'
-        } backdrop-blur-sm shadow-inner`}
-      >
+      <div className="flex space-x-2">
         <motion.button
-          whileHover={{ y: -1 }}
-          className={`px-4 py-1.5 rounded-full font-medium transition-all duration-300 ${
-            isDark ? 'bg-blue-500/30 text-blue-200' : 'bg-blue-300/80 text-blue-800'
+          whileHover={{ scale: 1.03, y: -1 }}
+          whileTap={{ scale: 0.97 }}
+          className={`px-5 py-1.5 rounded-full text-sm font-medium shadow-lg transition-all duration-300 ${
+            isDark ? 'bg-blue-600/30 text-blue-200 hover:bg-blue-600/50' : 'bg-white/90 text-blue-700 hover:bg-white'
           }`}
+          onClick={() => navigate('/')}
         >
-          积木
+          回橙浩空间（AI对话）
         </motion.button>
         <motion.button
-          whileHover={{ y: -1 }}
-          className={`px-4 py-1.5 rounded-full font-medium transition-all duration-300 ${
-            isDark ? 'bg-gray-800 text-white' : 'bg-white text-blue-800'
-          } shadow-md`}
+          whileHover={{ scale: 1.03, y: -1 }}
+          whileTap={{ scale: 0.97 }}
+          className={`px-5 py-1.5 rounded-full text-sm font-medium shadow-lg transition-all duration-300 ${
+            isDark ? 'bg-blue-500 text-white hover:bg-blue-400' : 'bg-blue-600 text-white hover:bg-blue-500'
+          }`}
+          onClick={() => navigate('/kids-coding')}
         >
-          代码
+          橙浩编程首页
         </motion.button>
       </div>
 
