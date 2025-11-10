@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Star, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,26 +9,27 @@ import { CodeWorkspace } from '@/features/kidsCoding/components/editor/CodeWorks
 import { InsightsSidebar } from '@/features/kidsCoding/components/editor/InsightsSidebar';
 import { useFileSidebar } from '@/features/kidsCoding/hooks/useFileSidebar';
 import { useInsightsSidebar } from '@/features/kidsCoding/hooks/useInsightsSidebar';
-import type { CodeLineItem, FileEntry } from '@/features/kidsCoding/types/editor';
+import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
 const FILES: FileEntry[] = [{ id: 'main', name: 'main.py' }];
 
-const DEFAULT_CODE_LINES: CodeLineItem[] = [
-  { id: 1, content: 'import matplotlib.pyplot as plt', type: 'code' },
-  { id: 2, content: 'import numpy as np', type: 'code' },
-  { id: 3, content: '', type: 'empty' },
-  { id: 4, content: '# 一个一元二次函数', type: 'comment' },
-  { id: 5, content: 'x = np.arange(-5, 5, 0.01)', type: 'code' },
-  { id: 6, content: 'y = (x ** 2)', type: 'code' },
-  { id: 7, content: '# 画图', type: 'comment' },
-  { id: 8, content: 'plt.plot(x, y)', type: 'code' },
-  { id: 9, content: 'plt.show()', type: 'code' },
-];
+const DEFAULT_CODE = [
+  'import matplotlib.pyplot as plt',
+  'import numpy as np',
+  '',
+  '# 一个一元二次函数',
+  'x = np.arange(-5, 5, 0.01)',
+  'y = (x ** 2)',
+  '',
+  '# 画图',
+  'plt.plot(x, y)',
+  'plt.show()',
+].join('\n');
 
 export function KidsCodingEditorPage() {
   const { toggleTheme, isDark } = useTheme();
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [activeLine, setActiveLine] = useState<number | null>(null);
+  const [codeValue, setCodeValue] = useState(DEFAULT_CODE);
   const [showTutorialHint, setShowTutorialHint] = useState(true);
   const { isCollapsed, toggleSidebar } = useFileSidebar();
   const { isCollapsed: isInsightsCollapsed, toggleSidebar: toggleInsightsSidebar } = useInsightsSidebar();
@@ -41,16 +42,17 @@ export function KidsCodingEditorPage() {
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 10, 150));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 60));
 
-  const handleRunCode = () => {
+  const handleRunCode = (source: string) => {
     toast.success('代码正在运行中！', {
-      description: '这是一个少儿版编辑器，实际运行功能需要后端支持哦～',
+      description: source
+        ? `已读取 ${source.split('\\n').length} 行代码，功能即将上线～`
+        : '代码为空，请先输入内容。',
       duration: 3000,
       className: 'rounded-xl shadow-lg',
     });
   };
 
-  const handleLineHover = (id: number) => setActiveLine(id);
-  const handleLineLeave = () => setActiveLine(null);
+  const monacoTheme = isDark ? 'vs-dark' : 'vs-light';
 
   return (
     <div
@@ -82,13 +84,12 @@ export function KidsCodingEditorPage() {
           <CodeWorkspace
             isDark={isDark}
             zoomLevel={zoomLevel}
-            activeLine={activeLine}
-            codeLines={DEFAULT_CODE_LINES}
-            onLineHover={handleLineHover}
-            onLineLeave={handleLineLeave}
+            codeValue={codeValue}
+            onCodeChange={setCodeValue}
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
             onRunCode={handleRunCode}
+            editorTheme={monacoTheme}
           />
           <InsightsSidebar
             isDark={isDark}
@@ -111,7 +112,7 @@ export function KidsCodingEditorPage() {
             <Sparkles size={20} className="mt-1 flex-shrink-0" />
             <div>
               <h3 className="font-semibold mb-1">💡 提示</h3>
-              <p className="text-sm opacity-90">编写完代码后，点击底部的“运行代码”按钮可以看到你的程序效果哦！</p>
+              <p className="text-sm opacity-90">编写完代码后，点击底部的“运行代码”按钮可以看到你的程序效果哦～</p>
             </div>
           </div>
         </motion.div>

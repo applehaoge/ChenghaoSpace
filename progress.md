@@ -1,4 +1,9 @@
-﻿- **2025-11-10 KidsCoding 洞察栏恢复**
+﻿- **2025-11-10 KidsCoding Monaco 接入**
+  - 引入 CodeEditor 组件接入 Monaco，并在 CodeWorkspace 中替换静态内容实现真实可编辑代码区。
+  - KidsCodingEditorPage 提升代码状态，运行按钮读取真实代码并随主题切换编辑器主题。
+  - Checks: 未执行（前端改动待整体联调）
+
+- **2025-11-10 KidsCoding 洞察栏恢复**
   - 重新接入 InsightsSidebar（可视化可折叠 + AI 聊天），并与编辑器并列布局，单一折叠按钮控制整列。
   - 新增 useInsightsSidebar Hook 持久化折叠状态。
   - Checks: pnpm --dir server test; pnpm --dir front build:client- **2025-11-10 KidsCoding 洞察栏重构**
@@ -309,3 +314,4 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
 - **2025-11-10 KidsCoding 可视化标题统一**
   - 可视化演示标题新增 MonitorPlay 图标并与 AI 助手标题保持同字号左对齐，折叠时自动降低不透明度，展开时恢复，保证状态反馈一致；后续根据设计反馈进一步加强虚化（40% 不透明度）并将电视图标缩至 14px，避免视觉比机器人更大，同时聊天输入框聚焦改为提升内边框和底色，亮度提升到蓝 500 级别（暗色主题则拉高到蓝 300），既能保持边缘完整又更醒目。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+

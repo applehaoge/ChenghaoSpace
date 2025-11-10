@@ -12,31 +12,31 @@ import {
   Terminal,
   Trash2,
 } from 'lucide-react';
-import type { CodeLineItem } from '@/features/kidsCoding/types/editor';
+import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
 
 interface CodeWorkspaceProps {
   isDark: boolean;
   zoomLevel: number;
-  activeLine: number | null;
-  codeLines: CodeLineItem[];
-  onLineHover: (id: number) => void;
-  onLineLeave: () => void;
+  codeValue: string;
+  onCodeChange: (value: string) => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  onRunCode: () => void;
+  onRunCode: (code: string) => void;
+  editorTheme: string;
 }
 
 export function CodeWorkspace({
   isDark,
   zoomLevel,
-  activeLine,
-  codeLines,
-  onLineHover,
-  onLineLeave,
+  codeValue,
+  onCodeChange,
   onZoomIn,
   onZoomOut,
   onRunCode,
+  editorTheme,
 }: CodeWorkspaceProps) {
+  const editorFontSize = Math.max(12, Math.round((zoomLevel / 100) * 16));
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -75,49 +75,27 @@ export function CodeWorkspace({
         </motion.div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden relative" style={{ fontSize: `${zoomLevel}%` }}>
+      <div className="flex-1 flex overflow-hidden relative">
         <div
-          className={clsx('text-sm px-3 py-4 font-mono border-r text-right min-w-[3rem]', {
-            'bg-gray-800/50 text-gray-400 border-gray-700': isDark,
-            'bg-blue-50/50 text-gray-500 border-blue-100': !isDark,
-          })}
-        >
-          {codeLines.map(line => (
-            <div
-              key={line.id}
-              className={clsx('py-1 transition-colors duration-300', {
-                'text-blue-400': isDark && activeLine === line.id,
-                'text-blue-600': !isDark && activeLine === line.id,
-              })}
-            >
-              {line.id}
-            </div>
-          ))}
-        </div>
-
-        <div
-          className={clsx('flex-1 font-mono text-sm p-4 pr-16 md:pr-20 overflow-y-auto', {
+          className={clsx('flex-1 relative px-4 py-4 pr-16 md:pr-20', {
             'bg-gray-900': isDark,
             'bg-white': !isDark,
           })}
         >
-          {codeLines.map(line => (
-            <div
-              key={line.id}
-              className={clsx('py-1 flex items-start transition-colors duration-300', {
-                'bg-blue-900/20': isDark && activeLine === line.id,
-                'bg-blue-50': !isDark && activeLine === line.id,
-              })}
-              onMouseEnter={() => onLineHover(line.id)}
-              onMouseLeave={onLineLeave}
-            >
-              {line.type === 'comment' && (
-                <span className={isDark ? 'text-amber-400' : 'text-amber-500'}>{line.content}</span>
-              )}
-              {line.type === 'code' && <CodeLine code={line.content} isDark={isDark} />}
-              {line.type === 'empty' && <span />}
-            </div>
-          ))}
+          <div
+            className={clsx('h-full rounded-2xl overflow-hidden shadow-inner border', {
+              'border-gray-800/70': isDark,
+              'border-blue-100': !isDark,
+            })}
+          >
+            <CodeEditor
+              value={codeValue}
+              onChange={onCodeChange}
+              language="python"
+              theme={editorTheme}
+              fontSize={editorFontSize}
+            />
+          </div>
         </div>
 
         <div
@@ -171,7 +149,7 @@ export function CodeWorkspace({
               'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600': !isDark,
             },
           )}
-          onClick={onRunCode}
+          onClick={() => onRunCode(codeValue)}
         >
           <motion.div whileHover={{ rotate: 15 }}>
             <Play size={18} />
@@ -229,18 +207,3 @@ function BottomIconButton({ isDark, icon, onClick }: BottomIconButtonProps) {
   );
 }
 
-function CodeLine({ code, isDark }: { code: string; isDark: boolean }) {
-  const highlightedCode = code
-    .replace(/\b(import|from|as|def|class|return|if|elif|else|for|while|in|print)\b/g, match =>
-      wrapSpan(match, isDark ? 'text-blue-400 font-medium' : 'text-blue-600 font-medium'),
-    )
-    .replace(/\b(\w+)\(/g, (_, fnName) => wrapSpan(fnName, isDark ? 'text-green-400' : 'text-green-600') + '(')
-    .replace(/(".*?")/g, match => wrapSpan(match, isDark ? 'text-red-400' : 'text-red-500'))
-    .replace(/\b(\d+\.?\d*)\b/g, match => wrapSpan(match, isDark ? 'text-orange-400' : 'text-orange-500'));
-
-  return <span dangerouslySetInnerHTML={{ __html: highlightedCode }} />;
-}
-
-function wrapSpan(content: string, className: string) {
-  return `<span class="${className}">${content}</span>`;
-}
