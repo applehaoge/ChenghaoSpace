@@ -1,17 +1,6 @@
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import {
-  ArrowLeft,
-  ArrowRight,
-  FileText,
-  Minus,
-  Palette,
-  Play,
-  Plus as PlusIcon,
-  Search,
-  Terminal,
-  Trash2,
-} from 'lucide-react';
+import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal, Trash2 } from 'lucide-react';
 import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
 
 interface CodeWorkspaceProps {
@@ -121,11 +110,6 @@ export function CodeWorkspace({
         })}
       >
         <div className="flex items-center space-x-2">
-          <BottomIconButton isDark={isDark} icon={<ArrowLeft size={16} />} />
-          <BottomIconButton isDark={isDark} icon={<ArrowRight size={16} />} />
-        </div>
-
-        <div className="flex items-center space-x-2">
           <BottomIconButton isDark={isDark} icon={<Minus size={16} />} onClick={onZoomOut} />
           <motion.span
             whileHover={{ scale: 1.05 }}
@@ -139,7 +123,15 @@ export function CodeWorkspace({
           <BottomIconButton isDark={isDark} icon={<PlusIcon size={16} />} onClick={onZoomIn} />
         </div>
 
-        <motion.button
+        <div className="flex items-center space-x-3">
+          {[
+            { icon: <Search size={18} />, label: '搜索' },
+            { icon: <Palette size={18} />, label: '主题' },
+            { icon: <Terminal size={18} />, label: '终端' },
+          ].map(action => (
+            <BottomIconButton key={action.label} isDark={isDark} icon={action.icon} title={action.label} />
+          ))}
+          <motion.button
           whileHover={{ scale: 1.05, y: -2 }}
           whileTap={{ scale: 0.97 }}
           className={clsx(
@@ -156,30 +148,7 @@ export function CodeWorkspace({
           </motion.div>
           <span className="font-semibold">运行代码</span>
         </motion.button>
-      </div>
-
-      <div className="absolute top-1/2 -translate-y-1/2 right-4 sm:right-6 flex flex-col items-center space-y-4 z-20">
-        {[
-          { icon: <Search size={18} />, label: '搜索' },
-          { icon: <Palette size={18} />, label: '主题' },
-          { icon: <Terminal size={18} />, label: '终端' },
-        ].map(action => (
-          <motion.button
-            key={action.label}
-            whileHover={{ y: -4, scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className={clsx(
-              'w-12 h-12 rounded-full shadow-xl flex items-center justify-center transition-all duration-300 border-2',
-              {
-                'bg-gray-800 border-gray-700 text-blue-400': isDark,
-                'bg-white border-blue-200 text-blue-600': !isDark,
-              },
-            )}
-            title={action.label}
-          >
-            {action.icon}
-          </motion.button>
-        ))}
+        </div>
       </div>
     </motion.div>
   );
@@ -189,9 +158,10 @@ interface BottomIconButtonProps {
   isDark: boolean;
   icon: React.ReactNode;
   onClick?: () => void;
+  title?: string;
 }
 
-function BottomIconButton({ isDark, icon, onClick }: BottomIconButtonProps) {
+function BottomIconButton({ isDark, icon, onClick, title }: BottomIconButtonProps) {
   return (
     <motion.button
       whileHover={{ scale: 1.05 }}
@@ -201,9 +171,9 @@ function BottomIconButton({ isDark, icon, onClick }: BottomIconButtonProps) {
         'border-blue-200 bg-white hover:bg-blue-100': !isDark,
       })}
       onClick={onClick}
+      title={title}
     >
       {icon}
     </motion.button>
   );
 }
-
