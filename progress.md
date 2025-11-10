@@ -300,3 +300,9 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
 - **2025-11-10 KidsCoding 侧栏补强**
   - 修复洞察侧栏中文乱码，右栏改为 `flex` + `min-h-0` 结构保证无论可视化是否展开都与编辑器等高，并将聊天区域滚动+发送栏固定底部，确保两栏同时展开时仍能看到输入框。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-10 KidsCoding 洞察折叠按钮贴合**
+  - 洞察面板折叠按钮改用与文件侧栏相同的双层圆形样式并加上分隔亮线和 z-index，按钮与面板视觉合一、不再被内容遮挡。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-10 KidsCoding 洞察折叠展开补位**
+  - 洞察栏在折叠时保留 18px 侧轨，展开按钮始终露在编辑器右缘，方向与文件侧栏一致，避免折叠后完全无入口。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

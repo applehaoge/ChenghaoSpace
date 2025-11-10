@@ -2,6 +2,10 @@
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Bot, Maximize2, ChevronUp, ChevronDown } from "lucide-react";
 import clsx from "clsx";
+import {
+  INSIGHTS_PANEL_COLLAPSED_WIDTH,
+  INSIGHTS_PANEL_WIDTH,
+} from "@/features/kidsCoding/constants/editorLayout";
 
 interface InsightsSidebarProps {
   isDark: boolean;
@@ -17,24 +21,12 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
 
   return (
     <div
+      style={{ width: isCollapsed ? INSIGHTS_PANEL_COLLAPSED_WIDTH : INSIGHTS_PANEL_WIDTH }}
       className={clsx(
-        "relative flex h-full min-h-0 shrink-0 flex-col transition-all duration-300",
-        isCollapsed ? "w-0" : "w-[320px]",
+        "relative flex h-full min-h-0 shrink-0 flex-col transition-all duration-300 overflow-visible",
       )}
     >
-      <button
-        type="button"
-        onClick={onToggle}
-        aria-label={isCollapsed ? "展开洞察面板" : "收起洞察面板"}
-        className={clsx(
-          "absolute top-1/2 -left-5 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors",
-          isDark
-            ? "bg-gray-900/85 text-blue-200 border-blue-700/60 hover:bg-gray-800"
-            : "bg-white text-blue-600 border-blue-200 hover:bg-blue-50",
-        )}
-      >
-        {isCollapsed ? <ArrowLeft size={16} strokeWidth={2.4} /> : <ArrowRight size={16} strokeWidth={2.4} />}
-      </button>
+      <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
 
       {!isCollapsed && (
         <motion.section
@@ -158,5 +150,51 @@ function ChatBubble({ role, text, isDark }: { role: "assistant" | "user"; text: 
     >
       {text}
     </div>
+  );
+}
+
+function CollapseHandle({
+  isDark,
+  isCollapsed,
+  onToggle,
+}: {
+  isDark: boolean;
+  isCollapsed: boolean;
+  onToggle: () => void;
+}) {
+  const buttonColors = isDark
+    ? "bg-gray-900/85 text-blue-200 border-blue-500/30 hover:bg-gray-800"
+    : "bg-white text-blue-600 border-blue-200 hover:bg-blue-50";
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label={isCollapsed ? "展开洞察面板" : "收起洞察面板"}
+        aria-expanded={!isCollapsed}
+        className={clsx(
+          "absolute top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors",
+          isCollapsed ? "-left-3" : "-left-5",
+          buttonColors,
+        )}
+      >
+        <span
+          className={clsx(
+            "flex h-7 w-7 items-center justify-center rounded-full",
+            isDark ? "bg-blue-800/40" : "bg-blue-100",
+          )}
+        >
+          {isCollapsed ? <ArrowLeft size={15} strokeWidth={2.4} /> : <ArrowRight size={15} strokeWidth={2.4} />}
+        </span>
+      </button>
+      <div
+        className={clsx(
+          "absolute inset-y-4 -left-0.5 w-px rounded-full transition-opacity duration-200",
+          isDark ? "bg-blue-400/60" : "bg-blue-500/60",
+          isCollapsed ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
+      />
+    </>
   );
 }
