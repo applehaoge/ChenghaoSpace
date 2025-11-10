@@ -75,6 +75,8 @@ export function KidsCodingEditorPage() {
           className={`absolute bottom-[20%] left-[10%] ${isDark ? 'text-amber-300' : 'text-amber-500'}`}
         />
       </FloatingDeco>
+      <ShootingStar isDark={isDark} top="18%" left="22%" delay={1.5} length={64} yTravel={140} />
+      <ShootingStar isDark={isDark} top="65%" left="55%" delay={4} duration={3} repeatDelay={9} length={72} yTravel={160} />
 
       <KidsCodingEditorHeader isDark={isDark} toggleTheme={toggleTheme} />
 
@@ -143,6 +145,55 @@ function FloatingDeco({
       }}
     >
       {children}
+    </motion.div>
+  );
+}
+
+function ShootingStar({
+  top,
+  left,
+  delay = 0,
+  duration = 2.6,
+  repeatDelay = 8,
+  isDark,
+  angleClass = 'rotate-15',
+  length = 60,
+  yTravel = 130,
+}: {
+  top: string;
+  left: string;
+  delay?: number;
+  duration?: number;
+  repeatDelay?: number;
+  isDark: boolean;
+  angleClass?: string;
+  length?: number;
+  yTravel?: number;
+}) {
+  const trailColor = isDark ? 'from-blue-200/60 to-transparent' : 'from-white/90 to-transparent';
+  const headColor = isDark ? 'bg-blue-100' : 'bg-white';
+
+  return (
+    <motion.div
+      className={`absolute pointer-events-none ${angleClass}`}
+      style={{ top, left }}
+      initial={{ opacity: 0, x: -120, y: -60 }}
+      animate={{ opacity: [0, 1, 0], x: 260, y: yTravel }}
+      transition={{
+        duration,
+        repeat: Infinity,
+        repeatType: 'loop',
+        repeatDelay,
+        ease: 'easeInOut',
+        delay,
+      }}
+    >
+      <div
+        className={`relative h-0.5 rounded-full bg-gradient-to-r ${trailColor}`}
+        style={{ width: `${length}px` }}
+      >
+        <span className={`absolute right-0 -top-0.5 h-1 w-1 rounded-full shadow ${headColor}`} />
+      </div>
     </motion.div>
   );
 }

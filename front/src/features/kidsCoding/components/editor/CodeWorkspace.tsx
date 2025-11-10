@@ -37,13 +37,13 @@ export function CodeWorkspace({
       })}
     >
       <div
-        className={clsx('flex items-center border-b px-4 rounded-t-3xl', {
-          'border-gray-700 bg-gray-800': isDark,
-          'border-blue-100 bg-blue-50/70': !isDark,
+        className={clsx('flex items-center px-4 rounded-t-3xl', {
+          'bg-gray-800': isDark,
+          'bg-blue-50/70': !isDark,
         })}
       >
         <motion.div
-          className={clsx('flex items-center space-x-2 border border-b-transparent px-3 py-2 -mb-px shadow-md rounded-t-2xl', {
+          className={clsx('flex items-center space-x-2 border border-b-transparent px-3 py-2 shadow-md rounded-t-2xl', {
             'bg-gray-900 border-gray-700': isDark,
             'bg-white border-blue-200': !isDark,
           })}
@@ -62,7 +62,7 @@ export function CodeWorkspace({
 
       <div className="flex-1 flex overflow-hidden relative">
         <div
-          className={clsx('flex-1 h-full overflow-hidden shadow-inner border', {
+          className={clsx('flex-1 h-full overflow-hidden shadow-inner border border-t-0', {
             'border-gray-800/70 bg-gray-900': isDark,
             'border-blue-100 bg-white': !isDark,
           })}

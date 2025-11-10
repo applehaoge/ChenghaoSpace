@@ -1,4 +1,19 @@
-﻿- **2025-11-10 KidsCoding 编辑器宽度压缩修复**
+﻿- **2025-11-10 KidsCoding 顶部缝隙再修**
+  - 去掉 CodeWorkspace 顶部容器的 border-b，并取消标签栏的负 margin，让标签背景与编辑器直接贴合，无黑缝。
+  - Checks: 未执行（样式微调）
+- **2025-11-10 KidsCoding 编辑器顶缝修复**
+  - CodeWorkspace 中编辑器容器移除顶部边框（order-t-0），避免与标签栏的深色边叠加形成可见“黑缝”，其余样式保持不变。
+  - Checks: 未执行（样式微调）
+- **2025-11-10 KidsCoding 流星轨迹更新**
+  - ShootingStar 动画改为沿左上→右下对角运动，并缩短尾迹宽度以呈现雨滴感；可通过 length/yTravel 参数微调。
+  - Checks: 未执行（动效细化）
+- **2025-11-10 KidsCoding 流星角度调整**
+  - ShootingStar 动画改为旋转后的单轴位移，流星以倾斜“下雨”姿态穿过编辑器上空，并保留可调角度参数。
+  - Checks: 未执行（动效更新）
+- **2025-11-10 KidsCoding 流星动效**
+  - KidsCodingEditorPage 引入 ShootingStar 动画组件，在不影响操作的情况下周期性呈现两条流星轨迹，营造温暖氛围。
+  - Checks: 未执行（纯视觉效果）
+- **2025-11-10 KidsCoding 编辑器宽度压缩修复**
   - CodeWorkspace 根容器添加 min-w-0，并恢复其直接作为 flex 子项；保持父级容器 min-w-0 以允许左右压缩同时维持垂直高度，避免编辑器被挤垮。
   - Checks: 未执行（布局微调）
 - **2025-11-10 KidsCoding 侧栏展开修复**
@@ -331,6 +346,11 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
 - **2025-11-10 KidsCoding 可视化标题统一**
   - 可视化演示标题新增 MonitorPlay 图标并与 AI 助手标题保持同字号左对齐，折叠时自动降低不透明度，展开时恢复，保证状态反馈一致；后续根据设计反馈进一步加强虚化（40% 不透明度）并将电视图标缩至 14px，避免视觉比机器人更大，同时聊天输入框聚焦改为提升内边框和底色，亮度提升到蓝 500 级别（暗色主题则拉高到蓝 300），既能保持边缘完整又更醒目。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+
+
+
 
 
 
