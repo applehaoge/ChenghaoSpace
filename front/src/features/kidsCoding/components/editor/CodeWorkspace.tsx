@@ -64,29 +64,21 @@ export function CodeWorkspace({
         </motion.div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative px-1 md:px-4 py-4">
         <div
-          className={clsx('flex-1 relative px-4 py-4 pr-6 md:pr-10', {
-            'bg-gray-900': isDark,
-            'bg-white': !isDark,
+          className={clsx('flex-1 h-full rounded-2xl overflow-hidden shadow-inner border', {
+            'border-gray-800/70 bg-gray-900': isDark,
+            'border-blue-100 bg-white': !isDark,
           })}
         >
-          <div
-            className={clsx('h-full rounded-2xl overflow-hidden shadow-inner border', {
-              'border-gray-800/70': isDark,
-              'border-blue-100': !isDark,
-            })}
-          >
-            <CodeEditor
-              value={codeValue}
-              onChange={onCodeChange}
-              language="python"
-              theme={editorTheme}
-              fontSize={editorFontSize}
-            />
-          </div>
+          <CodeEditor
+            value={codeValue}
+            onChange={onCodeChange}
+            language="python"
+            theme={editorTheme}
+            fontSize={editorFontSize}
+          />
         </div>
-
       </div>
 
       <div
