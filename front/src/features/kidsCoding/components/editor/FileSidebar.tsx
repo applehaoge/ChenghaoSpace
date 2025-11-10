@@ -89,26 +89,38 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files }: FileSideba
   );
 }
 
-function CollapseHandle({ isDark, isCollapsed, onToggle }: { isDark: boolean; isCollapsed: boolean; onToggle: () => void }) {
+function CollapseHandle({
+  isDark,
+  isCollapsed,
+  onToggle,
+}: {
+  isDark: boolean;
+  isCollapsed: boolean;
+  onToggle: () => void;
+}) {
+  const buttonColors = isDark
+    ? 'bg-gray-900/85 text-blue-200 border-blue-500/30 hover:bg-gray-800'
+    : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50';
+
   return (
     <>
-      <motion.button
+      <button
         type="button"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
         onClick={onToggle}
         aria-label={isCollapsed ? '展开文件面板' : '收起文件面板'}
         aria-expanded={!isCollapsed}
-        className={`absolute top-1/2 right-0 flex -translate-y-1/2 translate-x-1/2 items-center justify-center rounded-full border text-xs font-medium h-8 w-6 ${
-          isDark
-            ? 'bg-gray-900/70 text-blue-200 border-gray-700 hover:bg-gray-700'
-            : 'bg-white/90 text-blue-600 border-blue-200 hover:bg-blue-50'
-        } transition-colors`}
+        className={`absolute top-1/2 -right-5 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors ${buttonColors}`}
       >
-        {isCollapsed ? <ArrowRight size={14} /> : <ArrowLeft size={14} />}
-      </motion.button>
+        <span
+          className={`flex h-7 w-7 items-center justify-center rounded-full ${
+            isDark ? 'bg-blue-800/40' : 'bg-blue-100'
+          }`}
+        >
+          {isCollapsed ? <ArrowRight size={15} strokeWidth={2.5} /> : <ArrowLeft size={15} strokeWidth={2.5} />}
+        </span>
+      </button>
       <div
-        className={`absolute inset-y-4 right-0 w-px rounded-full transition-opacity duration-200 ${
+        className={`absolute inset-y-5 -right-0.5 w-px rounded-full transition-opacity duration-200 ${
           isDark ? 'bg-blue-400/60' : 'bg-blue-500/60'
         } ${isCollapsed ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
       />
