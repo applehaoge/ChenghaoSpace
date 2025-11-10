@@ -66,7 +66,7 @@ export function CodeWorkspace({
 
       <div className="flex-1 flex overflow-hidden relative">
         <div
-          className={clsx('flex-1 relative px-4 py-4 pr-16 md:pr-20', {
+          className={clsx('flex-1 relative px-4 py-4 pr-6 md:pr-10', {
             'bg-gray-900': isDark,
             'bg-white': !isDark,
           })}
@@ -87,20 +87,6 @@ export function CodeWorkspace({
           </div>
         </div>
 
-        <div
-          className={clsx('w-2.5 relative', {
-            'bg-gray-800/50': isDark,
-            'bg-blue-50/50': !isDark,
-          })}
-        >
-          <motion.div
-            className={clsx('absolute w-2 rounded-full top-4 h-20 shadow-lg', {
-              'bg-gradient-to-b from-blue-500/80 to-indigo-500/80': isDark,
-              'bg-gradient-to-b from-blue-400 to-indigo-300': !isDark,
-            })}
-            whileHover={{ scale: 1.2 }}
-          />
-        </div>
       </div>
 
       <div
