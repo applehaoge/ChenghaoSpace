@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Bot, Maximize2, ChevronUp, ChevronDown } from 'lucide-react';
-import clsx from 'clsx';
+Ôªøimport { useState } from "react";
+import { motion } from "framer-motion";
+import { ArrowLeft, ArrowRight, Bot, Maximize2, ChevronUp, ChevronDown } from "lucide-react";
+import clsx from "clsx";
 
 interface InsightsSidebarProps {
   isDark: boolean;
@@ -10,7 +10,7 @@ interface InsightsSidebarProps {
 }
 
 const CARD_BASE =
-  'h-full rounded-3xl border shadow-xl backdrop-blur-md transition-colors p-5 flex flex-col overflow-hidden';
+  "h-full min-h-0 rounded-3xl border shadow-xl backdrop-blur-md transition-colors p-5 flex flex-col overflow-hidden";
 
 export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSidebarProps) {
   const [showVisualization, setShowVisualization] = useState(true);
@@ -18,19 +18,19 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
   return (
     <div
       className={clsx(
-        'relative flex h-full shrink-0 flex-col transition-all duration-300',
-        isCollapsed ? 'w-0' : 'w-[320px]',
+        "relative flex h-full min-h-0 shrink-0 flex-col transition-all duration-300",
+        isCollapsed ? "w-0" : "w-[320px]",
       )}
     >
       <button
         type="button"
         onClick={onToggle}
-        aria-label={isCollapsed ? '’πø™∂¥≤Ï√Ê∞Â' : ' ’∆∂¥≤Ï√Ê∞Â'}
+        aria-label={isCollapsed ? "Â±ïÂºÄÊ¥ûÂØüÈù¢Êùø" : "Êî∂Ëµ∑Ê¥ûÂØüÈù¢Êùø"}
         className={clsx(
-          'absolute top-1/2 -left-5 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors',
+          "absolute top-1/2 -left-5 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors",
           isDark
-            ? 'bg-gray-900/85 text-blue-200 border-blue-700/60 hover:bg-gray-800'
-            : 'bg-white text-blue-600 border-blue-200 hover:bg-blue-50',
+            ? "bg-gray-900/85 text-blue-200 border-blue-700/60 hover:bg-gray-800"
+            : "bg-white text-blue-600 border-blue-200 hover:bg-blue-50",
         )}
       >
         {isCollapsed ? <ArrowLeft size={16} strokeWidth={2.4} /> : <ArrowRight size={16} strokeWidth={2.4} />}
@@ -44,33 +44,33 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
           className={clsx(
             CARD_BASE,
             isDark
-              ? 'bg-gradient-to-b from-blue-900/60 via-blue-900/30 to-gray-900/70 border-blue-700/40 text-gray-100'
-              : 'bg-gradient-to-b from-blue-50/90 via-indigo-50/70 to-white border-blue-100 text-slate-800',
+              ? "bg-gradient-to-b from-blue-900/60 via-blue-900/30 to-gray-900/70 border-blue-700/40 text-gray-100"
+              : "bg-gradient-to-b from-blue-50/90 via-indigo-50/70 to-white border-blue-100 text-slate-800",
           )}
         >
           <header className="flex items-center justify-between text-sm font-semibold">
-            <span className="inline-flex items-center gap-2">ø… ”ªØ—› æ</span>
+            <span className="inline-flex items-center gap-2">ÂèØËßÜÂåñÊºîÁ§∫</span>
             <div className="flex items-center gap-3 text-xs font-medium">
               <button
                 type="button"
                 onClick={() => setShowVisualization(prev => !prev)}
                 className={clsx(
-                  'inline-flex items-center gap-1 rounded-full px-3 py-1 transition-colors',
-                  isDark ? 'bg-blue-900/60 text-blue-100 hover:bg-blue-800/70' : 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+                  "inline-flex items-center gap-1 rounded-full px-3 py-1 transition-colors",
+                  isDark ? "bg-blue-900/60 text-blue-100 hover:bg-blue-800/70" : "bg-blue-100 text-blue-700 hover:bg-blue-200",
                 )}
               >
                 {showVisualization ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                {showVisualization ? ' ’∆' : '’πø™'}
+                {showVisualization ? "Êî∂Ëµ∑" : "Â±ïÂºÄ"}
               </button>
               <button
                 type="button"
                 className={clsx(
-                  'flex items-center gap-1 rounded-full px-3 py-1 transition-colors',
-                  isDark ? 'bg-blue-900/60 text-blue-100 hover:bg-blue-800/70' : 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+                  "flex items-center gap-1 rounded-full px-3 py-1 transition-colors",
+                  isDark ? "bg-blue-900/60 text-blue-100 hover:bg-blue-800/70" : "bg-blue-100 text-blue-700 hover:bg-blue-200",
                 )}
               >
                 <Maximize2 size={14} />
-                »´∆¡
+                ÂÖ®Â±è
               </button>
             </div>
           </header>
@@ -79,36 +79,36 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
             {showVisualization && (
               <div
                 className={clsx(
-                  'flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm',
-                  isDark ? 'border-blue-500/40 text-blue-100' : 'border-blue-300 text-blue-500',
+                  "flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm",
+                  isDark ? "border-blue-500/40 text-blue-100" : "border-blue-300 text-blue-500",
                 )}
               >
-                ∂Øª≠—› æ«¯”Ú
+                Âä®ÁîªÊºîÁ§∫Âå∫Âüü
               </div>
             )}
 
-            <div className="flex flex-1 flex-col gap-3 overflow-hidden">
+            <div className="flex flex-1 flex-col gap-3 overflow-hidden min-h-0">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Bot size={16} />
-                AI ±‡≥Ã÷˙ ÷
+                AI ÁºñÁ®ãÂä©Êâã
               </div>
               <div
                 className={clsx(
-                  'flex-1 space-y-3 overflow-y-auto rounded-2xl px-4 py-3 text-sm shadow-inner',
-                  isDark ? 'bg-gray-900/60 text-gray-100' : 'bg-blue-50 text-slate-700',
+                  "flex-1 space-y-3 overflow-y-auto rounded-2xl px-4 py-3 text-sm shadow-inner",
+                  isDark ? "bg-gray-900/60 text-gray-100" : "bg-blue-50 text-slate-700",
                 )}
               >
-                <ChatBubble isDark={isDark} role="assistant" text="ƒ„∫√£¨Œ“ «–°÷«£¨ÀÊ ±◊º±∏≈„∞Èƒ„ÕÍ≥…ÃÙ’Ω°£" />
+                <ChatBubble isDark={isDark} role="assistant" text="‰Ω†Â•ΩÔºåÊàëÊòØÂ∞èÊô∫ÔºåÈöèÊó∂ÂáÜÂ§áÈô™‰º¥‰Ω†ÂÆåÊàêÊåëÊàò„ÄÇ" />
                 <ChatBubble
                   isDark={isDark}
                   role="assistant"
-                  text=" ’µΩ£¨Œ“ª·±£÷§¡Ω¿∏∂º’πø™ ±“¿»ªƒ‹ø¥µΩ∑¢ÀÕøÚ£¨≤¢»√”“≤‡√Ê∞Â º÷’”Î±‡º≠∆˜±£≥÷Õ¨—˘∏ﬂ∂»°£"
+                  text="Êî∂Âà∞ÔºåÊàë‰ºöÊääÂèØËßÜÂåñÊºîÁ§∫Âíå AI Âä©ÊâãÊï¥ÂêàÂêéÁöÑÂè≥Ê†è‰øùÊåÅ‰∏éÁºñËæëÂô®Á≠âÈ´òÔºåÂπ∂ËÆ©ÂèëÈÄÅÊ†è‰ªª‰ΩïÊó∂ÂÄôÈÉΩÂèØËßÅ„ÄÇ"
                 />
-                <ChatBubble isDark={isDark} role="user" text="∞ÔŒ“ºÏ≤È—≠ª∑¿Ô”–√ª”–‘ΩΩÁŒ Ã‚£ø" />
+                <ChatBubble isDark={isDark} role="user" text="Â∏ÆÊàëÊ£ÄÊü•Âæ™ÁéØÈáåÊúâÊ≤°ÊúâË∂äÁïåÈóÆÈ¢òÔºü" />
                 <ChatBubble
                   isDark={isDark}
                   role="assistant"
-                  text="µ⁄ 18 ––Ãıº˛«Î∏ƒŒ™ i < items.length£¨Œ““—Œ™ƒ„∏ﬂ¡¡°£"
+                  text="Á¨¨ 18 Ë°åÊù°‰ª∂ËØ∑Êîπ‰∏∫ i &lt; items.lengthÔºåÊàëÂ∑≤‰∏∫‰Ω†È´ò‰∫Æ„ÄÇ"
                 />
               </div>
               <form
@@ -119,22 +119,22 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
               >
                 <input
                   type="text"
-                  placeholder=" ‰»Îƒ„µƒŒ Ã‚ªÚ–Ë«Û..."
+                  placeholder="ËæìÂÖ•‰Ω†ÁöÑÈóÆÈ¢òÊàñÈúÄÊ±Ç..."
                   className={clsx(
-                    'flex-1 rounded-2xl border px-4 py-2 focus:outline-none focus:ring-2',
+                    "flex-1 rounded-2xl border px-4 py-2 focus:outline-none focus:ring-2",
                     isDark
-                      ? 'bg-gray-900/50 border-gray-700 text-gray-100 focus:ring-blue-500/80'
-                      : 'bg-white border-blue-200 text-slate-700 focus:ring-blue-400/80',
+                      ? "bg-gray-900/50 border-gray-700 text-gray-100 focus:ring-blue-500/80"
+                      : "bg-white border-blue-200 text-slate-700 focus:ring-blue-400/80",
                   )}
                 />
                 <button
                   type="submit"
                   className={clsx(
-                    'rounded-2xl px-4 py-2 font-medium shadow transition-colors',
-                    isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600',
+                    "rounded-2xl px-4 py-2 font-medium shadow transition-colors",
+                    isDark ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-blue-500 text-white hover:bg-blue-600",
                   )}
                 >
-                  ∑¢ÀÕ
+                  ÂèëÈÄÅ
                 </button>
               </form>
             </div>
@@ -145,15 +145,15 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
   );
 }
 
-function ChatBubble({ role, text, isDark }: { role: 'assistant' | 'user'; text: string; isDark: boolean }) {
-  const isAssistant = role === 'assistant';
+function ChatBubble({ role, text, isDark }: { role: "assistant" | "user"; text: string; isDark: boolean }) {
+  const isAssistant = role === "assistant";
   return (
     <div
-      className={clsx('rounded-2xl px-3 py-2 text-sm', {
-        'self-start bg-blue-500/20 text-blue-100': isAssistant && isDark,
-        'self-start bg-blue-100 text-blue-700': isAssistant && !isDark,
-        'self-end bg-gray-700 text-gray-100': !isAssistant && isDark,
-        'self-end bg-white text-slate-700 shadow': !isAssistant && !isDark,
+      className={clsx("rounded-2xl px-3 py-2 text-sm", {
+        "self-start bg-blue-500/20 text-blue-100": isAssistant && isDark,
+        "self-start bg-blue-100 text-blue-700": isAssistant && !isDark,
+        "self-end bg-gray-700 text-gray-100": !isAssistant && isDark,
+        "self-end bg-white text-slate-700 shadow": !isAssistant && !isDark,
       })}
     >
       {text}
