@@ -42,7 +42,7 @@ export function CodeWorkspace({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.4 }}
-      className={clsx('flex-1 flex flex-col overflow-hidden shadow-xl rounded-3xl', {
+      className={clsx('flex-1 flex flex-col overflow-hidden shadow-xl rounded-3xl relative', {
         'bg-gray-900': isDark,
         'bg-white': !isDark,
       })}
@@ -96,7 +96,7 @@ export function CodeWorkspace({
         </div>
 
         <div
-          className={clsx('flex-1 font-mono text-sm p-4 overflow-y-auto', {
+          className={clsx('flex-1 font-mono text-sm p-4 pr-16 md:pr-20 overflow-y-auto', {
             'bg-gray-900': isDark,
             'bg-white': !isDark,
           })}
@@ -180,7 +180,7 @@ export function CodeWorkspace({
         </motion.button>
       </div>
 
-      <div className="absolute bottom-8 right-6 flex flex-col items-center space-y-4">
+      <div className="absolute top-1/2 -translate-y-1/2 right-4 sm:right-6 flex flex-col items-center space-y-4 z-20">
         {[
           { icon: <Search size={18} />, label: '搜索' },
           { icon: <Palette size={18} />, label: '主题' },
