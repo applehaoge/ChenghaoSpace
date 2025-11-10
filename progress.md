@@ -1,4 +1,10 @@
-﻿- **2025-11-10 KidsCoding 箭头露出调整**
+﻿- **2025-11-10 KidsCoding 洞察栏恢复**
+  - 重新接入 InsightsSidebar（可视化可折叠 + AI 聊天），并与编辑器并列布局，单一折叠按钮控制整列。
+  - 新增 useInsightsSidebar Hook 持久化折叠状态。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client- **2025-11-10 KidsCoding 洞察栏重构**
+  - 重新实现 InsightsSidebar：单列结构、可视化模块支持折叠，折叠时 AI 助手自动占满，折叠按钮方向正确。
+  - AI 助手改为聊天气泡排版，并保持默认可视化展示。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client- **2025-11-10 KidsCoding 箭头露出调整**
   - 折叠状态下将按钮向内偏移（-right-3），确保箭头尖完整露出，不再被细栏裁切。
   - Checks: pnpm --dir server test; pnpm --dir front build:client- **2025-11-10 KidsCoding 箭头样式修正**
   - 调整侧栏折叠按钮的定位与配色，取消半隐藏效果，按钮始终完整露出并采用统一圆形样式，避免“箭头缩进去”的视觉 bug。
@@ -280,6 +286,8 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
   - �ͳһ�Ľ�������㣺���������·��༭��/���������ͬһ��Բ���������Ƴ�������Ӱ���ײ���ɫ�����������Ӿ���Ϊ��һģ�顣
   - ����༭���ػ�Ϊ��ɫ��Ƭ��ͬ����ɫϵ����ͬ��ȡ����������/��Բ�ǣ���ť/���䱣�ֲ��䵫���忴��������һ�塣
   - Checks: ��δ���У���������ִ�� `pnpm --dir server test`��`pnpm --dir front build:client`
+
+
 
 
 

@@ -6,7 +6,9 @@ import { useTheme } from '@/hooks/useTheme';
 import { KidsCodingEditorHeader } from '@/features/kidsCoding/components/editor/KidsCodingEditorHeader';
 import { FileSidebar } from '@/features/kidsCoding/components/editor/FileSidebar';
 import { CodeWorkspace } from '@/features/kidsCoding/components/editor/CodeWorkspace';
+import { InsightsSidebar } from '@/features/kidsCoding/components/editor/InsightsSidebar';
 import { useFileSidebar } from '@/features/kidsCoding/hooks/useFileSidebar';
+import { useInsightsSidebar } from '@/features/kidsCoding/hooks/useInsightsSidebar';
 import type { CodeLineItem, FileEntry } from '@/features/kidsCoding/types/editor';
 
 const FILES: FileEntry[] = [{ id: 'main', name: 'main.py' }];
@@ -29,6 +31,7 @@ export function KidsCodingEditorPage() {
   const [activeLine, setActiveLine] = useState<number | null>(null);
   const [showTutorialHint, setShowTutorialHint] = useState(true);
   const { isCollapsed, toggleSidebar } = useFileSidebar();
+  const { isCollapsed: isInsightsCollapsed, toggleSidebar: toggleInsightsSidebar } = useInsightsSidebar();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowTutorialHint(false), 5000);
@@ -73,19 +76,26 @@ export function KidsCodingEditorPage() {
 
       <KidsCodingEditorHeader isDark={isDark} toggleTheme={toggleTheme} />
 
-      <div className="relative flex flex-1 overflow-hidden pt-4 gap-4">
+      <div className="relative flex flex-1 overflow-hidden pt-4 gap-3 xl:gap-4">
         <FileSidebar isDark={isDark} isCollapsed={isCollapsed} onToggle={toggleSidebar} files={FILES} />
-        <CodeWorkspace
-          isDark={isDark}
-          zoomLevel={zoomLevel}
-          activeLine={activeLine}
-          codeLines={DEFAULT_CODE_LINES}
-          onLineHover={handleLineHover}
-          onLineLeave={handleLineLeave}
-          onZoomIn={handleZoomIn}
-          onZoomOut={handleZoomOut}
-          onRunCode={handleRunCode}
-        />
+        <div className="flex flex-1 gap-3 xl:gap-4">
+          <CodeWorkspace
+            isDark={isDark}
+            zoomLevel={zoomLevel}
+            activeLine={activeLine}
+            codeLines={DEFAULT_CODE_LINES}
+            onLineHover={handleLineHover}
+            onLineLeave={handleLineLeave}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onRunCode={handleRunCode}
+          />
+          <InsightsSidebar
+            isDark={isDark}
+            isCollapsed={isInsightsCollapsed}
+            onToggle={toggleInsightsSidebar}
+          />
+        </div>
       </div>
 
       {showTutorialHint && (
