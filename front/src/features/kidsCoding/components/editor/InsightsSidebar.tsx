@@ -10,17 +10,22 @@ interface InsightsSidebarProps {
 }
 
 const CARD_BASE =
-  'rounded-3xl border shadow-xl backdrop-blur-md transition-colors p-5 flex flex-col gap-4';
+  'h-full rounded-3xl border shadow-xl backdrop-blur-md transition-colors p-5 flex flex-col overflow-hidden';
 
 export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSidebarProps) {
   const [showVisualization, setShowVisualization] = useState(true);
 
   return (
-    <div className={clsx('relative shrink-0 transition-all duration-300', isCollapsed ? 'w-0' : 'w-[320px]')}>
+    <div
+      className={clsx(
+        'relative flex h-full shrink-0 flex-col transition-all duration-300',
+        isCollapsed ? 'w-0' : 'w-[320px]',
+      )}
+    >
       <button
         type="button"
         onClick={onToggle}
-        aria-label={isCollapsed ? 'Â±ïÂºÄÊ¥ûÂØüÈù¢Êùø' : 'Êî∂Ëµ∑Ê¥ûÂØüÈù¢Êùø'}
+        aria-label={isCollapsed ? '’πø™∂¥≤Ï√Ê∞Â' : ' ’∆∂¥≤Ï√Ê∞Â'}
         className={clsx(
           'absolute top-1/2 -left-5 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full border shadow-lg transition-colors',
           isDark
@@ -44,7 +49,7 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
           )}
         >
           <header className="flex items-center justify-between text-sm font-semibold">
-            <span className="inline-flex items-center gap-2">ÂèØËßÜÂåñÊºîÁ§∫</span>
+            <span className="inline-flex items-center gap-2">ø… ”ªØ—› æ</span>
             <div className="flex items-center gap-3 text-xs font-medium">
               <button
                 type="button"
@@ -55,7 +60,7 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
                 )}
               >
                 {showVisualization ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                {showVisualization ? 'Êî∂Ëµ∑' : 'Â±ïÂºÄ'}
+                {showVisualization ? ' ’∆' : '’πø™'}
               </button>
               <button
                 type="button"
@@ -65,72 +70,74 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
                 )}
               >
                 <Maximize2 size={14} />
-                ÂÖ®Â±è
+                »´∆¡
               </button>
             </div>
           </header>
 
-          {showVisualization && (
-            <div
-              className={clsx(
-                'flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm',
-                isDark ? 'border-blue-500/40 text-blue-100' : 'border-blue-300 text-blue-500',
-              )}
-            >
-              Âä®ÁîªÊºîÁ§∫Âå∫Âüü
-            </div>
-          )}
-
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Bot size={16} />
-              AI ÁºñÁ®ãÂä©Êâã
-            </div>
-            <div
-              className={clsx(
-                'rounded-2xl px-4 py-3 text-sm shadow-inner space-y-3',
-                isDark ? 'bg-gray-900/60 text-gray-100' : 'bg-blue-50 text-slate-700',
-              )}
-            >
-              <ChatBubble isDark={isDark} role="assistant" text="‰Ω†Â•ΩÔºåÊàëÊòØÂ∞èÊô∫ÔºåÈöèÊó∂ÂáÜÂ§áÈô™‰º¥‰Ω†ÂÆåÊàêÊåëÊàò„ÄÇ" />
-              <ChatBubble
-                isDark={isDark}
-                role="assistant"
-                text="Êî∂Âà∞ÔºåÊàë‰ºöÊääÂèØËßÜÂåñÂå∫ÂüüÂíå AI Âä©ÊâãÊï¥ÂêàÊàê‰∏ÄÊ†èÔºåÁßªÈô§Â§ö‰ΩôÊñáÊ°àÂπ∂Ë°•ÈΩêÂèëÈÄÅÊ†è„ÄÇ"
-              />
-              <ChatBubble isDark={isDark} role="user" text="Â∏ÆÊàëÊ£ÄÊü•Âæ™ÁéØÈáåÊúâÊ≤°ÊúâË∂äÁïåÈóÆÈ¢òÔºü" />
-              <ChatBubble
-                isDark={isDark}
-                role="assistant"
-                text="Á¨¨ 18 Ë°åÊù°‰ª∂ËØ∑Êîπ‰∏∫ i &lt; items.lengthÔºåÊàëÂ∑≤‰∏∫‰Ω†È´ò‰∫Æ„ÄÇ"
-              />
-            </div>
-            <form
-              className="flex items-center gap-2 text-sm"
-              onSubmit={event => {
-                event.preventDefault();
-              }}
-            >
-              <input
-                type="text"
-                placeholder="ËæìÂÖ•‰Ω†ÁöÑÈóÆÈ¢òÊàñÈúÄÊ±Ç..."
+          <div className="mt-4 flex flex-1 flex-col gap-4 overflow-hidden">
+            {showVisualization && (
+              <div
                 className={clsx(
-                  'flex-1 rounded-2xl border px-4 py-2 focus:outline-none focus:ring-2',
-                  isDark
-                    ? 'bg-gray-900/50 border-gray-700 text-gray-100 focus:ring-blue-500/80'
-                    : 'bg-white border-blue-200 text-slate-700 focus:ring-blue-400/80',
-                )}
-              />
-              <button
-                type="submit"
-                className={clsx(
-                  'rounded-2xl px-4 py-2 font-medium shadow transition-colors',
-                  isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600',
+                  'flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm',
+                  isDark ? 'border-blue-500/40 text-blue-100' : 'border-blue-300 text-blue-500',
                 )}
               >
-                ÂèëÈÄÅ
-              </button>
-            </form>
+                ∂Øª≠—› æ«¯”Ú
+              </div>
+            )}
+
+            <div className="flex flex-1 flex-col gap-3 overflow-hidden">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Bot size={16} />
+                AI ±‡≥Ã÷˙ ÷
+              </div>
+              <div
+                className={clsx(
+                  'flex-1 space-y-3 overflow-y-auto rounded-2xl px-4 py-3 text-sm shadow-inner',
+                  isDark ? 'bg-gray-900/60 text-gray-100' : 'bg-blue-50 text-slate-700',
+                )}
+              >
+                <ChatBubble isDark={isDark} role="assistant" text="ƒ„∫√£¨Œ“ «–°÷«£¨ÀÊ ±◊º±∏≈„∞Èƒ„ÕÍ≥…ÃÙ’Ω°£" />
+                <ChatBubble
+                  isDark={isDark}
+                  role="assistant"
+                  text=" ’µΩ£¨Œ“ª·±£÷§¡Ω¿∏∂º’πø™ ±“¿»ªƒ‹ø¥µΩ∑¢ÀÕøÚ£¨≤¢»√”“≤‡√Ê∞Â º÷’”Î±‡º≠∆˜±£≥÷Õ¨—˘∏ﬂ∂»°£"
+                />
+                <ChatBubble isDark={isDark} role="user" text="∞ÔŒ“ºÏ≤È—≠ª∑¿Ô”–√ª”–‘ΩΩÁŒ Ã‚£ø" />
+                <ChatBubble
+                  isDark={isDark}
+                  role="assistant"
+                  text="µ⁄ 18 ––Ãıº˛«Î∏ƒŒ™ i < items.length£¨Œ““—Œ™ƒ„∏ﬂ¡¡°£"
+                />
+              </div>
+              <form
+                className="mt-auto flex items-center gap-2 text-sm"
+                onSubmit={event => {
+                  event.preventDefault();
+                }}
+              >
+                <input
+                  type="text"
+                  placeholder=" ‰»Îƒ„µƒŒ Ã‚ªÚ–Ë«Û..."
+                  className={clsx(
+                    'flex-1 rounded-2xl border px-4 py-2 focus:outline-none focus:ring-2',
+                    isDark
+                      ? 'bg-gray-900/50 border-gray-700 text-gray-100 focus:ring-blue-500/80'
+                      : 'bg-white border-blue-200 text-slate-700 focus:ring-blue-400/80',
+                  )}
+                />
+                <button
+                  type="submit"
+                  className={clsx(
+                    'rounded-2xl px-4 py-2 font-medium shadow transition-colors',
+                    isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600',
+                  )}
+                >
+                  ∑¢ÀÕ
+                </button>
+              </form>
+            </div>
           </div>
         </motion.section>
       )}
