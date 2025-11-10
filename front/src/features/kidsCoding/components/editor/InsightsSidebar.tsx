@@ -1,11 +1,12 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Bot, Maximize2, ChevronUp, ChevronDown, MonitorPlay } from "lucide-react";
+import { ArrowLeft, ArrowRight, Maximize2, ChevronUp, ChevronDown, MonitorPlay } from "lucide-react";
 import clsx from "clsx";
 import {
   INSIGHTS_PANEL_COLLAPSED_WIDTH,
   INSIGHTS_PANEL_WIDTH,
 } from "@/features/kidsCoding/constants/editorLayout";
+import { AssistantChatPanel } from "./AssistantChatPanel";
 
 interface InsightsSidebarProps {
   isDark: boolean;
@@ -93,77 +94,11 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
               </div>
             )}
 
-            <div className="flex flex-1 flex-col gap-3 overflow-hidden min-h-0">
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Bot size={16} />
-                AI 编程助手
-              </div>
-              <div
-                className={clsx(
-                  "flex-1 space-y-3 overflow-y-auto rounded-2xl px-4 py-3 text-sm shadow-inner",
-                  isDark ? "bg-gray-900/60 text-gray-100" : "bg-blue-50 text-slate-700",
-                )}
-              >
-                <ChatBubble isDark={isDark} role="assistant" text="你好，我是小智，随时准备陪伴你完成挑战。" />
-                <ChatBubble
-                  isDark={isDark}
-                  role="assistant"
-                  text="收到，我会把可视化演示和 AI 助手整合后的右栏保持与编辑器等高，并让发送栏任何时候都可见。"
-                />
-                <ChatBubble isDark={isDark} role="user" text="帮我检查循环里有没有越界问题？" />
-                <ChatBubble
-                  isDark={isDark}
-                  role="assistant"
-                  text="第 18 行条件请改为 i &lt; items.length，我已为你高亮。"
-                />
-              </div>
-              <form
-                className="mt-auto flex items-center gap-2 text-sm"
-                onSubmit={event => {
-                  event.preventDefault();
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder="输入你的问题或需求..."
-                  className={clsx(
-                    "flex-1 rounded-2xl border px-4 py-2 transition-colors focus:outline-none focus:ring-0",
-                    isDark
-                      ? "bg-gray-900/50 border-gray-700 text-gray-100 focus:border-blue-300 focus:bg-gray-900/60 focus:text-blue-50"
-                      : "bg-white border-blue-200 text-slate-700 focus:border-blue-500 focus:bg-blue-50/90 focus:text-blue-700",
-                  )}
-                />
-                <button
-                  type="submit"
-                  className={clsx(
-                    "rounded-2xl px-4 py-2 font-medium shadow transition-colors",
-                    isDark ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-blue-500 text-white hover:bg-blue-600",
-                  )}
-                >
-                  发送
-                </button>
-              </form>
-            </div>
+            <AssistantChatPanel isDark={isDark} />
           </div>
         </motion.section>
       )}
     </motion.aside>
-  );
-}
-
-function ChatBubble({ role, text, isDark }: { role: "assistant" | "user"; text: string; isDark: boolean }) {
-  const isAssistant = role === "assistant";
-  return (
-    <div
-      className={clsx("rounded-2xl px-3 py-2 text-sm", {
-        "self-start bg-blue-500/20 text-blue-100": isAssistant && isDark,
-        "self-start bg-blue-100 text-blue-700": isAssistant && !isDark,
-        "self-end bg-gray-700 text-gray-100": !isAssistant && isDark,
-        "self-end bg-white text-slate-700 shadow": !isAssistant && !isDark,
-      })}
-    >
-      {text}
-    </div>
   );
 }
 
@@ -212,3 +147,4 @@ function CollapseHandle({
     </>
   );
 }
+
