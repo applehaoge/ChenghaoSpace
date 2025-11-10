@@ -32,105 +32,107 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
       </button>
 
       {!isCollapsed && (
-        <div className="flex flex-col gap-4">
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-            className={clsx(
-              CARD_BASE,
-              isDark
-                ? 'bg-gradient-to-b from-blue-900/60 to-blue-800/40 border-blue-700/40 text-gray-100'
-                : 'bg-gradient-to-b from-blue-50/90 to-indigo-50/70 border-blue-100 text-slate-800',
-            )}
-          >
-            <header className="flex items-center justify-between text-sm font-semibold">
-              <span className="inline-flex items-center gap-2">可视化演示</span>
+        <motion.section
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          className={clsx(
+            CARD_BASE,
+            isDark
+              ? 'bg-gradient-to-b from-blue-900/60 via-blue-900/30 to-gray-900/70 border-blue-700/40 text-gray-100'
+              : 'bg-gradient-to-b from-blue-50/90 via-indigo-50/70 to-white border-blue-100 text-slate-800',
+          )}
+        >
+          <header className="flex items-center justify-between text-sm font-semibold">
+            <span className="inline-flex items-center gap-2">可视化演示</span>
+            <div className="flex items-center gap-3 text-xs font-medium">
+              <button
+                type="button"
+                onClick={() => setShowVisualization(prev => !prev)}
+                className={clsx(
+                  'inline-flex items-center gap-1 rounded-full px-3 py-1 transition-colors',
+                  isDark ? 'bg-blue-900/60 text-blue-100 hover:bg-blue-800/70' : 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+                )}
+              >
+                {showVisualization ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                {showVisualization ? '收起' : '展开'}
+              </button>
               <button
                 type="button"
                 className={clsx(
-                  'flex items-center gap-1 text-xs font-medium',
-                  isDark ? 'text-blue-200' : 'text-blue-600',
+                  'flex items-center gap-1 rounded-full px-3 py-1 transition-colors',
+                  isDark ? 'bg-blue-900/60 text-blue-100 hover:bg-blue-800/70' : 'bg-blue-100 text-blue-700 hover:bg-blue-200',
                 )}
               >
                 <Maximize2 size={14} />
                 全屏
               </button>
-            </header>
-
-            <div className="flex items-center justify-between text-xs font-medium">
-              <span
-                className={clsx(
-                  'rounded-full px-3 py-1 text-[11px]',
-                  isDark ? 'bg-blue-800/40 text-blue-100' : 'bg-blue-100 text-blue-700',
-                )}
-              >
-                小动画 / 图形
-              </span>
-              <button
-                type="button"
-                onClick={() => setShowVisualization(prev => !prev)}
-                className={clsx(
-                  'inline-flex items-center gap-1 text-xs font-medium',
-                  isDark ? 'text-blue-200' : 'text-blue-600',
-                )}
-              >
-                {showVisualization ? (
-                  <>
-                    <ChevronUp size={14} />
-                    收起
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown size={14} />
-                    展开
-                  </>
-                )}
-              </button>
             </div>
+          </header>
 
-            {showVisualization && (
-              <div
-                className={clsx(
-                  'flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm',
-                  isDark ? 'border-blue-500/40 text-blue-100' : 'border-blue-300 text-blue-500',
-                )}
-              >
-                动画演示区域
-              </div>
-            )}
-          </motion.section>
+          {showVisualization && (
+            <div
+              className={clsx(
+                'flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm',
+                isDark ? 'border-blue-500/40 text-blue-100' : 'border-blue-300 text-blue-500',
+              )}
+            >
+              动画演示区域
+            </div>
+          )}
 
-          <motion.section
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.05 }}
-            className={clsx(
-              CARD_BASE,
-              isDark ? 'bg-gray-900/70 border-gray-700 text-gray-50' : 'bg-white border-blue-100 text-slate-800',
-            )}
-          >
-            <header className="flex items-center gap-2 text-sm font-semibold">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-2 text-sm font-semibold">
               <Bot size={16} />
               AI 编程助手
-            </header>
-
+            </div>
             <div
               className={clsx(
                 'rounded-2xl px-4 py-3 text-sm shadow-inner space-y-3',
-                isDark ? 'bg-gray-800/80 text-gray-200' : 'bg-blue-50 text-slate-700',
+                isDark ? 'bg-gray-900/60 text-gray-100' : 'bg-blue-50 text-slate-700',
               )}
             >
               <ChatBubble isDark={isDark} role="assistant" text="你好，我是小智，随时准备陪伴你完成挑战。" />
+              <ChatBubble
+                isDark={isDark}
+                role="assistant"
+                text="收到，我会把可视化区域和 AI 助手整合成一栏，移除多余文案并补齐发送栏。"
+              />
               <ChatBubble isDark={isDark} role="user" text="帮我检查循环里有没有越界问题？" />
               <ChatBubble
                 isDark={isDark}
                 role="assistant"
-                text="第 18 行条件请改为 i < items.length，我已为你高亮。"
+                text="第 18 行条件请改为 i &lt; items.length，我已为你高亮。"
               />
             </div>
-          </motion.section>
-        </div>
+            <form
+              className="flex items-center gap-2 text-sm"
+              onSubmit={event => {
+                event.preventDefault();
+              }}
+            >
+              <input
+                type="text"
+                placeholder="输入你的问题或需求..."
+                className={clsx(
+                  'flex-1 rounded-2xl border px-4 py-2 focus:outline-none focus:ring-2',
+                  isDark
+                    ? 'bg-gray-900/50 border-gray-700 text-gray-100 focus:ring-blue-500/80'
+                    : 'bg-white border-blue-200 text-slate-700 focus:ring-blue-400/80',
+                )}
+              />
+              <button
+                type="submit"
+                className={clsx(
+                  'rounded-2xl px-4 py-2 font-medium shadow transition-colors',
+                  isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600',
+                )}
+              >
+                发送
+              </button>
+            </form>
+          </div>
+        </motion.section>
       )}
     </div>
   );

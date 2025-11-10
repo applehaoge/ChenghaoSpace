@@ -293,3 +293,7 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
 
 
 
+ 
+- **2025-11-10 KidsCoding 侧栏整合**
+  - 可视化演示与 AI 编程助手合并进单一卡片，移除了“小动画 / 图形”标签，把“收起”和“全屏”控件放到同一行，并为 AI 助手新增发送栏让其复述需求。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
