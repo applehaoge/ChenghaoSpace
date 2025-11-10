@@ -1,3 +1,11 @@
+- **2025-11-10 KidsCoding 细线折叠箭头**
+  - 折叠/展开按钮嵌入侧栏边框中点，点击即隐藏面板，仅留细线提示可展开，满足“无额外栏位”的交互诉求。
+  - 调整 FILE_PANEL_COLLAPSED_WIDTH 为 14px，并让 collapse handle/提示线在暗黑与亮色主题下都有统一动画。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-10 KidsCoding 编辑器拆分与侧栏按钮**
+  - 抽离 Header/FileSidebar/CodeWorkspace 组件与 useFileSidebar Hook，页面逻辑仅负责状态编排，便于后续维护与扩展。
+  - 侧栏内部新增小型折叠箭头并支持记忆折叠状态，编辑器区域自适应扩展，满足“按钮在左侧区域且更小”的交互。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
 - **2025-11-07 KidsCoding 编辑器迁移**
   - 以下载的少儿编程编辑器完全覆盖 `/kids-coding/editor` 页面（重写 `KidsCodingEditorPage`，清理旧 IDE 组件入口），并补充 `.kids-coding-editor` 作用域样式以还原原稿观感。
   - 新增 `lucide-react` 依赖、沿用既有 `useTheme`/Provider，保证全站其他页面无需调整即可切换新编辑器。
@@ -268,4 +276,6 @@ sHelpers??ttachmentContext 涓庡墠锟? iService 鍗曞厓娴嬭瘯
   - 搭建统一的渐变包裹层：导航栏与下方编辑器/结果区域共享同一个圆角容器，移除多余阴影，底部暗色背景过渡让视觉成为单一模块。
   - 代码编辑器重绘为深色卡片（同容器色系）并同步取消导航栏左/下圆角，按钮/渐变保持不变但整体看起来连成一体。
   - Checks: （未运行）待有人手执行 `pnpm --dir server test`、`pnpm --dir front build:client`
+
+
 
