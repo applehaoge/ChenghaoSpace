@@ -127,10 +127,10 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
                   type="text"
                   placeholder="输入你的问题或需求..."
                   className={clsx(
-                    "flex-1 rounded-2xl border px-4 py-2 focus:outline-none focus:ring-2",
+                    "flex-1 rounded-2xl border px-4 py-2 transition-colors focus:outline-none focus:ring-0",
                     isDark
-                      ? "bg-gray-900/50 border-gray-700 text-gray-100 focus:ring-blue-500/80"
-                      : "bg-white border-blue-200 text-slate-700 focus:ring-blue-400/80",
+                      ? "bg-gray-900/50 border-gray-700 text-gray-100 focus:border-blue-300 focus:bg-gray-900/60 focus:text-blue-50"
+                      : "bg-white border-blue-200 text-slate-700 focus:border-blue-500 focus:bg-blue-50/90 focus:text-blue-700",
                   )}
                 />
                 <button
