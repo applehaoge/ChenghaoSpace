@@ -306,3 +306,6 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
 - **2025-11-10 KidsCoding 洞察折叠展开补位**
   - 洞察栏在折叠时沿用与文件侧栏相同的 14px 轨道与双圆按钮，新增带圆角边框的容器来保持统一阴影/色板，折叠和展开时箭头方向、分隔线样式完全一致。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-10 KidsCoding 可视化标题统一**
+  - 可视化演示标题新增 MonitorPlay 图标并与 AI 助手标题保持同字号左对齐，折叠时自动降低不透明度，展开时恢复，保证状态反馈一致；后续根据设计反馈进一步加强虚化（40% 不透明度）并将电视图标缩至 14px，避免视觉比机器人更大。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

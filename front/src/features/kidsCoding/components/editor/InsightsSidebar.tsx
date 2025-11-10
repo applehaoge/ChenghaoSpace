@@ -1,6 +1,6 @@
 ﻿import { useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Bot, Maximize2, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, Bot, Maximize2, ChevronUp, ChevronDown, MonitorPlay } from "lucide-react";
 import clsx from "clsx";
 import {
   INSIGHTS_PANEL_COLLAPSED_WIDTH,
@@ -47,7 +47,15 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
           )}
         >
           <header className="flex items-center justify-between text-sm font-semibold">
-            <span className="inline-flex items-center gap-2">可视化演示</span>
+            <span
+              className={clsx(
+                "inline-flex items-center gap-2 transition-opacity",
+                showVisualization ? "opacity-100" : "opacity-40",
+              )}
+            >
+              <MonitorPlay size={14} />
+              可视化演示
+            </span>
             <div className="flex items-center gap-3 text-xs font-medium">
               <button
                 type="button"
