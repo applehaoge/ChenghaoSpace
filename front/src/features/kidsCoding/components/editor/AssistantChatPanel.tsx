@@ -145,23 +145,30 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
 
 function SimpleChatBubble({ bubble, isDark }: { bubble: SimpleBubble; isDark: boolean }) {
   const isAssistant = bubble.role === 'assistant';
+  const alignmentClass = isAssistant ? 'justify-start' : 'justify-end';
   return (
-    <div
-      className={clsx('rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed', {
-        'self-start bg-blue-500/20 text-blue-100': isAssistant && isDark,
-        'self-start bg-blue-100 text-blue-700': isAssistant && !isDark,
-        'self-end bg-gray-700 text-gray-100 ml-auto': !isAssistant && isDark,
-        'self-end bg-white text-slate-700 shadow ml-auto': !isAssistant && !isDark,
-      })}
-    >
-      {bubble.text || (isAssistant ? '小智正在思考...' : '...')}
-      {bubble.isStreaming ? (
-        <span className="ml-2 inline-flex items-center gap-1 text-xs opacity-70">
-          <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-          输入中
+    <div className={clsx('flex w-full', alignmentClass)}>
+      <div
+        className={clsx(
+          'inline-flex max-w-[85%] rounded-2xl px-3 py-2 text-sm whitespace-pre-wrap leading-relaxed',
+          {
+            'bg-blue-500/20 text-blue-100 text-left': isAssistant && isDark,
+            'bg-blue-100 text-blue-700 text-left': isAssistant && !isDark,
+            'bg-gray-700 text-gray-100 text-right': !isAssistant && isDark,
+            'bg-white text-slate-700 shadow text-right': !isAssistant && !isDark,
+          }
+        )}
+      >
+        <span>
+          {bubble.text || (isAssistant ? '小智正在思考...' : '...')}
+          {bubble.isStreaming ? (
+            <span className="ml-2 inline-flex items-center gap-1 text-xs opacity-70">
+              <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
+              输入中
+            </span>
+          ) : null}
         </span>
-      ) : null}
+      </div>
     </div>
   );
 }
-
