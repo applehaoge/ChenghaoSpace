@@ -31,20 +31,19 @@ export function CodeWorkspace({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.4 }}
-      className={clsx('flex-1 flex flex-col overflow-hidden shadow-xl relative', {
+      className={clsx('flex-1 flex flex-col overflow-hidden shadow-xl relative rounded-3xl', {
         'bg-gray-900': isDark,
         'bg-white': !isDark,
       })}
     >
       <div
-        className={clsx('flex items-center border-b px-4', {
+        className={clsx('flex items-center border-b px-4 rounded-t-3xl', {
           'border-gray-700 bg-gray-800': isDark,
           'border-blue-100 bg-blue-50/70': !isDark,
         })}
       >
         <motion.div
-          whileHover={{ y: -1 }}
-          className={clsx('flex items-center space-x-2 border border-b-transparent px-3 py-2 -mb-px shadow-md', {
+          className={clsx('flex items-center space-x-2 border border-b-transparent px-3 py-2 -mb-px shadow-md rounded-t-2xl', {
             'bg-gray-900 border-gray-700': isDark,
             'bg-white border-blue-200': !isDark,
           })}
@@ -79,7 +78,7 @@ export function CodeWorkspace({
       </div>
 
       <div
-        className={clsx('flex items-center justify-between h-14 px-4 border-t', {
+        className={clsx('flex items-center justify-between h-14 px-4 border-t rounded-b-3xl', {
           'bg-gray-800 border-gray-700': isDark,
           'bg-blue-50/70 border-blue-100': !isDark,
         })}

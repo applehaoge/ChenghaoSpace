@@ -1,6 +1,7 @@
 @echo off
 echo =====================================
-echo 🚀 一键同步到远程最新版本 (main)
+echo 🧹 一键回到当前最新提交 (HEAD)
+echo !!! 所有未保存修改和新文件将被丢弃 !!!
 echo =====================================
 
 if not exist ".git" (
@@ -9,13 +10,12 @@ if not exist ".git" (
     exit /b
 )
 
-echo 🔄 正在获取远程最新版本...
-git fetch origin main
+cd /d %~dp0
 
-echo 🧩 正在覆盖为远程最新代码...
-git checkout origin/main -- .
+echo 🔄 正在回到最新提交...
+git reset --hard HEAD
 
-echo ✅ 已成功同步到远程最新版本！
+echo ✅ 已回到當前最新提交：
 git log -1 --oneline
 echo -------------------------------------
 pause
