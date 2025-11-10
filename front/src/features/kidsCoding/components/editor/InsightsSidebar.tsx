@@ -14,16 +14,22 @@ interface InsightsSidebarProps {
 }
 
 const CARD_BASE =
-  "h-full min-h-0 rounded-3xl border shadow-xl backdrop-blur-md transition-colors p-5 flex flex-col overflow-hidden";
+  "flex flex-1 min-h-0 flex-col overflow-hidden rounded-3xl backdrop-blur-md transition-colors p-5";
 
 export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSidebarProps) {
   const [showVisualization, setShowVisualization] = useState(true);
 
   return (
-    <div
-      style={{ width: isCollapsed ? INSIGHTS_PANEL_COLLAPSED_WIDTH : INSIGHTS_PANEL_WIDTH }}
+    <motion.aside
+      initial={false}
+      animate={{
+        width: isCollapsed ? INSIGHTS_PANEL_COLLAPSED_WIDTH : INSIGHTS_PANEL_WIDTH,
+        opacity: isCollapsed ? 0.95 : 1,
+      }}
+      transition={{ duration: 0.35, ease: "easeInOut" }}
       className={clsx(
-        "relative flex h-full min-h-0 shrink-0 flex-col transition-all duration-300 overflow-visible",
+        "relative flex min-h-0 shrink-0 flex-col overflow-hidden rounded-3xl border shadow-xl backdrop-blur-md transition-colors duration-300",
+        isDark ? "bg-gray-900/80 border-gray-700" : "bg-white/90 border-blue-200",
       )}
     >
       <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
@@ -133,7 +139,7 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
           </div>
         </motion.section>
       )}
-    </div>
+    </motion.aside>
   );
 }
 

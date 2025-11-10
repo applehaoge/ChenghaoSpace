@@ -304,5 +304,5 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
   - 洞察面板折叠按钮改用与文件侧栏相同的双层圆形样式并加上分隔亮线和 z-index，按钮与面板视觉合一、不再被内容遮挡。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 - **2025-11-10 KidsCoding 洞察折叠展开补位**
-  - 洞察栏在折叠时保留 18px 侧轨，展开按钮始终露在编辑器右缘，方向与文件侧栏一致，避免折叠后完全无入口。
+  - 洞察栏在折叠时沿用与文件侧栏相同的 14px 轨道与双圆按钮，新增带圆角边框的容器来保持统一阴影/色板，折叠和展开时箭头方向、分隔线样式完全一致。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
