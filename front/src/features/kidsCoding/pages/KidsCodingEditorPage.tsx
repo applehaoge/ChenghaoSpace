@@ -78,9 +78,9 @@ export function KidsCodingEditorPage() {
 
       <KidsCodingEditorHeader isDark={isDark} toggleTheme={toggleTheme} />
 
-      <div className="relative flex flex-1 overflow-hidden pt-4 gap-3 xl:gap-4">
+      <div className="relative flex flex-1 overflow-hidden pt-4 gap-3 xl:gap-4 min-w-0">
         <FileSidebar isDark={isDark} isCollapsed={isCollapsed} onToggle={toggleSidebar} files={FILES} />
-        <div className="flex flex-1 gap-3 xl:gap-4">
+        <div className="flex flex-1 gap-3 xl:gap-4 min-w-0">
           <CodeWorkspace
             isDark={isDark}
             zoomLevel={zoomLevel}

@@ -31,7 +31,7 @@ export function CodeWorkspace({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, delay: 0.4 }}
-      className={clsx('flex-1 flex flex-col overflow-hidden shadow-xl relative rounded-3xl', {
+      className={clsx('flex-1 min-w-0 flex flex-col overflow-hidden shadow-xl relative rounded-3xl', {
         'bg-gray-900': isDark,
         'bg-white': !isDark,
       })}
