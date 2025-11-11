@@ -1,5 +1,7 @@
 ## 部署概览
 
+> 开发提示：日常在本地调试时继续运行 `pnpm --dir server dev`、`pnpm --dir front dev`、`pnpm --dir python-runner dev`，Docker 仅用于测试 / 生产环境部署。
+
 整套方案分为三层：
 
 1. `server/` Fastify API：负责 `/api/run`、job 队列和 WebSocket 流。

@@ -72,3 +72,6 @@ ChenghaoSpace 是一个基于 Fastify + TypeScript 后端与 Vite + React 前端
 3. 运行 docker compose up -d 后，Fastify 服务默认暴露在 8000 端口，python-runner 会自动通过 http://server:8000 与后端通信。
 4. docker volume server_data 会保存记忆/上传文件，如需挂载到宿主机目录，可在 compose.yaml 中调整 volumes。
 5. 通过环境变量 RUNNER_MAX_CONCURRENCY、RUNNER_POLL_INTERVAL_MS 等可在 Linux 上方便地扩展 runner 数量；多节点时保持同一 RUNNER_ACCESS_TOKEN 即可。
+## 开发 / 部署流程
+- 本地开发仍然使用 pnpm --dir server dev、pnpm --dir front dev、pnpm --dir python-runner dev 等命令，任何日常调试都不需要进入 Docker。
+- 只有在部署到测试/生产环境时才执行 docker compose build + docker compose up -d（或 docker-compose up -d），此时 server 与 python-runner 将运行在容器网络中，并通过 RUNNER_ACCESS_TOKEN、RUNNER_SERVER_URL 等环境变量互信。
