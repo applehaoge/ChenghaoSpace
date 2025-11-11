@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Copy } from 'lucide-react';
 
 interface ResizableConsoleProps {
   isDark: boolean;
@@ -33,7 +34,9 @@ export function ResizableConsole({
   maxHeight = DEFAULT_MAX_HEIGHT,
 }: ResizableConsoleProps) {
   const dragStateRef = useRef<{ startY: number; startHeight: number } | null>(null);
+  const copyResetRef = useRef<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [isCopied, setIsCopied] = useState(false);
   const constrainedHeight = useMemo(
     () => Math.max(minHeight, Math.min(maxHeight, height)),
     [height, maxHeight, minHeight],
@@ -91,6 +94,35 @@ export function ResizableConsole({
   useEffect(() => {
     debugLog('console height update', constrainedHeight);
   }, [constrainedHeight]);
+
+  const handleCopy = async () => {
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(output);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = output;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setIsCopied(true);
+      if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+      copyResetRef.current = window.setTimeout(() => setIsCopied(false), 1500);
+    } catch (error) {
+      console.error('[ResizableConsole] copy failed', error);
+    }
+  };
+
+  useEffect(
+    () => () => {
+      if (copyResetRef.current) window.clearTimeout(copyResetRef.current);
+    },
+    [],
+  );
 
   return (
     <AnimatePresence initial={false}>
@@ -156,14 +188,21 @@ export function ResizableConsole({
                     ))}
                   </div>
                   <span className="uppercase tracking-[0.2em]">Console</span>
-                  <span
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.04 }}
+                    whileTap={{ scale: 0.94 }}
+                    onClick={handleCopy}
                     className={clsx(
-                      'inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px]',
-                      isDark ? 'bg-emerald-500/10 text-emerald-200' : 'bg-emerald-100 text-emerald-600',
+                      'inline-flex items-center space-x-1.5 rounded-full px-3 py-0.5 text-[12px] border transition-colors',
+                      isDark
+                        ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100 hover:bg-emerald-400/20'
+                        : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
                     )}
                   >
-                    Ready
-                  </span>
+                    <Copy size={14} />
+                    <span>{isCopied ? '已复制' : '复制'}</span>
+                  </motion.button>
                 </div>
                 <motion.button
                   type="button"
