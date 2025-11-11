@@ -13,16 +13,17 @@ interface FileSidebarProps {
 
 export function FileSidebar({ isDark, isCollapsed, onToggle, files }: FileSidebarProps) {
   return (
-    <motion.aside
+    <motion.div
       initial={false}
       animate={{
-        width: isCollapsed ? FILE_PANEL_COLLAPSED_WIDTH : FILE_PANEL_WIDTH,
-        opacity: isCollapsed ? 0.95 : 1,
+        opacity: isCollapsed ? 0.85 : 1,
+        scale: isCollapsed ? 0.98 : 1,
       }}
-      transition={{ duration: 0.35, ease: 'easeInOut' }}
+      transition={{ duration: 0.4 }}
       className={`relative flex flex-col border ${
         isDark ? 'bg-gray-800 border-gray-700' : 'bg-white/90 border-blue-200'
       } backdrop-blur-sm shadow-xl rounded-3xl overflow-hidden`}
+      style={{ width: isCollapsed ? FILE_PANEL_COLLAPSED_WIDTH : FILE_PANEL_WIDTH }}
     >
       <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
 
@@ -85,7 +86,7 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files }: FileSideba
           )}
         </div>
       </div>
-    </motion.aside>
+    </motion.div>
   );
 }
 

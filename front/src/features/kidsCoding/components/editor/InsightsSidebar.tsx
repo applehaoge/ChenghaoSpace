@@ -91,10 +91,11 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
             <motion.div
               initial={false}
               animate={{
-                maxHeight: showVisualization ? 192 : 0,
                 opacity: showVisualization ? 1 : 0,
+                filter: showVisualization ? "blur(0px)" : "blur(2px)",
               }}
-              transition={{ duration: 0.28 }}
+              transition={{ duration: 0.4 }}
+              style={{ minHeight: showVisualization ? 192 : 0, pointerEvents: showVisualization ? "auto" : "none" }}
               className="overflow-hidden"
             >
               <div
