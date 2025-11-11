@@ -30,7 +30,7 @@ export function CodeEditor({
       scrollBeyondLastLine: false,
       minimap: { enabled: false },
       lineNumbersMinChars: 3,
-      padding: { top: 12, bottom: 12 },
+      padding: { top: 0, bottom: 0 },
       renderLineHighlight: 'all',
       ...options,
     }),

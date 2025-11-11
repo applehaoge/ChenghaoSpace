@@ -1,4 +1,6 @@
-- **2025-11-11 KidsCoding console top straight**
+- **2025-11-11 KidsCoding editor padding zero**
+  - 将 CodeEditor 的 Monaco padding top/bottom 设为 0，使首行紧贴 main.py 标签，避免额外留白干扰判断。
+  - Checks: 未执行；请在编辑器中确认首行已贴近标签且滚动正常。- **2025-11-11 KidsCoding console top straight**
   - 去掉控制台顶栏容器的 rounded-t-3xl，让 Console 标题两端呈直角便于评估视觉效果。
   - Checks: 未执行；请在界面中展开控制台确认顶栏转为直角。
 - **2025-11-11 KidsCoding console debug fallback**
