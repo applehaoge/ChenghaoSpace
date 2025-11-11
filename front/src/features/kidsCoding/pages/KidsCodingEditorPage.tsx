@@ -10,6 +10,7 @@ import { InsightsSidebar } from '@/features/kidsCoding/components/editor/Insight
 import { useFileSidebar } from '@/features/kidsCoding/hooks/useFileSidebar';
 import { useInsightsSidebar } from '@/features/kidsCoding/hooks/useInsightsSidebar';
 import { useRunJob } from '@/features/kidsCoding/hooks/useRunJob';
+
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
 const FILES: FileEntry[] = [{ id: 'main', name: 'main.py' }];
@@ -45,12 +46,12 @@ export function KidsCodingEditorPage() {
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 60));
 
   const handleRunCode = (source: string) => {
-    toast.success('代码正在运行中！', {
-      description: source
-        ? `已读取 ${source.split('\\n').length} 行代码，功能即将上线～`
-        : '代码为空，请先输入内容。',
-      duration: 3000,
-      className: 'rounded-xl shadow-lg',
+    runCode(source).catch(error => {
+      toast.error('运行任务提交失败', {
+        description: error instanceof Error ? error.message : '请稍后再试',
+        duration: 4000,
+        className: 'rounded-xl shadow-lg',
+      });
     });
   };
 
@@ -94,6 +95,8 @@ export function KidsCodingEditorPage() {
             onZoomOut={handleZoomOut}
             onRunCode={handleRunCode}
             editorTheme={monacoTheme}
+            runState={runState}
+            isRunBusy={isRunning}
           />
           <InsightsSidebar
             isDark={isDark}
@@ -199,6 +202,10 @@ function ShootingStar({
     </motion.div>
   );
 }
+
+
+
+
 
 
 
