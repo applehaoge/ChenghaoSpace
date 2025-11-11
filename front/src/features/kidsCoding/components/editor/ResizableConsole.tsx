@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Copy } from 'lucide-react';
@@ -184,18 +184,28 @@ export function ResizableConsole({
               <div className="flex items-center justify-between text-[12px] font-medium tracking-wide">
                 <div className="flex items-center space-x-3">
                   <div className="flex space-x-1.5">
-                  {getIndicatorClasses(statusState, isDark).map((classes, index) => (
+                  {getIndicatorPalette(statusState, isDark).map((config, index) => {
+                    const indicatorStyle: IndicatorStyle = {
+                      background: config.base,
+                      boxShadow: `0 0 8px ${config.base}`,
+                    };
+                    if (statusState === 'running') {
+                      indicatorStyle.animationDelay = `${index * 0.18}s`;
+                      indicatorStyle['--indicator-base'] = config.base;
+                      indicatorStyle['--indicator-active'] = config.active;
+                    }
+                    return (
                     <span
                       key={`${statusState}-${index}`}
                       className={clsx(
                         'h-2 w-2 rounded-full shadow-sm transition-all duration-300',
-                        classes,
-                        statusState === 'running' ? 'animate-pulse' : '',
+                        statusState === 'running' ? 'kids-console-indicator' : '',
                         isDark ? 'shadow-black/30' : 'shadow-white/40',
                       )}
-                      style={statusState === 'running' ? { animationDelay: `${index * 120}ms` } : undefined}
+                      style={indicatorStyle}
                     />
-                  ))}
+                    );
+                  })}
                   </div>
                   <span className="uppercase tracking-[0.2em]">Console</span>
                   {statusLabel && (
@@ -294,35 +304,58 @@ const getStatusToneClass = (tone: ResizableConsoleProps['statusTone'], isDark: b
   }
 };
 
-const getIndicatorClasses = (state: ResizableConsoleProps['statusState'], isDark: boolean) => {
-  const neon = (light: string, dark: string) => (isDark ? dark : light);
+type IndicatorStyle = CSSProperties & {
+  '--indicator-base'?: string;
+  '--indicator-active'?: string;
+};
+
+interface IndicatorConfig {
+  base: string;
+  active: string;
+}
+
+const getIndicatorPalette = (state: ResizableConsoleProps['statusState'], isDark: boolean): IndicatorConfig[] => {
+  const palette = (light: string[], dark: string[]): IndicatorConfig[] =>
+    (isDark ? dark : light).map((color, idx) => ({
+      base: color,
+      active: lighten(color, isDark ? 0.35 : 0.2, isDark),
+    }));
 
   switch (state) {
     case 'running':
-    case 'succeeded':
-      return [
-        neon('bg-lime-400 shadow-lime-500/70', 'bg-lime-300 shadow-lime-400/60'),
-        neon('bg-amber-300 shadow-amber-400/60', 'bg-amber-200 shadow-amber-300/60'),
-        neon('bg-orange-400 shadow-orange-500/60', 'bg-orange-300 shadow-orange-400/50'),
-      ];
+      return palette(
+        ['#FF962F', '#FFB347', '#FFD166'],
+        ['#FFA63C', '#FF8A3C', '#FF7134'],
+      );
     case 'queued':
-      return [
-        neon('bg-cyan-400 shadow-cyan-500/60', 'bg-cyan-300 shadow-cyan-400/50'),
-        neon('bg-blue-400 shadow-blue-500/60', 'bg-blue-300 shadow-blue-400/50'),
-        neon('bg-indigo-400 shadow-indigo-500/60', 'bg-indigo-300 shadow-indigo-400/50'),
-      ];
+      return palette(
+        ['#22D3EE', '#3B82F6', '#7C3AED'],
+        ['#0EA5E9', '#2563EB', '#5B21B6'],
+      );
     case 'failed':
     case 'cancelled':
-      return [
-        neon('bg-rose-500 shadow-rose-600/70', 'bg-rose-400 shadow-rose-500/60'),
-        neon('bg-fuchsia-400 shadow-fuchsia-500/60', 'bg-fuchsia-300 shadow-fuchsia-400/50'),
-        neon('bg-purple-400 shadow-purple-500/60', 'bg-purple-300 shadow-purple-400/50'),
-      ];
+      return palette(
+        ['#FB7185', '#F472B6', '#C084FC'],
+        ['#F43F5E', '#E879F9', '#C084FC'],
+      );
+    case 'succeeded':
+      return palette(
+        ['#34D399', '#4ADE80', '#BBF7D0'],
+        ['#22C55E', '#4ADE80', '#86EFAC'],
+      );
     default:
-      return [
-        neon('bg-teal-400 shadow-teal-500/60', 'bg-teal-300 shadow-teal-400/50'),
-        neon('bg-emerald-400 shadow-emerald-500/60', 'bg-emerald-300 shadow-emerald-400/50'),
-        neon('bg-sky-400 shadow-sky-500/60', 'bg-sky-300 shadow-sky-400/50'),
-      ];
+      return palette(
+        ['#2DD4BF', '#60A5FA', '#A855F7'],
+        ['#14B8A6', '#3B82F6', '#9333EA'],
+      );
   }
+};
+
+const lighten = (hex: string, delta: number, isDark: boolean) => {
+  const factor = isDark ? delta * 0.7 : delta;
+  const num = Number.parseInt(hex.replace('#', ''), 16);
+  const r = Math.min(255, Math.max(0, ((num >> 16) & 0xff) + factor * 255));
+  const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + factor * 255));
+  const b = Math.min(255, Math.max(0, (num & 0xff) + factor * 255));
+  return `rgb(${r.toFixed(0)}, ${g.toFixed(0)}, ${b.toFixed(0)})`;
 };

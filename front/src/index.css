@@ -10,6 +10,8 @@
   --primary-blue: #3B82F6;
   --primary-indigo: #6366F1;
   --light-blue: #EFF6FF;
+  --indicator-base: #ffffff;
+  --indicator-active: #ffffff;
   
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -203,6 +205,26 @@ body {
 
 .dark .kids-coding-editor ::-webkit-scrollbar-thumb:hover {
   background: rgba(96, 165, 250, 0.5);
+}
+
+.kids-console-indicator {
+  animation: console-indicator-cycle 1.6s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes console-indicator-cycle {
+  0%, 100% {
+    background: var(--indicator-base);
+    box-shadow: 0 0 6px var(--indicator-base);
+    transform: scale(0.85);
+    opacity: 0.6;
+  }
+  45% {
+    background: var(--indicator-active);
+    box-shadow: 0 0 16px var(--indicator-active);
+    transform: scale(1.2);
+    opacity: 1;
+  }
 }
 
 @keyframes chat-typing-caret {

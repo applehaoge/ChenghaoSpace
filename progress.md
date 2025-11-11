@@ -1,4 +1,6 @@
-- **2025-11-11 KidsCoding console indicator colors**
+- **2025-11-11 KidsCoding console indicator animation**
+  - 指示灯在运行态按左到右顺序脉冲变色（亮橙→暖黄），其他状态也使用更鲜艳的调色，并新增全局动画样式。
+  - Checks: 未执行；请在运行任务时观察三颗灯依次闪烁，结束后恢复相应颜色。- **2025-11-11 KidsCoding console indicator colors**
   - 控制台三色指示灯随状态切换为更鲜艳的绿色/琥珀/玫红并在运行中脉动，暗色与浅色主题都有适配。
   - Checks: 未执行；请在多种状态下观察指示灯颜色是否明显且符合预期。- **2025-11-11 KidsCoding console indicators**
   - 控制台状态徽章与三色指示灯联动：运行中改为绿色脉冲、排队为琥珀、失败为红色，默认仍保留原色。
