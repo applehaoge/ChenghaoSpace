@@ -22,8 +22,7 @@ const DEFAULT_MIN_HEIGHT = 140;
 const DEFAULT_MAX_HEIGHT = 420;
 const SEPARATOR_HEIGHT = 8;
 const debugLog = (...args: unknown[]) => {
-  // 一律输出，方便排查鼠标事件是否触发（后续可以按需要再关闭）
-  // eslint-disable-next-line no-console
+  // 一律输出，方便排查鼠标事件是否触发（后续可以按需要再关闭�?  // eslint-disable-next-line no-console
   console.debug('[ResizableConsole]', ...args);
 };
 
@@ -147,7 +146,7 @@ export function ResizableConsole({
           <div
             role="separator"
             aria-orientation="horizontal"
-            aria-label="调整控制台高度"
+            aria-label="调整控制台高�?
             onMouseDown={handleMouseDown}
             onMouseEnter={event => debugLog('separator hover', { type: 'enter', y: event.clientY })}
             onMouseLeave={event => debugLog('separator hover', { type: 'leave', y: event.clientY })}
@@ -197,11 +196,11 @@ export function ResizableConsole({
                     return (
                     <span
                       key={`${statusState}-${index}`}
-                        className={clsx(
-                          'h-2 w-2 rounded-full shadow-sm transition-all duration-300',
-                          statusState === 'running' ? 'kids-console-indicator' : 'kids-console-indicator-idle',
-                          isDark ? 'shadow-black/30' : 'shadow-white/40',
-                        )}
+                      className={clsx(
+                        'h-2 w-2 rounded-full shadow-sm transition-all duration-300',
+                        statusState === 'running' ? 'kids-console-indicator' : '',
+                        isDark ? 'shadow-black/30' : 'shadow-white/40',
+                      )}
                       style={indicatorStyle}
                     />
                     );
@@ -231,7 +230,7 @@ export function ResizableConsole({
                     )}
                   >
                     <Copy size={14} />
-                    <span>{isCopied ? '已复制' : '复制'}</span>
+                    <span>{isCopied ? '已复�? : '复制'}</span>
                   </motion.button>
                 </div>
                 <motion.button
