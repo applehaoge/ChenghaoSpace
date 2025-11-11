@@ -145,6 +145,7 @@ export function CodeWorkspace({
           statusLabel={runStatusMeta.label}
           statusTone={runStatusMeta.tone}
           statusHint={safeRunState.error}
+          statusState={safeRunState.status}
         />
       </div>
 

@@ -1,4 +1,8 @@
-- **2025-11-11 Dev script adds runner**
+- **2025-11-11 KidsCoding console indicator colors**
+  - 控制台三色指示灯随状态切换为更鲜艳的绿色/琥珀/玫红并在运行中脉动，暗色与浅色主题都有适配。
+  - Checks: 未执行；请在多种状态下观察指示灯颜色是否明显且符合预期。- **2025-11-11 KidsCoding console indicators**
+  - 控制台状态徽章与三色指示灯联动：运行中改为绿色脉冲、排队为琥珀、失败为红色，默认仍保留原色。
+  - Checks: 未执行；请在运行/排队/失败状态下观察 Console 顶部小圆点是否按预期变色。- **2025-11-11 Dev script adds runner**
   - start-dev.ps1 现同时拉起 server、front 以及 python-runner（若存在），并默认设置 RUNNER_SERVER_URL 指向本地 8000 端口。
   - Checks: 未执行；请运行 start-dev.bat 验证三个终端是否同时启动。- **2025-11-11 KidsCoding Python run UI**
   - 前端新增 run API 客户端、useRunJob hook、CodeWorkspace 控制台实时输出与状态样式，并把运行按钮接入后端 job 流程。

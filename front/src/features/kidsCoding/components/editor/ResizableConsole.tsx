@@ -13,6 +13,7 @@ interface ResizableConsoleProps {
   statusLabel?: string;
   statusTone?: 'default' | 'info' | 'success' | 'warning' | 'error';
   statusHint?: string;
+  statusState?: 'idle' | 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
   minHeight?: number;
   maxHeight?: number;
 }
@@ -36,6 +37,7 @@ export function ResizableConsole({
   statusLabel,
   statusTone = 'default',
   statusHint,
+  statusState = 'idle',
   minHeight = DEFAULT_MIN_HEIGHT,
   maxHeight = DEFAULT_MAX_HEIGHT,
 }: ResizableConsoleProps) {
@@ -182,16 +184,18 @@ export function ResizableConsole({
               <div className="flex items-center justify-between text-[12px] font-medium tracking-wide">
                 <div className="flex items-center space-x-3">
                   <div className="flex space-x-1.5">
-                    {['bg-red-500/80', 'bg-amber-400/80', 'bg-emerald-400/80'].map(color => (
-                      <span
-                        key={color}
-                        className={clsx(
-                          'h-2 w-2 rounded-full shadow-sm',
-                          color,
-                          isDark ? 'shadow-black/30' : 'shadow-white/40',
-                        )}
-                      />
-                    ))}
+                  {getIndicatorClasses(statusState, isDark).map((classes, index) => (
+                    <span
+                      key={`${statusState}-${index}`}
+                      className={clsx(
+                        'h-2 w-2 rounded-full shadow-sm transition-all duration-300',
+                        classes,
+                        statusState === 'running' ? 'animate-pulse' : '',
+                        isDark ? 'shadow-black/30' : 'shadow-white/40',
+                      )}
+                      style={statusState === 'running' ? { animationDelay: `${index * 120}ms` } : undefined}
+                    />
+                  ))}
                   </div>
                   <span className="uppercase tracking-[0.2em]">Console</span>
                   {statusLabel && (
@@ -287,5 +291,38 @@ const getStatusToneClass = (tone: ResizableConsoleProps['statusTone'], isDark: b
       return isDark ? 'bg-blue-500/10 text-blue-200 border-blue-400/70' : 'bg-blue-50 text-blue-700 border-blue-200';
     default:
       return isDark ? 'bg-gray-800/80 text-gray-200 border-gray-700/80' : 'bg-slate-50 text-slate-700 border-slate-200';
+  }
+};
+
+const getIndicatorClasses = (state: ResizableConsoleProps['statusState'], isDark: boolean) => {
+  const neon = (light: string, dark: string) => (isDark ? dark : light);
+
+  switch (state) {
+    case 'running':
+    case 'succeeded':
+      return [
+        neon('bg-lime-400 shadow-lime-500/70', 'bg-lime-300 shadow-lime-400/60'),
+        neon('bg-amber-300 shadow-amber-400/60', 'bg-amber-200 shadow-amber-300/60'),
+        neon('bg-orange-400 shadow-orange-500/60', 'bg-orange-300 shadow-orange-400/50'),
+      ];
+    case 'queued':
+      return [
+        neon('bg-cyan-400 shadow-cyan-500/60', 'bg-cyan-300 shadow-cyan-400/50'),
+        neon('bg-blue-400 shadow-blue-500/60', 'bg-blue-300 shadow-blue-400/50'),
+        neon('bg-indigo-400 shadow-indigo-500/60', 'bg-indigo-300 shadow-indigo-400/50'),
+      ];
+    case 'failed':
+    case 'cancelled':
+      return [
+        neon('bg-rose-500 shadow-rose-600/70', 'bg-rose-400 shadow-rose-500/60'),
+        neon('bg-fuchsia-400 shadow-fuchsia-500/60', 'bg-fuchsia-300 shadow-fuchsia-400/50'),
+        neon('bg-purple-400 shadow-purple-500/60', 'bg-purple-300 shadow-purple-400/50'),
+      ];
+    default:
+      return [
+        neon('bg-teal-400 shadow-teal-500/60', 'bg-teal-300 shadow-teal-400/50'),
+        neon('bg-emerald-400 shadow-emerald-500/60', 'bg-emerald-300 shadow-emerald-400/50'),
+        neon('bg-sky-400 shadow-sky-500/60', 'bg-sky-300 shadow-sky-400/50'),
+      ];
   }
 };
