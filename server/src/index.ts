@@ -8,6 +8,8 @@ import { createReadStream, createWriteStream, existsSync } from 'node:fs';
 import { promises as fs } from 'node:fs';
 import { pipeline } from 'node:stream/promises';
 import { registerUpload } from './storage/uploadRegistry.js';
+import { registerRunRoutes } from './run/runRoutes.js';
+import { registerJobStreamRoute } from './run/jobStream.js';
 import {
   buildAttachmentContext,
   type AttachmentAnalysis,
@@ -584,6 +586,8 @@ fastify.post('/api/chat-raw', async (request, reply) => {
 
 const start = async () => {
   try {
+    await registerRunRoutes(fastify);
+    await registerJobStreamRoute(fastify);
     const port = Number(process.env.PORT) || 8000;
     await fastify.listen({ port, host: '0.0.0.0' });
     console.log(`Server running at http://localhost:${port}`);

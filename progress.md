@@ -1,4 +1,12 @@
-- **2025-11-11 KidsCoding editor padding zero**
+- **2025-11-11 Dev script adds runner**
+  - start-dev.ps1 现同时拉起 server、front 以及 python-runner（若存在），并默认设置 RUNNER_SERVER_URL 指向本地 8000 端口。
+  - Checks: 未执行；请运行 start-dev.bat 验证三个终端是否同时启动。- **2025-11-11 KidsCoding Python run UI**
+  - 前端新增 run API 客户端、useRunJob hook、CodeWorkspace 控制台实时输出与状态样式，并把运行按钮接入后端 job 流程。
+  - Checks: 未执行；请启动 server + python-runner，运行 `pnpm --dir front dev`，在编辑器中点击“运行代码”验证任务状态与 console 输出。- **2025-11-11 Python runner scaffold**
+  - 新建 python-runner 子项目（TypeScript），实现轮询 claim、执行 Python 子进程、推送 started/chunk/completed/failed 事件的最小可用 worker。
+  - Checks: 未执行；请配置 RUNNER_SERVER_URL/RUNNER_ACCESS_TOKEN 后运行 `pnpm --dir python-runner dev`，并联合 server 端验证端到端任务流。- **2025-11-11 Server run API scaffolding**
+  - 新增 /api/run、job 状态存储、WebSocket 流和 runner 专用 claim/event 接口，提供 in-memory 队列与订阅能力，后续可挂接 python-runner。
+  - Checks: 未执行；请运行 pnpm --dir server build && pnpm --dir server start，调用 /api/run 并通过 /api/run/:jobId/stream 验证状态推送。- **2025-11-11 KidsCoding editor padding zero**
   - 将 CodeEditor 的 Monaco padding top/bottom 设为 0，使首行紧贴 main.py 标签，避免额外留白干扰判断。
   - Checks: 未执行；请在编辑器中确认首行已贴近标签且滚动正常。- **2025-11-11 KidsCoding console top straight**
   - 去掉控制台顶栏容器的 rounded-t-3xl，让 Console 标题两端呈直角便于评估视觉效果。

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Star, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import { CodeWorkspace } from '@/features/kidsCoding/components/editor/CodeWorks
 import { InsightsSidebar } from '@/features/kidsCoding/components/editor/InsightsSidebar';
 import { useFileSidebar } from '@/features/kidsCoding/hooks/useFileSidebar';
 import { useInsightsSidebar } from '@/features/kidsCoding/hooks/useInsightsSidebar';
+import { useRunJob } from '@/features/kidsCoding/hooks/useRunJob';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
 const FILES: FileEntry[] = [{ id: 'main', name: 'main.py' }];
@@ -17,11 +18,11 @@ const DEFAULT_CODE = [
   'import matplotlib.pyplot as plt',
   'import numpy as np',
   '',
-  '# 一个一元二次函数',
+  '# һ��һԪ���κ���',
   'x = np.arange(-5, 5, 0.01)',
   'y = (x ** 2)',
   '',
-  '# 画图',
+  '# ��ͼ',
   'plt.plot(x, y)',
   'plt.show()',
 ].join('\n');
@@ -33,6 +34,7 @@ export function KidsCodingEditorPage() {
   const [showTutorialHint, setShowTutorialHint] = useState(true);
   const { isCollapsed, toggleSidebar } = useFileSidebar();
   const { isCollapsed: isInsightsCollapsed, toggleSidebar: toggleInsightsSidebar } = useInsightsSidebar();
+  const { runCode, runState, isRunning } = useRunJob();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowTutorialHint(false), 5000);
@@ -43,10 +45,10 @@ export function KidsCodingEditorPage() {
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 60));
 
   const handleRunCode = (source: string) => {
-    toast.success('代码正在运行中！', {
+    toast.success('�������������У�', {
       description: source
-        ? `已读取 ${source.split('\\n').length} 行代码，功能即将上线～`
-        : '代码为空，请先输入内容。',
+        ? `�Ѷ�ȡ ${source.split('\\n').length} �д��룬���ܼ������ߡ�`
+        : '����Ϊ�գ������������ݡ�',
       duration: 3000,
       className: 'rounded-xl shadow-lg',
     });
@@ -113,8 +115,8 @@ export function KidsCodingEditorPage() {
           <div className="flex items-start space-x-3">
             <Sparkles size={20} className="mt-1 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold mb-1">💡 提示</h3>
-              <p className="text-sm opacity-90">编写完代码后，点击底部的“运行代码”按钮可以看到你的程序效果哦～</p>
+              <h3 className="font-semibold mb-1">?? ��ʾ</h3>
+              <p className="text-sm opacity-90">��д�����󣬵���ײ��ġ����д��롱��ť���Կ�����ĳ���Ч��Ŷ��</p>
             </div>
           </div>
         </motion.div>
@@ -197,3 +199,7 @@ function ShootingStar({
     </motion.div>
   );
 }
+
+
+
+

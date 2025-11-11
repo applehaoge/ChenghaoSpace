@@ -10,6 +10,9 @@ interface ResizableConsoleProps {
   onHeightChange: (nextHeight: number) => void;
   onClose: () => void;
   output: string;
+  statusLabel?: string;
+  statusTone?: 'default' | 'info' | 'success' | 'warning' | 'error';
+  statusHint?: string;
   minHeight?: number;
   maxHeight?: number;
 }
@@ -30,6 +33,9 @@ export function ResizableConsole({
   onHeightChange,
   onClose,
   output,
+  statusLabel,
+  statusTone = 'default',
+  statusHint,
   minHeight = DEFAULT_MIN_HEIGHT,
   maxHeight = DEFAULT_MAX_HEIGHT,
 }: ResizableConsoleProps) {
@@ -188,6 +194,16 @@ export function ResizableConsole({
                     ))}
                   </div>
                   <span className="uppercase tracking-[0.2em]">Console</span>
+                  {statusLabel && (
+                    <span
+                      className={clsx(
+                        'inline-flex items-center rounded-full px-2 py-0.5 text-[11px] border',
+                        getStatusToneClass(statusTone, isDark),
+                      )}
+                    >
+                      {statusLabel}
+                    </span>
+                  )}
                   <motion.button
                     type="button"
                     whileHover={{ scale: 1.04 }}
@@ -219,6 +235,22 @@ export function ResizableConsole({
                   收起
                 </motion.button>
               </div>
+              {statusHint && (
+                <p
+                  className={clsx(
+                    'mt-1 text-[11px]',
+                    statusTone === 'error'
+                      ? isDark
+                        ? 'text-rose-200'
+                        : 'text-rose-600'
+                      : isDark
+                        ? 'text-blue-200'
+                        : 'text-blue-600',
+                  )}
+                >
+                  {statusHint}
+                </p>
+              )}
             </div>
 
             <div
@@ -242,3 +274,18 @@ export function ResizableConsole({
     </AnimatePresence>
   );
 }
+
+const getStatusToneClass = (tone: ResizableConsoleProps['statusTone'], isDark: boolean) => {
+  switch (tone) {
+    case 'success':
+      return isDark ? 'bg-emerald-500/10 text-emerald-200 border-emerald-400/60' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    case 'warning':
+      return isDark ? 'bg-amber-500/10 text-amber-200 border-amber-400/60' : 'bg-amber-50 text-amber-700 border-amber-200';
+    case 'error':
+      return isDark ? 'bg-rose-500/10 text-rose-200 border-rose-400/60' : 'bg-rose-50 text-rose-700 border-rose-200';
+    case 'info':
+      return isDark ? 'bg-blue-500/10 text-blue-200 border-blue-400/70' : 'bg-blue-50 text-blue-700 border-blue-200';
+    default:
+      return isDark ? 'bg-gray-800/80 text-gray-200 border-gray-700/80' : 'bg-slate-50 text-slate-700 border-slate-200';
+  }
+};

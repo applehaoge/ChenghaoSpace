@@ -1,14 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal, Trash2 } from 'lucide-react';
 import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
 import { ResizableConsole } from '@/features/kidsCoding/components/editor/ResizableConsole';
-
-interface ConsoleLine {
-  id: string;
-  text: string;
-}
+import type { RunConsoleState } from '@/features/kidsCoding/hooks/useRunJob';
 
 interface CodeWorkspaceProps {
   isDark: boolean;
@@ -19,6 +15,8 @@ interface CodeWorkspaceProps {
   onZoomOut: () => void;
   onRunCode: (code: string) => void;
   editorTheme: string;
+  runState?: RunConsoleState;
+  isRunBusy?: boolean;
 }
 
 const DEFAULT_CONSOLE_HEIGHT = 220;
@@ -32,19 +30,48 @@ export function CodeWorkspace({
   onZoomOut,
   onRunCode,
   editorTheme,
+  runState,
+  isRunBusy,
 }: CodeWorkspaceProps) {
+  const safeRunState: RunConsoleState =
+    runState ?? {
+      status: 'idle',
+      stdout: '',
+      stderr: '',
+    };
   const editorFontSize = Math.max(12, Math.round((zoomLevel / 100) * 16));
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [consoleHeight, setConsoleHeight] = useState(DEFAULT_CONSOLE_HEIGHT);
   const consoleTimestamp = useMemo(() => new Date().toLocaleTimeString(), [codeValue]);
-  const consoleLines: ConsoleLine[] = [
-    { id: 'system', text: 'Python 3.11.0 (kids-sandbox) ready' },
-    { id: 'prompt', text: `>>> Waiting to run main.py · ${consoleTimestamp}` },
-    { id: 'hint', text: 'Use "Run Code" to see the latest output here.' },
-  ];
-  const consoleOutput = consoleLines.map(line => line.text).join('\n\n');
+
+  useEffect(() => {
+    if (safeRunState.status !== 'idle') {
+      setIsConsoleOpen(true);
+    }
+  }, [safeRunState.status]);
+
+  const consoleOutput = useMemo(() => {
+    const defaultMessage = `>>> Waiting to run main.py · ${consoleTimestamp}\nUse "Run Code" to send the latest output here.`;
+    if (safeRunState.status === 'idle') {
+      return defaultMessage;
+    }
+    const segments: string[] = [];
+    if (safeRunState.stdout?.trim()) {
+      segments.push(safeRunState.stdout.trimEnd());
+    }
+    if (safeRunState.stderr?.trim()) {
+      segments.push(`[stderr]\n${safeRunState.stderr.trimEnd()}`);
+    }
+    if (safeRunState.error) {
+      segments.push(`[error]\n${safeRunState.error}`);
+    }
+    return segments.join('\n\n').trim() || defaultMessage;
+  }, [safeRunState, consoleTimestamp]);
+
+  const runStatusMeta = useMemo(() => getRunStatusMeta(safeRunState.status), [safeRunState.status]);
 
   const toggleConsole = () => setIsConsoleOpen(prev => !prev);
+  const runBusy = Boolean(isRunBusy);
   const toolbarActions = [
     { icon: <Search size={18} />, label: '搜索' },
     { icon: <Palette size={18} />, label: '主题' },
@@ -115,6 +142,9 @@ export function CodeWorkspace({
           onHeightChange={setConsoleHeight}
           onClose={toggleConsole}
           output={consoleOutput}
+          statusLabel={runStatusMeta.label}
+          statusTone={runStatusMeta.tone}
+          statusHint={safeRunState.error}
         />
       </div>
 
@@ -157,14 +187,16 @@ export function CodeWorkspace({
               {
                 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500': isDark,
                 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600': !isDark,
+                'opacity-80 cursor-not-allowed': runBusy,
               },
             )}
             onClick={() => onRunCode(codeValue)}
+            disabled={runBusy}
           >
             <motion.div whileHover={{ rotate: 15 }}>
               <Play size={18} />
             </motion.div>
-            <span className="font-semibold">运行代码</span>
+            <span className="font-semibold">{runBusy ? '运行中...' : '运行代码'}</span>
           </motion.button>
         </div>
       </div>
@@ -198,3 +230,22 @@ function BottomIconButton({ isDark, icon, onClick, title, active = false }: Bott
     </motion.button>
   );
 }
+
+const getRunStatusMeta = (
+  status: RunConsoleState['status'],
+): { label?: string; tone: 'default' | 'info' | 'success' | 'warning' | 'error' } => {
+  switch (status) {
+    case 'queued':
+      return { label: '排队中', tone: 'warning' };
+    case 'running':
+      return { label: '运行中', tone: 'info' };
+    case 'succeeded':
+      return { label: '已完成', tone: 'success' };
+    case 'failed':
+      return { label: '运行失败', tone: 'error' };
+    case 'cancelled':
+      return { label: '已取消', tone: 'default' };
+    default:
+      return { label: '就绪', tone: 'default' };
+  }
+};
