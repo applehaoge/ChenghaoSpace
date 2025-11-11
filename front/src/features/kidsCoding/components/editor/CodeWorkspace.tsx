@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal, Trash2 } from 'lucide-react';
@@ -17,6 +17,7 @@ interface CodeWorkspaceProps {
   editorTheme: string;
   runState?: RunConsoleState;
   isRunBusy?: boolean;
+  onAskAssistant?: (payload: { text: string }) => void;
 }
 
 const DEFAULT_CONSOLE_HEIGHT = 220;
@@ -32,6 +33,7 @@ export function CodeWorkspace({
   editorTheme,
   runState,
   isRunBusy,
+  onAskAssistant,
 }: CodeWorkspaceProps) {
   const safeRunState: RunConsoleState =
     runState ?? {
@@ -69,6 +71,14 @@ export function CodeWorkspace({
   }, [safeRunState, consoleTimestamp]);
 
   const runStatusMeta = useMemo(() => getRunStatusMeta(safeRunState.status), [safeRunState.status]);
+
+  const handleAskAssistant = useCallback(
+    (payload: { text: string }) => {
+      if (!onAskAssistant || !payload.text.trim()) return;
+      onAskAssistant(payload);
+    },
+    [onAskAssistant],
+  );
 
   const toggleConsole = () => setIsConsoleOpen(prev => !prev);
   const runBusy = Boolean(isRunBusy);
@@ -146,6 +156,7 @@ export function CodeWorkspace({
           statusTone={runStatusMeta.tone}
           statusHint={safeRunState.error}
           statusState={safeRunState.status}
+          onAskAssistant={onAskAssistant ? handleAskAssistant : undefined}
         />
       </div>
 

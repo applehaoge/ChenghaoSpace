@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Star, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,6 +10,7 @@ import { InsightsSidebar } from '@/features/kidsCoding/components/editor/Insight
 import { useFileSidebar } from '@/features/kidsCoding/hooks/useFileSidebar';
 import { useInsightsSidebar } from '@/features/kidsCoding/hooks/useInsightsSidebar';
 import { useRunJob } from '@/features/kidsCoding/hooks/useRunJob';
+import { KIDS_CODING_CONSOLE_ASK_AI } from '@/features/kidsCoding/constants/events';
 
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
@@ -19,11 +20,11 @@ const DEFAULT_CODE = [
   'import matplotlib.pyplot as plt',
   'import numpy as np',
   '',
-  '# һ��һԪ���κ���',
+  '# 绘制一个一元二次函数',
   'x = np.arange(-5, 5, 0.01)',
   'y = (x ** 2)',
   '',
-  '# ��ͼ',
+  '# 绘图',
   'plt.plot(x, y)',
   'plt.show()',
 ].join('\n');
@@ -47,13 +48,21 @@ export function KidsCodingEditorPage() {
 
   const handleRunCode = (source: string) => {
     runCode(source).catch(error => {
-      toast.error('���������ύʧ��', {
-        description: error instanceof Error ? error.message : '���Ժ�����',
+      toast.error('运行任务提交失败', {
+        description: error instanceof Error ? error.message : '请稍后再试',
         duration: 4000,
         className: 'rounded-xl shadow-lg',
       });
     });
   };
+
+  const handleAskAssistant = useCallback((payload: { text: string }) => {
+    window.dispatchEvent(new CustomEvent(KIDS_CODING_CONSOLE_ASK_AI, { detail: payload }));
+    toast.success('已把控制台内容交给小智，请继续提问吧~', {
+      duration: 2400,
+      className: 'rounded-xl shadow-lg',
+    });
+  }, []);
 
   const monacoTheme = isDark ? 'vs-dark' : 'vs-light';
 
@@ -97,6 +106,7 @@ export function KidsCodingEditorPage() {
             editorTheme={monacoTheme}
             runState={runState}
             isRunBusy={isRunning}
+            onAskAssistant={handleAskAssistant}
           />
           <InsightsSidebar
             isDark={isDark}
@@ -118,8 +128,8 @@ export function KidsCodingEditorPage() {
           <div className="flex items-start space-x-3">
             <Sparkles size={20} className="mt-1 flex-shrink-0" />
             <div>
-              <h3 className="font-semibold mb-1">?? ��ʾ</h3>
-              <p className="text-sm opacity-90">��д�����󣬵���ײ��ġ����д��롱��ť���Կ�����ĳ���Ч��Ŷ��</p>
+              <h3 className="font-semibold mb-1">小贴士</h3>
+              <p className="text-sm opacity-90">编写完代码后，点击底部的“运行代码”按钮可以看到你的程序效果哦～</p>
             </div>
           </div>
         </motion.div>
@@ -202,11 +212,3 @@ function ShootingStar({
     </motion.div>
   );
 }
-
-
-
-
-
-
-
-

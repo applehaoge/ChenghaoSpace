@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Bot } from 'lucide-react';
 import clsx from 'clsx';
 import { useConversationController } from '@/components/chat/useConversationController';
+import { KIDS_CODING_CONSOLE_ASK_AI } from '@/features/kidsCoding/constants/events';
 import type { ChatBubble as AppChatBubble } from '@/pages/home/types';
 import { createSessionId } from '@/pages/home/taskUtils';
 
@@ -17,19 +18,20 @@ type SimpleBubble = {
 };
 
 const DEFAULT_STATIC_MESSAGES: SimpleBubble[] = [
-  { id: 'static-1', role: 'assistant', text: '你好，我是小智，随时准备陪伴你完成挑战。' },
+  { id: 'static-1', role: 'assistant', text: '你好，我是小智，随时准备陪你完成挑战哦～' },
   {
     id: 'static-2',
     role: 'assistant',
-    text: '收到，我会把可视化演示和 AI 助手整合后的右栏保持与编辑器等高，并让发送栏任何时候都可见。',
+    text: '我会帮你把可视化演示和 AI 助手排版好，让右侧区域始终和编辑器对齐。',
   },
   { id: 'static-3', role: 'user', text: '帮我检查循环里有没有越界问题？' },
-  { id: 'static-4', role: 'assistant', text: '第 18 行条件请改为 i < items.length，我已为你高亮。' },
+  { id: 'static-4', role: 'assistant', text: '好的，第 18 行条件需要改成 i < items.length，我已经帮你标记啦。' },
 ];
 
 export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
   const [sessionId, setSessionId] = useState(() => createSessionId());
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const {
     messages,
@@ -84,8 +86,20 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
       if (!trimmed || isLoading) return;
       await sendMessage(trimmed, []);
     },
-    [composerValue, isLoading, sendMessage]
+    [composerValue, isLoading, sendMessage],
   );
+
+  useEffect(() => {
+    const handleConsoleAsk = (event: Event) => {
+      const detail = (event as CustomEvent<{ text: string }>).detail;
+      if (!detail?.text?.trim()) return;
+      setComposerValue(detail.text);
+      inputRef.current?.focus();
+    };
+
+    window.addEventListener(KIDS_CODING_CONSOLE_ASK_AI, handleConsoleAsk as EventListener);
+    return () => window.removeEventListener(KIDS_CODING_CONSOLE_ASK_AI, handleConsoleAsk as EventListener);
+  }, [setComposerValue]);
 
   return (
     <div className="flex flex-1 flex-col gap-3 overflow-hidden min-h-0">
@@ -98,7 +112,7 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
         ref={scrollContainerRef}
         className={clsx(
           'flex-1 space-y-3 overflow-y-auto rounded-2xl px-4 py-3 text-sm shadow-inner',
-          isDark ? 'bg-gray-900/60 text-gray-100' : 'bg-blue-50 text-slate-700'
+          isDark ? 'bg-gray-900/60 text-gray-100' : 'bg-blue-50 text-slate-700',
         )}
       >
         {displayMessages.map(bubble => (
@@ -119,12 +133,13 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
           disabled={isLoading}
           onChange={event => setComposerValue(event.target.value)}
           placeholder="输入你的问题或需求..."
+          ref={inputRef}
           className={clsx(
             'flex-1 rounded-2xl border px-4 py-2 transition-colors focus:outline-none focus:ring-0',
             isDark
               ? 'bg-gray-900/50 border-gray-700 text-gray-100 focus:border-blue-300 focus:bg-gray-900/60 focus:text-blue-50'
               : 'bg-white border-blue-200 text-slate-700 focus:border-blue-500 focus:bg-blue-50/90 focus:text-blue-700',
-            isLoading ? 'opacity-70 cursor-not-allowed' : ''
+            isLoading ? 'opacity-70 cursor-not-allowed' : '',
           )}
         />
         <button
@@ -133,10 +148,10 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
           className={clsx(
             'rounded-2xl px-4 py-2 font-medium shadow transition-colors',
             isDark ? 'bg-blue-600 text-white hover:bg-blue-500' : 'bg-blue-500 text-white hover:bg-blue-600',
-            isLoading || !composerValue.trim() ? 'opacity-60 cursor-not-allowed' : ''
+            isLoading || !composerValue.trim() ? 'opacity-60 cursor-not-allowed' : '',
           )}
         >
-          {isLoading ? '发送中…' : '发送'}
+          {isLoading ? '发送中...' : '发送'}
         </button>
       </form>
     </div>
@@ -146,6 +161,7 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
 function SimpleChatBubble({ bubble, isDark }: { bubble: SimpleBubble; isDark: boolean }) {
   const isAssistant = bubble.role === 'assistant';
   const alignmentClass = isAssistant ? 'justify-start' : 'justify-end';
+
   return (
     <div className={clsx('flex w-full', alignmentClass)}>
       <div
@@ -156,7 +172,7 @@ function SimpleChatBubble({ bubble, isDark }: { bubble: SimpleBubble; isDark: bo
             'bg-blue-100 text-blue-700 text-left': isAssistant && !isDark,
             'bg-gray-700 text-gray-100 text-right': !isAssistant && isDark,
             'bg-white text-slate-700 shadow text-right': !isAssistant && !isDark,
-          }
+          },
         )}
       >
         <span>

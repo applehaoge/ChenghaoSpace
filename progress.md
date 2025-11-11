@@ -1,4 +1,9 @@
-- **2025-11-11 Insights visualization collapse fix**
+- **2025-11-12 KidsCoding assistant 文案修复**
+  - KidsCodingEditorPage 与 AssistantChatPanel 的默认文案、提示语和静态消息改为正常 UTF-8，去掉重复的事件监听并保持“向 AI 追问”按钮逻辑可用。
+  - Checks: `pnpm --dir server test`, `pnpm --dir front build:client`
+- **2025-11-11 KidsCoding console → AI relay**
+  - Console 输出区右下角新增“向 AI 追问”按钮，点击会通过事件把当前控制台文本写入右侧 AI 助手输入框并聚焦，伴随 toast 提示。
+  - Checks: 未执行；请运行代码后点击该按钮，确认助手输入框已填入日志内容且可直接发送。- **2025-11-11 Insights visualization collapse fix**
   - 可视化演示区在折叠时改用 max-height 限制，左右宽度保持不变，向上收起时真正腾出空间，不再撑着固定高度。
   - Checks: 未执行；请在 KidsCoding 编辑器中点击“收起”确认演示区完全隐藏、AI 助手区域上移。- **2025-11-11 KidsCoding console indicator animation**
   - 指示灯在运行态按左到右顺序脉冲变色（亮橙→暖黄），其他状态也使用更鲜艳的调色，并新增全局动画样式。

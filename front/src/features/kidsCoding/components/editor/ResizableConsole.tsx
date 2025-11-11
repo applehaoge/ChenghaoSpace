@@ -14,6 +14,7 @@ interface ResizableConsoleProps {
   statusTone?: 'default' | 'info' | 'success' | 'warning' | 'error';
   statusHint?: string;
   statusState?: 'idle' | 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
+  onAskAssistant?: (payload: { text: string }) => void;
   minHeight?: number;
   maxHeight?: number;
 }
@@ -38,6 +39,7 @@ export function ResizableConsole({
   statusTone = 'default',
   statusHint,
   statusState = 'idle',
+  onAskAssistant,
   minHeight = DEFAULT_MIN_HEIGHT,
   maxHeight = DEFAULT_MAX_HEIGHT,
 }: ResizableConsoleProps) {
@@ -272,6 +274,7 @@ export function ResizableConsole({
                 'font-mono text-[12px] px-0 pb-4 flex-1 overflow-y-auto',
                 isDark ? 'bg-black/10' : 'bg-white/60',
               )}
+              style={{ position: 'relative' }}
             >
               <pre
                 className={clsx(
@@ -281,6 +284,20 @@ export function ResizableConsole({
               >
                 {output}
               </pre>
+              {onAskAssistant && output.trim().length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => onAskAssistant({ text: output })}
+                  className={clsx(
+                    'absolute bottom-3 right-3 inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-medium shadow transition-colors',
+                    isDark
+                      ? 'border-blue-500/40 bg-blue-900/60 text-blue-100 hover:bg-blue-800/80'
+                      : 'border-blue-300 bg-blue-50 text-blue-700 hover:bg-blue-100',
+                  )}
+                >
+                  向 AI 追问
+                </button>
+              )}
             </div>
           </div>
         </motion.div>
