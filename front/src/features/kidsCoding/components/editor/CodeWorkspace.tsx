@@ -4,6 +4,11 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal, Trash2 } from 'lucide-react';
 import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
 
+interface ConsoleLine {
+  id: string;
+  text: string;
+}
+
 interface CodeWorkspaceProps {
   isDark: boolean;
   zoomLevel: number;
@@ -28,11 +33,12 @@ export function CodeWorkspace({
   const editorFontSize = Math.max(12, Math.round((zoomLevel / 100) * 16));
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const consoleTimestamp = useMemo(() => new Date().toLocaleTimeString(), [codeValue]);
-  const consoleLines = [
-    'Python 3.11.0 (kids-sandbox) — 版权所有',
-    `>>> 正在等待运行 main.py · ${consoleTimestamp}`,
-    '使用“运行代码”按钮后，会在这里显示输出...'
+  const consoleLines: ConsoleLine[] = [
+    { id: 'system', text: 'Python 3.11.0 (kids-sandbox) ready' },
+    { id: 'prompt', text: `>>> Waiting to run main.py · ${consoleTimestamp}` },
+    { id: 'hint', text: 'Use "Run Code" to see the latest output here.' },
   ];
+  const consoleOutput = consoleLines.map(line => line.text).join('\n\n');
 
   const toggleConsole = () => setIsConsoleOpen(prev => !prev);
   const toolbarActions = [
@@ -106,32 +112,68 @@ export function CodeWorkspace({
               animate={{ opacity: 1, y: 0, height: 'auto' }}
               exit={{ opacity: 0, y: 24, height: 0 }}
               transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className={clsx('border-t overflow-hidden', {
-                'bg-gray-900/90 border-gray-800 text-green-200': isDark,
-                'bg-blue-50 border-blue-200 text-slate-700': !isDark,
-              })}
+              className={clsx(
+                'border-t overflow-hidden rounded-t-3xl shadow-2xl shadow-black/20',
+                isDark
+                  ? 'bg-gradient-to-b from-gray-900/95 via-gray-900 to-gray-950/95 border-gray-800 text-emerald-100'
+                  : 'bg-gradient-to-b from-white via-blue-50 to-blue-100/80 border-blue-100 text-slate-700',
+              )}
             >
-              <div className="flex items-center justify-between px-4 pt-3 text-xs font-semibold uppercase tracking-wide">
-                <span>控制台</span>
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.96 }}
-                  onClick={toggleConsole}
+              <div className="px-5 pt-4 pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex space-x-1.5">
+                      {['bg-red-500/80', 'bg-amber-400/80', 'bg-emerald-400/80'].map(color => (
+                        <span
+                          key={color}
+                          className={clsx(
+                            'h-2.5 w-2.5 rounded-full shadow-sm',
+                            color,
+                            isDark ? 'shadow-black/30' : 'shadow-white/40',
+                          )}
+                        />
+                      ))}
+                    </div>
+                    <div className="text-[11px] uppercase tracking-[0.25em] font-semibold opacity-75">Console</div>
+                    <span
+                      className={clsx(
+                        'inline-flex items-center text-[11px] font-medium tracking-wide rounded-full px-2 py-0.5',
+                        isDark ? 'bg-emerald-500/10 text-emerald-200' : 'bg-emerald-100 text-emerald-600',
+                      )}
+                    >
+                      Ready
+                    </span>
+                  </div>
+                  <motion.button
+                    type="button"
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={toggleConsole}
+                    className={clsx(
+                      'text-[11px] rounded-full px-3 py-1 transition-colors border',
+                      isDark
+                        ? 'border-gray-700/70 bg-gray-800/80 text-blue-200 hover:bg-gray-700'
+                        : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50',
+                    )}
+                  >
+                    收起
+                  </motion.button>
+                </div>
+              </div>
+              <div
+                className={clsx(
+                  'font-mono text-[12px] px-0 pb-4 max-h-48 overflow-y-auto',
+                  isDark ? 'bg-black/10' : 'bg-white/60',
+                )}
+              >
+                <pre
                   className={clsx(
-                    'text-[11px] rounded-full px-3 py-1 transition-colors',
-                    isDark ? 'bg-gray-800/80 text-blue-200 hover:bg-gray-700' : 'bg-white text-blue-700 hover:bg-blue-100',
+                    'w-full min-h-[120px] whitespace-pre-wrap px-5 py-4 leading-relaxed tracking-wide rounded-none border-0 m-0',
+                    isDark ? 'bg-gray-950/80 text-emerald-200' : 'bg-white text-slate-700 shadow-inner',
                   )}
                 >
-                  收起
-                </motion.button>
-              </div>
-              <div className="font-mono text-xs px-4 pb-4 space-y-1 max-h-40 overflow-y-auto">
-                {consoleLines.map(line => (
-                  <p key={line} className="leading-relaxed">
-                    {line}
-                  </p>
-                ))}
+                  {consoleOutput}
+                </pre>
               </div>
             </motion.div>
           )}
@@ -170,22 +212,22 @@ export function CodeWorkspace({
             />
           ))}
           <motion.button
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.97 }}
-          className={clsx(
-            'px-6 py-2.5 rounded-full font-medium flex items-center space-x-2 shadow-xl transition-all duration-300 text-white',
-            {
-              'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500': isDark,
-              'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600': !isDark,
-            },
-          )}
-          onClick={() => onRunCode(codeValue)}
-        >
-          <motion.div whileHover={{ rotate: 15 }}>
-            <Play size={18} />
-          </motion.div>
-          <span className="font-semibold">运行代码</span>
-        </motion.button>
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.97 }}
+            className={clsx(
+              'px-6 py-2.5 rounded-full font-medium flex items-center space-x-2 shadow-xl transition-all duration-300 text-white',
+              {
+                'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500': isDark,
+                'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600': !isDark,
+              },
+            )}
+            onClick={() => onRunCode(codeValue)}
+          >
+            <motion.div whileHover={{ rotate: 15 }}>
+              <Play size={18} />
+            </motion.div>
+            <span className="font-semibold">运行代码</span>
+          </motion.button>
         </div>
       </div>
     </motion.div>
