@@ -1,3 +1,9 @@
+- **2025-11-11 KidsCoding console header trim**
+  - Slimmed the console header padding, unified console typography to 12px, and kept the output block flush so the Console / Ready row no longer wastes vertical space.
+  - Checks: not run; please execute pnpm --dir front build:client and toggle the console to verify spacing.
+- **2025-11-11 KidsCoding console fill**
+  - Console output area now spans the entire panel with a flush background and square corners, matching the placeholder text exactly.
+  - Checks: not run; please execute pnpm --dir front build:client and use the 终端按钮 to verify.
 - **2025-11-11 KidsCoding console polish**
   - CodeWorkspace console面板加入圆角渐变、彩色状态灯和内容卡片，终端按钮高亮同步。
   - Checks: 未执行，建议运行 pnpm --dir front build:client 并手动切换终端开关。
@@ -382,6 +388,9 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-10 KidsCoding 可视化标题统一**
   - 可视化演示标题新增 MonitorPlay 图标并与 AI 助手标题保持同字号左对齐，折叠时自动降低不透明度，展开时恢复，保证状态反馈一致；后续根据设计反馈进一步加强虚化（40% 不透明度）并将电视图标缩至 14px，避免视觉比机器人更大，同时聊天输入框聚焦改为提升内边框和底色，亮度提升到蓝 500 级别（暗色主题则拉高到蓝 300），既能保持边缘完整又更醒目。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+
 
 
 

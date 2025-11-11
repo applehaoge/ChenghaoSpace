@@ -119,25 +119,30 @@ export function CodeWorkspace({
                   : 'bg-gradient-to-b from-white via-blue-50 to-blue-100/80 border-blue-100 text-slate-700',
               )}
             >
-              <div className="px-5 pt-4 pb-3">
-                <div className="flex items-center justify-between">
+              <div
+                className={clsx(
+                  'px-4 py-2.5 border-b',
+                  isDark ? 'border-gray-800' : 'border-blue-100/70',
+                )}
+              >
+                <div className="flex items-center justify-between text-[12px] font-medium tracking-wide">
                   <div className="flex items-center space-x-3">
                     <div className="flex space-x-1.5">
                       {['bg-red-500/80', 'bg-amber-400/80', 'bg-emerald-400/80'].map(color => (
                         <span
                           key={color}
                           className={clsx(
-                            'h-2.5 w-2.5 rounded-full shadow-sm',
+                            'h-2 w-2 rounded-full shadow-sm',
                             color,
                             isDark ? 'shadow-black/30' : 'shadow-white/40',
                           )}
                         />
                       ))}
                     </div>
-                    <div className="text-[11px] uppercase tracking-[0.25em] font-semibold opacity-75">Console</div>
+                    <span className="uppercase tracking-[0.2em]">Console</span>
                     <span
                       className={clsx(
-                        'inline-flex items-center text-[11px] font-medium tracking-wide rounded-full px-2 py-0.5',
+                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px]',
                         isDark ? 'bg-emerald-500/10 text-emerald-200' : 'bg-emerald-100 text-emerald-600',
                       )}
                     >
@@ -150,7 +155,7 @@ export function CodeWorkspace({
                     whileTap={{ scale: 0.96 }}
                     onClick={toggleConsole}
                     className={clsx(
-                      'text-[11px] rounded-full px-3 py-1 transition-colors border',
+                      'rounded-full px-3 py-0.5 transition-colors border text-[12px]',
                       isDark
                         ? 'border-gray-700/70 bg-gray-800/80 text-blue-200 hover:bg-gray-700'
                         : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50',
