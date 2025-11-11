@@ -1,3 +1,6 @@
+- **2025-11-11 KidsCoding console top straight**
+  - 去掉控制台顶栏容器的 rounded-t-3xl，让 Console 标题两端呈直角便于评估视觉效果。
+  - Checks: 未执行；请在界面中展开控制台确认顶栏转为直角。
 - **2025-11-11 KidsCoding console debug fallback**
   - 将 ResizableConsole 调试输出改为无条件 console.debug，并新增高度变化日志，确保在任何环境都能看到鼠标/高度事件。
   - Checks: 未执行；请重新打开编辑器页面并观察浏览器控制台确认日志出现。

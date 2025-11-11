@@ -128,7 +128,7 @@ export function ResizableConsole({
 
           <div
             className={clsx(
-              'flex-1 overflow-hidden rounded-t-3xl border-t shadow-2xl shadow-black/20 flex flex-col',
+              'flex-1 overflow-hidden border-t shadow-2xl shadow-black/20 flex flex-col',
               isDark
                 ? 'bg-gradient-to-b from-gray-900/95 via-gray-900 to-gray-950/95 border-gray-800 text-emerald-100'
                 : 'bg-gradient-to-b from-white via-blue-50 to-blue-100/80 border-blue-100 text-slate-700',
