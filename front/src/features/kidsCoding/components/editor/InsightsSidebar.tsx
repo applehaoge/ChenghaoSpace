@@ -21,37 +21,42 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
   const [showVisualization, setShowVisualization] = useState(true);
 
   return (
-    <motion.aside
+    <motion.div
       initial={false}
       animate={{
-        width: isCollapsed ? INSIGHTS_PANEL_COLLAPSED_WIDTH : INSIGHTS_PANEL_WIDTH,
-        opacity: isCollapsed ? 0.95 : 1,
+        opacity: isCollapsed ? 0.85 : 1,
+        scale: isCollapsed ? 0.98 : 1,
       }}
-      transition={{ duration: 0.35, ease: "easeInOut" }}
+      transition={{ duration: 0.4 }}
       className={clsx(
         "relative flex min-h-0 shrink-0 flex-col overflow-hidden rounded-3xl border shadow-xl backdrop-blur-md transition-colors duration-300",
         isDark ? "bg-gray-900/80 border-gray-700" : "bg-white/90 border-blue-200",
       )}
+      style={{ width: isCollapsed ? INSIGHTS_PANEL_COLLAPSED_WIDTH : INSIGHTS_PANEL_WIDTH }}
     >
       <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
 
-      {!isCollapsed && (
-        <motion.section
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className={clsx(
-            CARD_BASE,
-            isDark
-              ? "bg-gradient-to-b from-blue-900/60 via-blue-900/30 to-gray-900/70 border-blue-700/40 text-gray-100"
-              : "bg-gradient-to-b from-blue-50/90 via-indigo-50/70 to-white border-blue-100 text-slate-800",
-          )}
-        >
-          <header className="flex items-center justify-between text-sm font-semibold">
-            <span
-              className={clsx(
-                "inline-flex items-center gap-2 transition-opacity",
-                showVisualization ? "opacity-100" : "opacity-40",
+      <motion.section
+        aria-hidden={isCollapsed}
+        initial={false}
+        animate={{ opacity: isCollapsed ? 0 : 1 }}
+        transition={{ duration: 0.4 }}
+        style={{
+          pointerEvents: isCollapsed ? "none" : "auto",
+          visibility: isCollapsed ? "hidden" : "visible",
+        }}
+        className={clsx(
+          CARD_BASE,
+          isDark
+            ? "bg-gradient-to-b from-blue-900/60 via-blue-900/30 to-gray-900/70 border-blue-700/40 text-gray-100"
+            : "bg-gradient-to-b from-blue-50/90 via-indigo-50/70 to-white border-blue-100 text-slate-800",
+        )}
+      >
+        <header className="flex items-center justify-between text-sm font-semibold">
+          <span
+            className={clsx(
+              "inline-flex items-center gap-2 transition-opacity",
+              showVisualization ? "opacity-100" : "opacity-40",
               )}
             >
               <MonitorPlay size={14} />
@@ -83,7 +88,15 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
           </header>
 
           <div className="mt-4 flex flex-1 flex-col gap-4 overflow-hidden">
-            {showVisualization && (
+            <motion.div
+              initial={false}
+              animate={{
+                maxHeight: showVisualization ? 192 : 0,
+                opacity: showVisualization ? 1 : 0,
+              }}
+              transition={{ duration: 0.28 }}
+              className="overflow-hidden"
+            >
               <div
                 className={clsx(
                   "flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm",
@@ -92,13 +105,12 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
               >
                 动画演示区域
               </div>
-            )}
+            </motion.div>
 
             <AssistantChatPanel isDark={isDark} />
           </div>
         </motion.section>
-      )}
-    </motion.aside>
+    </motion.div>
   );
 }
 

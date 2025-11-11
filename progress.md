@@ -1,4 +1,28 @@
-﻿- **2025-11-10 KidsCoding 顶部缝隙再修**
+﻿- **2025-11-10 KidsCoding 侧栏淡入淡出统一**
+  - InsightsSidebar 内容的 0.4s 渐变现在用于展开与收起两个方向，保持一致的柔和体验。
+  - Checks: 未执行（动效微调）
+- **2025-11-10 KidsCoding 侧栏内容淡入**
+  - InsightsSidebar 主内容恢复为 motion.section，仅做 0.4s 透明度渐变，并通过 visibility/pointerEvents 控制交互，保证展开柔和又无变形。
+  - Checks: 未执行（动效微调）
+- **2025-11-10 KidsCoding 侧栏动效调参**
+  - InsightsSidebar 外壳的 scale/opacity 过渡时长由 0.2s 调整为 0.4s，使展开更柔和。
+  - Checks: 未执行（参数微调）
+- **2025-11-10 KidsCoding 侧栏动效细化**
+  - 在即时宽度切换的基础上，为 InsightsSidebar 外壳增加轻微的 opacity/scale 动画，收起/展开不过分生硬。
+  - Checks: 未执行（交互微调）
+- **2025-11-10 KidsCoding 侧栏宽度即时切换**
+  - InsightsSidebar 不再使用 motion.aside 动画，改由 style 根据折叠状态立即设置宽度，展开/收起时无额外挤压动画。
+  - Checks: 未执行（交互调整）
+- **2025-11-10 KidsCoding 洞察侧栏动画再调**
+  - 将 InsightsSidebar 主内容改为静态 section，仅通过 class 控制可见性，展开不再额外平移动画；可视化区域的高度动画保留。
+  - Checks: 未执行（交互微调）
+- **2025-11-10 KidsCoding 洞察侧栏动效补丁**
+  - 修复 InsightsSidebar 改造后的 JSX 结构，移除多余条件闭合以恢复构建。
+  - Checks: 未执行（语法修正）
+- **2025-11-10 KidsCoding 洞察侧栏动效优化**
+  - InsightsSidebar 始终渲染内容，收起时仅调整透明度/位移并禁用 pointer events，且可视化区改为 max-height 动画，展开不再挤压 AI 聊天面板。
+  - Checks: 未执行（交互动画优化）
+- **2025-11-10 KidsCoding 顶部缝隙再修**
   - 去掉 CodeWorkspace 顶部容器的 border-b，并取消标签栏的负 margin，让标签背景与编辑器直接贴合，无黑缝。
   - Checks: 未执行（样式微调）
 - **2025-11-10 KidsCoding 编辑器顶缝修复**
@@ -346,6 +370,14 @@ sHelpers??ttachmentContext 与前�? iService 单元测试
 - **2025-11-10 KidsCoding 可视化标题统一**
   - 可视化演示标题新增 MonitorPlay 图标并与 AI 助手标题保持同字号左对齐，折叠时自动降低不透明度，展开时恢复，保证状态反馈一致；后续根据设计反馈进一步加强虚化（40% 不透明度）并将电视图标缩至 14px，避免视觉比机器人更大，同时聊天输入框聚焦改为提升内边框和底色，亮度提升到蓝 500 级别（暗色主题则拉高到蓝 300），既能保持边缘完整又更醒目。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+
+
+
+
+
+
 
 
 
