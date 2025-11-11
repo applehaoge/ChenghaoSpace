@@ -1,4 +1,6 @@
-- **2025-11-11 KidsCoding console indicator animation**
+- **2025-11-11 Insights visualization collapse fix**
+  - 可视化演示区在折叠时改用 max-height 限制，左右宽度保持不变，向上收起时真正腾出空间，不再撑着固定高度。
+  - Checks: 未执行；请在 KidsCoding 编辑器中点击“收起”确认演示区完全隐藏、AI 助手区域上移。- **2025-11-11 KidsCoding console indicator animation**
   - 指示灯在运行态按左到右顺序脉冲变色（亮橙→暖黄），其他状态也使用更鲜艳的调色，并新增全局动画样式。
   - Checks: 未执行；请在运行任务时观察三颗灯依次闪烁，结束后恢复相应颜色。- **2025-11-11 KidsCoding console indicator colors**
   - 控制台三色指示灯随状态切换为更鲜艳的绿色/琥珀/玫红并在运行中脉动，暗色与浅色主题都有适配。

@@ -95,8 +95,11 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
                 filter: showVisualization ? "blur(0px)" : "blur(2px)",
               }}
               transition={{ duration: 0.4 }}
-              style={{ minHeight: showVisualization ? 192 : 0, pointerEvents: showVisualization ? "auto" : "none" }}
-              className="overflow-hidden"
+              style={{
+                maxHeight: showVisualization ? 260 : 0,
+                pointerEvents: showVisualization ? "auto" : "none",
+              }}
+              className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
             >
               <div
                 className={clsx(
