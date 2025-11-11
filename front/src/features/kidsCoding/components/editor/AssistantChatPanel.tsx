@@ -18,14 +18,14 @@ type SimpleBubble = {
 };
 
 const DEFAULT_STATIC_MESSAGES: SimpleBubble[] = [
-  { id: 'static-1', role: 'assistant', text: '你好，我是小智，随时准备陪你完成挑战哦～' },
+  { id: 'static-1', role: 'assistant', text: 'ä½ å¥½ï¼ææ¯å°æºï¼éæ¶åå¤éªä½ å®æææåï½' },
   {
     id: 'static-2',
     role: 'assistant',
-    text: '我会帮你把可视化演示和 AI 助手排版好，让右侧区域始终和编辑器对齐。',
+    text: 'æä¼å¸®ä½ æå¯è§åæ¼ç¤ºå AI å©ææçå¥½ï¼è®©å³ä¾§åºåå§ç»åç¼è¾å¨å¯¹é½ã',
   },
-  { id: 'static-3', role: 'user', text: '帮我检查循环里有没有越界问题？' },
-  { id: 'static-4', role: 'assistant', text: '好的，第 18 行条件需要改成 i < items.length，我已经帮你标记啦。' },
+  { id: 'static-3', role: 'user', text: 'å¸®ææ£æ¥å¾ªç¯éææ²¡æè¶çé®é¢ï¼' },
+  { id: 'static-4', role: 'assistant', text: 'å¥½çï¼ç¬¬ 18 è¡æ¡ä»¶éè¦æ¹æ i < items.lengthï¼æå·²ç»å¸®ä½ æ è®°å¦ã' },
 ];
 
 export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {

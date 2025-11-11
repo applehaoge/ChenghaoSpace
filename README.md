@@ -66,3 +66,9 @@ ChenghaoSpace 是一个基于 Fastify + TypeScript 后端与 Vite + React 前端
 - 扩展多 Provider Pipeline，支持更多图像/文本模型切换。
 - 打通 RAG 检索与结构化引用展示。
 - 优化前端附件卡片与移动端适配。
+## Linux / Docker 部署
+1. 将 server/.env.example 复制为 server/.env，填写 OpenAI/豆包密钥及 RUNNER_ACCESS_TOKEN。
+2. 运行 docker compose build 编译 server 与 python-runner 镜像；如需推送到镜像仓库，可通过 docker compose build --push。
+3. 运行 docker compose up -d 后，Fastify 服务默认暴露在 8000 端口，python-runner 会自动通过 http://server:8000 与后端通信。
+4. docker volume server_data 会保存记忆/上传文件，如需挂载到宿主机目录，可在 compose.yaml 中调整 volumes。
+5. 通过环境变量 RUNNER_MAX_CONCURRENCY、RUNNER_POLL_INTERVAL_MS 等可在 Linux 上方便地扩展 runner 数量；多节点时保持同一 RUNNER_ACCESS_TOKEN 即可。

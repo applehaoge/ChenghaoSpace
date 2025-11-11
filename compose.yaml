@@ -1,0 +1,34 @@
+version: "3.9"
+
+services:
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    image: kids-coding-server:latest
+    env_file:
+      - ./server/.env
+    environment:
+      PORT: ${PORT:-8000}
+      RUNNER_ACCESS_TOKEN: ${RUNNER_ACCESS_TOKEN:-dev-runner-token}
+    volumes:
+      - server_data:/app/server_data
+    ports:
+      - "8000:8000"
+
+  python-runner:
+    build:
+      context: ./python-runner
+      dockerfile: Dockerfile
+    image: kids-coding-runner:latest
+    depends_on:
+      - server
+    environment:
+      RUNNER_SERVER_URL: http://server:8000
+      RUNNER_ACCESS_TOKEN: ${RUNNER_ACCESS_TOKEN:-dev-runner-token}
+      RUNNER_POLL_INTERVAL_MS: 1000
+      RUNNER_MAX_CONCURRENCY: ${RUNNER_MAX_CONCURRENCY:-1}
+      RUNNER_PYTHON_BIN: python3
+
+volumes:
+  server_data:
