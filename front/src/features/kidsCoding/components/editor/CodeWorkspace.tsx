@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal, Trash2 } from 'lucide-react';
 import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
+import { ResizableConsole } from '@/features/kidsCoding/components/editor/ResizableConsole';
 
 interface ConsoleLine {
   id: string;
@@ -20,6 +21,8 @@ interface CodeWorkspaceProps {
   editorTheme: string;
 }
 
+const DEFAULT_CONSOLE_HEIGHT = 220;
+
 export function CodeWorkspace({
   isDark,
   zoomLevel,
@@ -32,6 +35,7 @@ export function CodeWorkspace({
 }: CodeWorkspaceProps) {
   const editorFontSize = Math.max(12, Math.round((zoomLevel / 100) * 16));
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
+  const [consoleHeight, setConsoleHeight] = useState(DEFAULT_CONSOLE_HEIGHT);
   const consoleTimestamp = useMemo(() => new Date().toLocaleTimeString(), [codeValue]);
   const consoleLines: ConsoleLine[] = [
     { id: 'system', text: 'Python 3.11.0 (kids-sandbox) ready' },
@@ -104,85 +108,14 @@ export function CodeWorkspace({
           </div>
         </div>
 
-        <AnimatePresence initial={false}>
-          {isConsoleOpen && (
-            <motion.div
-              key="code-console"
-              initial={{ opacity: 0, y: 24, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: 24, height: 0 }}
-              transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-              className={clsx(
-                'border-t overflow-hidden rounded-t-3xl shadow-2xl shadow-black/20',
-                isDark
-                  ? 'bg-gradient-to-b from-gray-900/95 via-gray-900 to-gray-950/95 border-gray-800 text-emerald-100'
-                  : 'bg-gradient-to-b from-white via-blue-50 to-blue-100/80 border-blue-100 text-slate-700',
-              )}
-            >
-              <div
-                className={clsx(
-                  'px-4 py-2.5 border-b',
-                  isDark ? 'border-gray-800' : 'border-blue-100/70',
-                )}
-              >
-                <div className="flex items-center justify-between text-[12px] font-medium tracking-wide">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex space-x-1.5">
-                      {['bg-red-500/80', 'bg-amber-400/80', 'bg-emerald-400/80'].map(color => (
-                        <span
-                          key={color}
-                          className={clsx(
-                            'h-2 w-2 rounded-full shadow-sm',
-                            color,
-                            isDark ? 'shadow-black/30' : 'shadow-white/40',
-                          )}
-                        />
-                      ))}
-                    </div>
-                    <span className="uppercase tracking-[0.2em]">Console</span>
-                    <span
-                      className={clsx(
-                        'inline-flex items-center rounded-full px-2.5 py-0.5 text-[12px]',
-                        isDark ? 'bg-emerald-500/10 text-emerald-200' : 'bg-emerald-100 text-emerald-600',
-                      )}
-                    >
-                      Ready
-                    </span>
-                  </div>
-                  <motion.button
-                    type="button"
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={toggleConsole}
-                    className={clsx(
-                      'rounded-full px-3 py-0.5 transition-colors border text-[12px]',
-                      isDark
-                        ? 'border-gray-700/70 bg-gray-800/80 text-blue-200 hover:bg-gray-700'
-                        : 'border-blue-200 bg-white text-blue-700 hover:bg-blue-50',
-                    )}
-                  >
-                    收起
-                  </motion.button>
-                </div>
-              </div>
-              <div
-                className={clsx(
-                  'font-mono text-[12px] px-0 pb-4 max-h-48 overflow-y-auto',
-                  isDark ? 'bg-black/10' : 'bg-white/60',
-                )}
-              >
-                <pre
-                  className={clsx(
-                    'w-full min-h-[120px] whitespace-pre-wrap px-5 py-4 leading-relaxed tracking-wide rounded-none border-0 m-0',
-                    isDark ? 'bg-gray-950/80 text-emerald-200' : 'bg-white text-slate-700 shadow-inner',
-                  )}
-                >
-                  {consoleOutput}
-                </pre>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <ResizableConsole
+          isDark={isDark}
+          isOpen={isConsoleOpen}
+          height={consoleHeight}
+          onHeightChange={setConsoleHeight}
+          onClose={toggleConsole}
+          output={consoleOutput}
+        />
       </div>
 
       <div

@@ -1,3 +1,15 @@
+- **2025-11-11 KidsCoding console debug fallback**
+  - 将 ResizableConsole 调试输出改为无条件 console.debug，并新增高度变化日志，确保在任何环境都能看到鼠标/高度事件。
+  - Checks: 未执行；请重新打开编辑器页面并观察浏览器控制台确认日志出现。
+- **2025-11-11 KidsCoding console debug logs**
+  - 在 ResizableConsole 中为拖拽条加入 console.debug 调试输出，记录 mouse enter/move/up 状态并追踪 isDragging 切换，便于排查光标显示问题。
+  - Checks: 未执行；请在开发模式打开 KidsCoding 编辑器并查看浏览器控制台以确认调试日志。
+- **2025-11-11 KidsCoding console separator tweak**
+  - 调整 ResizableConsole 的拖拽条为独立 separator，常驻 ns-resize 光标并放在控制台外层顶部，易于拖拽且不影响现有动效。
+  - Checks: 未执行；请运行 pnpm --dir server test、pnpm --dir front build:client，并在编辑器页拖动新分隔条验证高度调整。
+- **2025-11-11 KidsCoding resizable console**
+  - Added a ResizableConsole component with a drag handle so the console height updates live and stays fixed until refresh.
+  - Checks: not run; please execute pnpm --dir server test, pnpm --dir front build:client, then drag the console in the kids editor.
 - **2025-11-11 KidsCoding console header trim**
   - Slimmed the console header padding, unified console typography to 12px, and kept the output block flush so the Console / Ready row no longer wastes vertical space.
   - Checks: not run; please execute pnpm --dir front build:client and toggle the console to verify spacing.
