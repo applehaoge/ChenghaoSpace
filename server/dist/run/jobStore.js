@@ -44,10 +44,17 @@ export const setJobResult = (jobId, result) => {
     const job = jobs.get(jobId);
     if (!job)
         return;
-    Object.assign(job, result);
+    Object.assign(job, { ...result, visualization: mergeVisualization(job.visualization, result.visualization) });
     if (!job.finishedAt) {
         job.finishedAt = Date.now();
     }
+    jobEvents.emit(jobId, job);
+};
+export const setJobVisualizationFrame = (jobId, frame) => {
+    const job = jobs.get(jobId);
+    if (!job)
+        return;
+    job.visualization = mergeVisualization(job.visualization, { latestFrame: frame });
     jobEvents.emit(jobId, job);
 };
 const cleanupTimers = new Map();
@@ -69,4 +76,11 @@ export const subscribeJob = (jobId, listener) => {
         listener(current);
     }
     return () => jobEvents.off(jobId, handler);
+};
+const mergeVisualization = (current, next) => {
+    if (!current && !next)
+        return undefined;
+    return {
+        latestFrame: next?.latestFrame ?? current?.latestFrame,
+    };
 };

@@ -1,40 +1,58 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM 根目录
 set "ROOT=%~dp0"
 
-REM 1. 打包前端（生产环境）
+call :ensure_tool pnpm || goto :missing_tool
+call :ensure_tool docker || goto :missing_tool
+call :ensure_tool npx || goto :missing_tool
+
 pushd "%ROOT%front"
-echo [1/3] 构建前端生产包...
+echo [1/3] Build frontend (production mode)...
 call pnpm build:client --mode production
 if errorlevel 1 (
-  echo 前端构建失败，终止脚本。
+  echo !!! Frontend build failed, see log above.
   popd
-  exit /b 1
+  goto :fail
 )
 popd
 
-REM 2. 启动 Docker 服务（server + python-runner）
 pushd "%ROOT%"
-echo [2/3] 启动 Docker 容器（server + python-runner）...
-docker compose up -d
+echo [2/3] Start Docker containers (server + python-runner)...
+call docker compose up -d
 if errorlevel 1 (
-  echo Docker 启动失败，终止脚本。
+  echo !!! Docker compose failed. Make sure Docker Desktop is running.
   popd
-  exit /b 1
+  goto :fail
 )
 popd
 
-REM 3. 启动静态站点（独立 PowerShell 窗口）
-echo [3/3] 启动前端静态服务器：http://localhost:4173
+echo [3/3] Launch frontend static server at http://localhost:4173
 start "KidsCoding Frontend" powershell -NoExit -Command ^
-  "cd /d '%ROOT%'; npx serve front/dist/static --listen 4173 --single"
+  "cd /d ""%ROOT%""; npx serve front/dist/static --listen 4173 --single"
 
 echo.
-echo 所有服务已启动：
-echo   - API/Runner：docker compose up -d
-echo   - 前端生产包：front/dist/static (serve@4173)
+echo [DONE] All services started:
+echo    - API/Runner: docker compose up -d
+echo    - Frontend : http://localhost:4173
 echo.
-echo 完成。可在新开的 PowerShell 窗口查看前端日志，Ctrl+C 即可关闭。
-endlocal
+echo To stop: close the serve window and run "docker compose down".
+goto :end
+
+:missing_tool
+echo !!! Required tool missing. Please ensure pnpm / docker / npx are installed and on PATH.
+goto :fail
+
+:fail
+echo.
+pause
+exit /b 1
+
+:end
+echo.
+pause
+exit /b 0
+
+:ensure_tool
+where %1 >nul 2>&1
+exit /b %errorlevel%

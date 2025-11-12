@@ -22,6 +22,9 @@ export async function executeJob(job) {
     const vizBridge = await createVisualizationBridge(workDir, frame => sendSafeEvent(job.jobId, { type: 'visualization', frame }));
     await sendSafeEvent(job.jobId, { type: 'started', startedAt: Date.now() });
     const childEnv = { ...process.env, ...vizBridge.env };
+    const existingPythonPath = childEnv.PYTHONPATH ?? '';
+    const sep = process.platform === 'win32' ? ';' : ':';
+    childEnv.PYTHONPATH = existingPythonPath ? `${workDir}${sep}${existingPythonPath}` : workDir;
     const child = spawn(config.pythonBinary, ['-u', scriptPath], {
         cwd: workDir,
         stdio: ['pipe', 'pipe', 'pipe'],
