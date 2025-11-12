@@ -129,7 +129,7 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
       </div>
 
       <form
-        className="mt-auto flex items-center gap-2 text-sm"
+        className="mt-auto flex items-end gap-2 text-sm"
         onSubmit={event => {
           void handleSubmit(event);
         }}
