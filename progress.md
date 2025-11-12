@@ -471,3 +471,9 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 
 
 
+- **2025-11-12 KidsCoding 编辑器输入框自适应高度**
+  - 聊天输入框改为自动增高的 textarea，并在按 Enter 时保持发送消息、Shift+Enter 可换行，整体视觉与原样式一致。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-12 KidsCoding 输入框滚动条修复**
+  - textarea 高度同步逻辑现在根据最大高度自动切换 overflow，让空输入时隐藏滚动条、超出 160px 时再显示滚动补充内容。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

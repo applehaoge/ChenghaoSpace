@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Bot } from 'lucide-react';
 import clsx from 'clsx';
 import { useConversationController } from '@/components/chat/useConversationController';
@@ -28,7 +28,7 @@ const DEFAULT_STATIC_MESSAGES: SimpleBubble[] = [
 export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
   const [sessionId, setSessionId] = useState(() => createSessionId());
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const {
     messages,
@@ -98,6 +98,16 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
     return () => window.removeEventListener(KIDS_CODING_CONSOLE_ASK_AI, handleConsoleAsk as EventListener);
   }, [setComposerValue]);
 
+  useLayoutEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+    input.style.height = 'auto';
+    const maxHeight = 160;
+    const nextHeight = Math.min(input.scrollHeight, maxHeight);
+    input.style.height = `${nextHeight}px`;
+    input.style.overflowY = input.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, [composerValue]);
+
   return (
     <div className="flex flex-1 flex-col gap-3 overflow-hidden min-h-0">
       <div className="flex items-center gap-2 text-sm font-semibold">
@@ -124,21 +134,27 @@ export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
           void handleSubmit(event);
         }}
       >
-        <input
-          type="text"
+        <textarea
           value={composerValue}
           disabled={isLoading}
+          rows={1}
           onChange={event => setComposerValue(event.target.value)}
+          onKeyDown={event => {
+            if (event.key === 'Enter' && !event.shiftKey) {
+              event.preventDefault();
+              void handleSubmit();
+            }
+          }}
           placeholder="输入你的问题或需求..."
           ref={inputRef}
           className={clsx(
-            'flex-1 rounded-2xl border px-4 py-2 transition-colors focus:outline-none focus:ring-0',
+              'flex-1 rounded-2xl border px-4 py-2 transition-colors focus:outline-none focus:ring-0 resize-none',
             isDark
               ? 'bg-gray-900/50 border-gray-700 text-gray-100 focus:border-blue-300 focus:bg-gray-900/60 focus:text-blue-50'
               : 'bg-white border-blue-200 text-slate-700 focus:border-blue-500 focus:bg-blue-50/90 focus:text-blue-700',
             isLoading ? 'opacity-70 cursor-not-allowed' : '',
           )}
-        />
+        ></textarea>
         <button
           type="submit"
           disabled={isLoading || !composerValue.trim()}
