@@ -18,14 +18,11 @@ type SimpleBubble = {
 };
 
 const DEFAULT_STATIC_MESSAGES: SimpleBubble[] = [
-  { id: 'static-1', role: 'assistant', text: 'ä½ å¥½ï¼ææ¯å°æºï¼éæ¶åå¤éªä½ å®æææåï½' },
   {
-    id: 'static-2',
+    id: 'static-1',
     role: 'assistant',
-    text: 'æä¼å¸®ä½ æå¯è§åæ¼ç¤ºå AI å©ææçå¥½ï¼è®©å³ä¾§åºåå§ç»åç¼è¾å¨å¯¹é½ã',
+    text: '你好，我是小智～有任何代码报错、调试问题或学习想法都可以在下方告诉我，我会马上帮你分析。',
   },
-  { id: 'static-3', role: 'user', text: 'å¸®ææ£æ¥å¾ªç¯éææ²¡æè¶çé®é¢ï¼' },
-  { id: 'static-4', role: 'assistant', text: 'å¥½çï¼ç¬¬ 18 è¡æ¡ä»¶éè¦æ¹æ i < items.lengthï¼æå·²ç»å¸®ä½ æ è®°å¦ã' },
 ];
 
 export function AssistantChatPanel({ isDark }: AssistantChatPanelProps) {
