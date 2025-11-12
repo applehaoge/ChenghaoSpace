@@ -495,3 +495,14 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
   - 重新设计 light 模式下 queued/running/succeeded 的灯光配色，采用高对比的蓝紫/琥珀/深红方案，确保运行状态在白天主题也能被看清。
 - **2025-11-12 KidsCoding 控制台灯光对比增强**
   - 调整非运行状态下的灯体颜色使用基础色，不再采用过度提亮的 active 色，保证浅色主题也能看清三颗指示灯。
+- **2025-11-12 KidsCoding 控制台暗色灯方案**
+  - 根据 Light Theme 调色建议，重新指定 idle/queued/running/success/failure 的深色基准灯色，确保阳光环境也能清晰区分状态。
+- **2025-11-12 KidsCoding 控制台灯效重构**
+  - 依据最新的浅色主题三色方案实现逐状态配色与动画：idle 呼吸、running 流动、queued 中灯轻闪、success 闪亮淡出、failure 双闪警示，同时保留深色模式表现。
+  - Checks: pnpm --dir front build:client
+- **2025-11-12 KidsCoding 灯效柔化补丁**
+  - 调亮浅色主题的状态色（回归蓝绿紫与暖色方案），并让 Success/Failure 动画只播放一次后保持静止，解决“完成还在闪、颜色太暗”的问题。
+  - Checks: pnpm --dir front build:client
+- **2025-11-12 KidsCoding 灯色加深**
+  - 将浅色主题下 running/queued/success/failure/idle 的三段色调整体加深，提高阳光场景的可读性，深色模式保持不变。
+  - Checks: pnpm --dir front build:client

@@ -52,8 +52,6 @@ export function ResizableConsole({
     [height, maxHeight, minHeight],
   );
   const indicatorConfigs = useMemo(() => getIndicatorPalette(statusState, isDark), [isDark, statusState]);
-  const idleIndicatorColor = isDark ? 'rgba(84, 97, 120, 0.55)' : 'rgba(107, 114, 128, 0.5)';
-  const isIndicatorActive = statusState !== 'idle';
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -194,26 +192,23 @@ export function ResizableConsole({
                       if (statusState === 'running') {
                         indicatorStyle.background = config.base;
                         indicatorStyle.boxShadow = `0 0 8px ${config.base}`;
-                        indicatorStyle.animationDelay = `${index * 0.18}s`;
+                        indicatorStyle.animationDelay = `${index * 0.2}s`;
                         indicatorStyle['--indicator-base'] = config.base;
                         indicatorStyle['--indicator-active'] = config.active;
-                      } else if (isIndicatorActive) {
+                      } else if (statusState === 'idle') {
+                        indicatorStyle.background = config.base;
+                        indicatorStyle.boxShadow = `0 0 6px ${config.base}`;
+                      } else {
                         indicatorStyle.background = config.base;
                         indicatorStyle.boxShadow = `0 0 12px ${config.base}`;
-                      } else {
-                        indicatorStyle.background = idleIndicatorColor;
-                        indicatorStyle.boxShadow = `0 0 4px ${idleIndicatorColor}`;
                       }
+                      const animationClass = getIndicatorClassName(statusState, index);
                       return (
                         <span
                           key={`${statusState}-${index}`}
                           className={clsx(
                             'h-2 w-2 rounded-full shadow-sm transition-all duration-300',
-                            statusState === 'running'
-                              ? 'kids-console-indicator'
-                              : isIndicatorActive
-                                ? 'kids-console-indicator-active'
-                                : 'kids-console-indicator-idle',
+                            animationClass,
                             isDark ? 'shadow-black/30' : 'shadow-white/40',
                           )}
                           style={indicatorStyle}
@@ -338,6 +333,22 @@ type IndicatorStyle = CSSProperties & {
   '--indicator-active'?: string;
 };
 
+const getIndicatorClassName = (state: ResizableConsoleProps['statusState'], index: number): string => {
+  switch (state) {
+    case 'running':
+      return 'kids-indicator-flow';
+    case 'queued':
+      return index === 1 ? 'kids-indicator-queued-center' : 'kids-indicator-queued-side';
+    case 'succeeded':
+      return 'kids-indicator-success';
+    case 'failed':
+    case 'cancelled':
+      return 'kids-indicator-failure';
+    default:
+      return 'kids-indicator-breathe';
+  }
+};
+
 interface IndicatorConfig {
   base: string;
   active: string;
@@ -353,28 +364,28 @@ const getIndicatorPalette = (state: ResizableConsoleProps['statusState'], isDark
   switch (state) {
     case 'running':
       return palette(
-        ['#2E31A6', '#4338CA', '#4F46E5'],
+        ['#2F5AA8', '#2F8C72', '#6A4CD4'],
         ['#4338CA', '#6366F1', '#A5B4FC'],
       );
     case 'queued':
       return palette(
-        ['#B45309', '#D97706', '#F97316'],
+        ['#E0AA33', '#D47A32', '#C1654F'],
         ['#D97706', '#F59E0B', '#FCD34D'],
       );
     case 'failed':
     case 'cancelled':
       return palette(
-        ['#DC2626', '#E11D48', '#BE185D'],
+        ['#E06479', '#CC4E48', '#A62E2E'],
         ['#F43F5E', '#E879F9', '#C084FC'],
       );
     case 'succeeded':
       return palette(
-        ['#0E7490', '#0EA5E9', '#2563EB'],
+        ['#2BA67D', '#1E8B63', '#1A7A58'],
         ['#0EA5E9', '#3B82F6', '#A78BFA'],
       );
     default:
       return palette(
-        ['#475569', '#64748B', '#94A3B8'],
+        ['#8AA0AD', '#A5B3BD', '#94A3AF'],
         ['#64748B', '#818CF8', '#94A3B8'],
       );
   }
