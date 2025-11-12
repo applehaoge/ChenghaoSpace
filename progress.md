@@ -480,3 +480,9 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding assistant 回复提示去除**
   - 重新实现 SimpleChatBubble，只展示真实回复内容，不再附加“回复中/思考中”等占位文案，确保 AI 直接输出答复。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-12 KidsCoding 静态消息字符串修复**
+  - 修正 `AssistantChatPanel` 中的默认提示、占位符和按钮文案乱码导致的语法错误，恢复正常构建并让 Vite HMR 能重新加载该组件。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-12 KidsCoding Python 运行环境对齐**
+  - `front/.env.local` 新增 `VITE_RUNNER_API_BASE=http://localhost:8302`，让前端把 `/api/run` 请求直接发给与本地 server 相同的端口，避免默认 8000 未启动时出现 `Failed to fetch`。
+  - Checks: pnpm --dir front build:client
