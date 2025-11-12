@@ -477,3 +477,6 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding 输入框滚动条修复**
   - textarea 高度同步逻辑现在根据最大高度自动切换 overflow，让空输入时隐藏滚动条、超出 160px 时再显示滚动补充内容。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-12 KidsCoding assistant 回复提示去除**
+  - 重新实现 SimpleChatBubble，只展示真实回复内容，不再附加“回复中/思考中”等占位文案，确保 AI 直接输出答复。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

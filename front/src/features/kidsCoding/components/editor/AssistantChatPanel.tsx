@@ -188,15 +188,7 @@ function SimpleChatBubble({ bubble, isDark }: { bubble: SimpleBubble; isDark: bo
           },
         )}
       >
-        <span>
-          {bubble.text || (isAssistant ? '小智正在思考...' : '...')}
-          {bubble.isStreaming ? (
-            <span className="ml-2 inline-flex items-center gap-1 text-xs opacity-70">
-              <span className="h-1.5 w-1.5 rounded-full bg-current animate-pulse" />
-              输入中
-            </span>
-          ) : null}
-        </span>
+        <span>{bubble.text ?? ''}</span>
       </div>
     </div>
   );
