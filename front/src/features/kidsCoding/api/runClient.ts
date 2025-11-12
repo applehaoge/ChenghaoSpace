@@ -1,3 +1,5 @@
+import type { VisualizationSnapshot } from '@/features/kidsCoding/types/visualization';
+
 const API_BASE = import.meta.env.VITE_RUNNER_API_BASE || 'http://localhost:8000';
 
 const resolveApiUrl = (path: string) => new URL(path, API_BASE).toString();
@@ -19,7 +21,7 @@ export interface RunJobResponse {
   createdAt?: number;
   startedAt?: number;
   finishedAt?: number;
-  visualization?: unknown;
+  visualization?: VisualizationSnapshot;
 }
 
 export async function submitRunJob(payload: { code: string; language?: 'python'; stdin?: string; timeout?: number }) {

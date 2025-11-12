@@ -1,5 +1,11 @@
 import { EventEmitter } from 'node:events';
-import { RunJobRecord, RunJobRequest, RunJobStatus } from './jobTypes.js';
+import {
+  RunJobRecord,
+  RunJobRequest,
+  RunJobStatus,
+  VisualizationFramePayload,
+  VisualizationSnapshot,
+} from './jobTypes.js';
 
 const jobs = new Map<string, RunJobRecord>();
 const jobEvents = new EventEmitter();
@@ -51,10 +57,17 @@ export const setJobResult = (
 ) => {
   const job = jobs.get(jobId);
   if (!job) return;
-  Object.assign(job, result);
+  Object.assign(job, { ...result, visualization: mergeVisualization(job.visualization, result.visualization) });
   if (!job.finishedAt) {
     job.finishedAt = Date.now();
   }
+  jobEvents.emit(jobId, job);
+};
+
+export const setJobVisualizationFrame = (jobId: string, frame: VisualizationFramePayload) => {
+  const job = jobs.get(jobId);
+  if (!job) return;
+  job.visualization = mergeVisualization(job.visualization, { latestFrame: frame });
   jobEvents.emit(jobId, job);
 };
 
@@ -79,4 +92,14 @@ export const subscribeJob = (jobId: string, listener: (job: RunJobRecord) => voi
     listener(current);
   }
   return () => jobEvents.off(jobId, handler);
+};
+
+const mergeVisualization = (
+  current?: VisualizationSnapshot,
+  next?: VisualizationSnapshot,
+): VisualizationSnapshot | undefined => {
+  if (!current && !next) return undefined;
+  return {
+    latestFrame: next?.latestFrame ?? current?.latestFrame,
+  };
 };

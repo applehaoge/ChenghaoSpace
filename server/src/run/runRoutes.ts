@@ -1,6 +1,13 @@
 import type { FastifyInstance } from 'fastify';
 import { randomUUID } from 'node:crypto';
-import { createJobRecord, getJobRecord, updateJobStatus, appendJobOutput, setJobResult } from './jobStore.js';
+import {
+  createJobRecord,
+  getJobRecord,
+  updateJobStatus,
+  appendJobOutput,
+  setJobResult,
+  setJobVisualizationFrame,
+} from './jobStore.js';
 import { enqueueJobId, claimNextJobId } from './jobQueue.js';
 import { assertRunnerAuthorized } from './runnerAuth.js';
 import type { RunnerEvent } from './jobTypes.js';
@@ -106,7 +113,6 @@ export const registerRunRoutes = async (fastify: FastifyInstance) => {
         setJobResult(jobId, {
           stdout: event.stdout ?? job.stdout,
           stderr: event.stderr ?? job.stderr,
-          visualization: event.visualization,
           finishedAt: event.finishedAt,
         });
         updateJobStatus(jobId, 'succeeded');
@@ -118,6 +124,9 @@ export const registerRunRoutes = async (fastify: FastifyInstance) => {
           finishedAt: event.finishedAt,
         });
         updateJobStatus(jobId, 'failed');
+        break;
+      case 'visualization':
+        setJobVisualizationFrame(jobId, event.frame);
         break;
       default:
         return reply.code(400).send({ message: 'Unknown event type' });

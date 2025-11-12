@@ -522,3 +522,6 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
   - python-runner 容器安装 python3-pygame（附带依赖），成功通过 /api/run 运行 pygame 代码。
 - **2025-11-12 一键启动脚本**
   - 新增 `start-prod.bat`：自动执行前端生产构建、`docker compose up -d`，并在独立 PowerShell 窗口启动 `npx serve front/dist/static --listen 4173 --single`。
+- **2025-11-12 KidsCoding 可视化通道（阶段A）**
+  - python-runner 引入 `kids_capture` helper 与 visualization bridge，pygame Surface 会编码为 RGB 帧并通过 runner 事件推送至 server；server/jobStream 支持新的 `visualization` 事件，前端新增 `VisualizationViewer` 在洞察侧栏与 ResultPanel 中实时渲染帧。
+  - Checks: pnpm --dir python-runner build; pnpm --dir server test; pnpm --dir front build:client

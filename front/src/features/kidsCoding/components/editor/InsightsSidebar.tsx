@@ -7,17 +7,20 @@ import {
   INSIGHTS_PANEL_WIDTH,
 } from "@/features/kidsCoding/constants/editorLayout";
 import { AssistantChatPanel } from "./AssistantChatPanel";
+import { VisualizationViewer } from "@/features/kidsCoding/components/visualization/VisualizationViewer";
+import type { VisualizationFrame } from "@/features/kidsCoding/types/visualization";
 
 interface InsightsSidebarProps {
   isDark: boolean;
   isCollapsed: boolean;
   onToggle: () => void;
+  visualizationFrame?: VisualizationFrame;
 }
 
 const CARD_BASE =
   "flex flex-1 min-h-0 flex-col overflow-hidden rounded-3xl backdrop-blur-md transition-colors p-5";
 
-export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSidebarProps) {
+export function InsightsSidebar({ isDark, isCollapsed, onToggle, visualizationFrame }: InsightsSidebarProps) {
   const [showVisualization, setShowVisualization] = useState(true);
 
   return (
@@ -101,14 +104,7 @@ export function InsightsSidebar({ isDark, isCollapsed, onToggle }: InsightsSideb
               }}
               className="overflow-hidden transition-[max-height] duration-300 ease-in-out"
             >
-              <div
-                className={clsx(
-                  "flex h-48 items-center justify-center rounded-2xl border-2 border-dashed text-sm",
-                  isDark ? "border-blue-500/40 text-blue-100" : "border-blue-300 text-blue-500",
-                )}
-              >
-                动画演示区域
-              </div>
+              <VisualizationViewer frame={visualizationFrame} isDark={isDark} />
             </motion.div>
 
             <AssistantChatPanel isDark={isDark} />

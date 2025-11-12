@@ -1,3 +1,5 @@
+import type { VisualizationFramePayload } from './viz/types.js';
+
 export type RunJobLanguage = 'python';
 
 export interface ClaimedJob {
@@ -12,5 +14,6 @@ export interface ClaimedJob {
 export type RunnerEvent =
   | { type: 'started'; startedAt?: number }
   | { type: 'chunk'; stream: 'stdout' | 'stderr'; chunk: string }
-  | { type: 'completed'; stdout?: string; stderr?: string; visualization?: unknown; finishedAt?: number }
+  | { type: 'visualization'; frame: VisualizationFramePayload }
+  | { type: 'completed'; stdout?: string; stderr?: string; finishedAt?: number }
   | { type: 'failed'; error: string; stderr?: string; finishedAt?: number };

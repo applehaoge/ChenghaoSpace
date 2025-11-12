@@ -11,6 +11,18 @@ export interface RunJobRequest {
   createdAt: number;
 }
 
+export interface VisualizationFramePayload {
+  width: number;
+  height: number;
+  format: 'RGB';
+  data: string;
+  timestamp?: number;
+}
+
+export interface VisualizationSnapshot {
+  latestFrame?: VisualizationFramePayload;
+}
+
 export interface RunJobRecord extends RunJobRequest {
   status: RunJobStatus;
   stdout: string;
@@ -18,7 +30,7 @@ export interface RunJobRecord extends RunJobRequest {
   error?: string;
   startedAt?: number;
   finishedAt?: number;
-  visualization?: unknown;
+  visualization?: VisualizationSnapshot;
 }
 
 export interface JobChunk {
@@ -43,7 +55,6 @@ export interface RunnerEventCompleted {
   type: 'completed';
   stdout?: string;
   stderr?: string;
-  visualization?: unknown;
   finishedAt?: number;
 }
 
@@ -54,8 +65,14 @@ export interface RunnerEventFailed {
   finishedAt?: number;
 }
 
+export interface RunnerEventVisualization {
+  type: 'visualization';
+  frame: VisualizationFramePayload;
+}
+
 export type RunnerEvent =
   | RunnerEventStarted
   | RunnerEventChunk
   | RunnerEventCompleted
-  | RunnerEventFailed;
+  | RunnerEventFailed
+  | RunnerEventVisualization;

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchRunJob, openRunJobStream, submitRunJob, type RunJobResponse, type RunJobStatus } from '@/features/kidsCoding/api/runClient';
+import type { VisualizationFrame } from '@/features/kidsCoding/types/visualization';
 
 export interface RunConsoleState {
   jobId?: string;
@@ -10,6 +11,7 @@ export interface RunConsoleState {
   createdAt?: number;
   startedAt?: number;
   finishedAt?: number;
+  visualizationFrame?: VisualizationFrame;
 }
 
 const initialState: RunConsoleState = {
@@ -144,4 +146,5 @@ const convertJob = (job: RunJobResponse): RunConsoleState => ({
   createdAt: job.createdAt,
   startedAt: job.startedAt,
   finishedAt: job.finishedAt,
+  visualizationFrame: job.visualization?.latestFrame,
 });

@@ -112,6 +112,7 @@ export function KidsCodingEditorPage() {
             isDark={isDark}
             isCollapsed={isInsightsCollapsed}
             onToggle={toggleInsightsSidebar}
+            visualizationFrame={runState.visualizationFrame}
           />
         </div>
       </div>

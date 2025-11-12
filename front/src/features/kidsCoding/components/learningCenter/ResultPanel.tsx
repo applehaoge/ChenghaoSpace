@@ -8,6 +8,8 @@ import {
   SECTION_LABEL_CLASS,
 } from '@/features/kidsCoding/constants/learningCenter';
 import { AiChatMessage, ResultFocus } from '@/features/kidsCoding/types/learningCenter';
+import type { VisualizationFrame } from '@/features/kidsCoding/types/visualization';
+import { VisualizationViewer } from '@/features/kidsCoding/components/visualization/VisualizationViewer';
 
 interface ResultPanelProps {
   className?: string;
@@ -21,6 +23,7 @@ interface ResultPanelProps {
   onShowAssistantModal: () => void;
   enableCollapse?: boolean;
   onCollapse?: () => void;
+  visualizationFrame?: VisualizationFrame;
 }
 
 export function ResultPanel({
@@ -35,12 +38,13 @@ export function ResultPanel({
   onShowAssistantModal,
   enableCollapse = false,
   onCollapse,
+  visualizationFrame,
 }: ResultPanelProps) {
   return (
     <aside className={clsx(PANEL_BASE_CLASS, className)}>
       <div className={clsx(SECTION_HEADER_CLASS, 'text-sm lg:flex-row lg:items-center lg:justify-between')}>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className={SECTION_LABEL_CLASS}>运行结果</span>
+          <span className={SECTION_LABEL_CLASS}>杩愯缁撴灉</span>
         </div>
         <div
           className={clsx(
@@ -51,8 +55,8 @@ export function ResultPanel({
           {!showFullLayout ? (
             <div className="flex items-center gap-1 rounded-xl bg-slate-100 p-1 text-xs text-slate-500 dark:bg-slate-800 dark:text-slate-300">
               {[
-                { key: 'visualization', label: '可视化', icon: 'fa-display' },
-                { key: 'ai', label: 'AI 助手', icon: 'fa-robot' },
+                { key: 'visualization', label: '鍙鍖?, icon: 'fa-display' },
+                { key: 'ai', label: 'AI 鍔╂墜', icon: 'fa-robot' },
               ].map(option => (
                 <button
                   key={option.key}
@@ -72,14 +76,14 @@ export function ResultPanel({
             </div>
           ) : (
             <button type="button" onClick={onShowAssistantModal} className={ACTION_LINK_CLASS}>
-              查看教学资料
+              鏌ョ湅鏁欏璧勬枡
             </button>
           )}
           {enableCollapse && onCollapse ? (
             <button
               type="button"
               onClick={onCollapse}
-              title="折叠运行结果"
+              title="鎶樺彔杩愯缁撴灉"
               className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-500 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300"
             >
               <i className="fa-solid fa-chevron-right" />
@@ -89,7 +93,9 @@ export function ResultPanel({
       </div>
 
       <div className="flex flex-1 flex-col gap-3 overflow-hidden px-4 pb-4 pt-4">
-        {(showFullLayout || activeFocus === 'visualization') ? <VisualizationCard /> : null}
+        {(showFullLayout || activeFocus === 'visualization') ? (
+          <VisualizationCard frame={visualizationFrame} />
+        ) : null}
         {(showFullLayout || activeFocus === 'ai') ? (
           <AiAssistantCard
             aiInput={aiInput}
@@ -105,45 +111,13 @@ export function ResultPanel({
   );
 }
 
-function VisualizationCard() {
+function VisualizationCard({ frame }: { frame?: VisualizationFrame }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-slate-950/90 p-5 text-white shadow-inner">
-      <div className="flex items-center justify-between text-sm text-slate-300">
-        <span>
-          <i className="fa-solid fa-cubes me-2 text-blue-400" />
-          可视化演示
-        </span>
-        <button
-          type="button"
-          onClick={() => toast.info('全屏演示模式即将推出')}
-          className="rounded-lg px-3 py-1 text-xs text-slate-300 transition hover:bg-white/10"
-        >
-          <i className="fa-solid fa-up-right-and-down-left-from-center me-1" />
-          全屏
-        </button>
-      </div>
-      <div className="mt-6 flex h-full min-h-[220px] flex-col items-center justify-center gap-6">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full bg-blue-500 text-3xl font-bold shadow-lg shadow-blue-700/40">
-          AI
-        </div>
-        <p className="max-w-xs text-center text-sm text-blue-100">
-          小智正在依次执行问候、学习、工作、休息技能，运行时动画和状态条会同步刷新。
-        </p>
-        <div className="flex w-full max-w-xs justify-center gap-3 text-xs text-slate-200">
-          <span>
-            <i className="fa-solid fa-bolt me-1 text-amber-300" />
-            能量 90%
-          </span>
-          <span>
-            <i className="fa-solid fa-brain me-1 text-emerald-300" />
-            知识 35%
-          </span>
-        </div>
-      </div>
+    <div className="overflow-hidden rounded-2xl bg-slate-950/90 text-white shadow-inner">
+      <VisualizationViewer frame={frame} isDark />
     </div>
   );
 }
-
 interface AiAssistantCardProps {
   aiMessages: AiChatMessage[];
   aiInput: string;
@@ -166,7 +140,7 @@ function AiAssistantCard({
       <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 text-sm dark:border-slate-800">
         <div className="flex items-center gap-2">
           <i className="fa-solid fa-robot text-blue-500" />
-          <span className="font-medium text-slate-800 dark:text-slate-100">AI 编程助手</span>
+          <span className="font-medium text-slate-800 dark:text-slate-100">AI 缂栫▼鍔╂墜</span>
         </div>
         {showResourceAction ? (
           <button
@@ -174,7 +148,7 @@ function AiAssistantCard({
             onClick={onShowAssistantModal}
             className="rounded-lg px-3 py-1 text-xs text-blue-600 transition hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20"
           >
-            查看教学资料
+            鏌ョ湅鏁欏璧勬枡
           </button>
         ) : null}
       </div>
@@ -199,7 +173,7 @@ function AiAssistantCard({
           <input
             value={aiInput}
             onChange={event => onAiInputChange(event.target.value)}
-            placeholder='向 AI 编程助手提问，例如“帮我优化能量管理”'
+            placeholder='鍚?AI 缂栫▼鍔╂墜鎻愰棶锛屼緥濡傗€滃府鎴戜紭鍖栬兘閲忕鐞嗏€?
             className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-200 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:border-blue-400 dark:focus:ring-blue-900/40"
           />
           <button
@@ -207,7 +181,7 @@ function AiAssistantCard({
             onClick={onSendMessage}
             className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
           >
-            发送
+            鍙戦€?
           </button>
         </div>
       </div>

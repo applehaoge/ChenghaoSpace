@@ -5,6 +5,7 @@ import { spawn } from 'node:child_process';
 import { once } from 'node:events';
 import { config } from './config.js';
 import { sendRunnerEvent } from './apiClient.js';
+import { createVisualizationBridge } from './viz/visualizationBridge.js';
 const dirPrefix = join(tmpdir(), 'python-runner-');
 const sendSafeEvent = async (jobId, event) => {
     try {
@@ -18,11 +19,13 @@ export async function executeJob(job) {
     const workDir = await mkdtemp(dirPrefix);
     const scriptPath = join(workDir, 'main.py');
     await writeFile(scriptPath, job.code, 'utf-8');
+    const vizBridge = await createVisualizationBridge(workDir, frame => sendSafeEvent(job.jobId, { type: 'visualization', frame }));
     await sendSafeEvent(job.jobId, { type: 'started', startedAt: Date.now() });
+    const childEnv = { ...process.env, ...vizBridge.env };
     const child = spawn(config.pythonBinary, ['-u', scriptPath], {
         cwd: workDir,
         stdio: ['pipe', 'pipe', 'pipe'],
-        env: { ...process.env },
+        env: childEnv,
     });
     const fatalError = once(child, 'error').then(err => {
         throw err;
@@ -76,6 +79,7 @@ export async function executeJob(job) {
         }
     }
     finally {
+        await vizBridge.dispose();
         await rm(workDir, { recursive: true, force: true });
     }
 }
