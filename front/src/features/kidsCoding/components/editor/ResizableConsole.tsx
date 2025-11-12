@@ -51,6 +51,9 @@ export function ResizableConsole({
     () => Math.max(minHeight, Math.min(maxHeight, height)),
     [height, maxHeight, minHeight],
   );
+  const indicatorConfigs = useMemo(() => getIndicatorPalette(statusState, isDark), [isDark, statusState]);
+  const idleIndicatorColor = isDark ? 'rgba(84, 97, 120, 0.55)' : 'rgba(107, 114, 128, 0.5)';
+  const isIndicatorActive = statusState !== 'idle';
 
   const handleMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
@@ -186,28 +189,37 @@ export function ResizableConsole({
               <div className="flex items-center justify-between text-[12px] font-medium tracking-wide">
                 <div className="flex items-center space-x-3">
                   <div className="flex space-x-1.5">
-                  {getIndicatorPalette(statusState, isDark).map((config, index) => {
-                    const indicatorStyle: IndicatorStyle = {
-                      background: config.base,
-                      boxShadow: `0 0 8px ${config.base}`,
-                    };
-                    if (statusState === 'running') {
-                      indicatorStyle.animationDelay = `${index * 0.18}s`;
-                      indicatorStyle['--indicator-base'] = config.base;
-                      indicatorStyle['--indicator-active'] = config.active;
-                    }
-                    return (
-                    <span
-                      key={`${statusState}-${index}`}
-                        className={clsx(
-                          'h-2 w-2 rounded-full shadow-sm transition-all duration-300',
-                          statusState === 'running' ? 'kids-console-indicator' : 'kids-console-indicator-idle',
-                          isDark ? 'shadow-black/30' : 'shadow-white/40',
-                        )}
-                      style={indicatorStyle}
-                    />
-                    );
-                  })}
+                    {indicatorConfigs.map((config, index) => {
+                      const indicatorStyle: IndicatorStyle = {};
+                      if (statusState === 'running') {
+                        indicatorStyle.background = config.base;
+                        indicatorStyle.boxShadow = `0 0 8px ${config.base}`;
+                        indicatorStyle.animationDelay = `${index * 0.18}s`;
+                        indicatorStyle['--indicator-base'] = config.base;
+                        indicatorStyle['--indicator-active'] = config.active;
+                      } else if (isIndicatorActive) {
+                        indicatorStyle.background = config.base;
+                        indicatorStyle.boxShadow = `0 0 12px ${config.base}`;
+                      } else {
+                        indicatorStyle.background = idleIndicatorColor;
+                        indicatorStyle.boxShadow = `0 0 4px ${idleIndicatorColor}`;
+                      }
+                      return (
+                        <span
+                          key={`${statusState}-${index}`}
+                          className={clsx(
+                            'h-2 w-2 rounded-full shadow-sm transition-all duration-300',
+                            statusState === 'running'
+                              ? 'kids-console-indicator'
+                              : isIndicatorActive
+                                ? 'kids-console-indicator-active'
+                                : 'kids-console-indicator-idle',
+                            isDark ? 'shadow-black/30' : 'shadow-white/40',
+                          )}
+                          style={indicatorStyle}
+                        />
+                      );
+                    })}
                   </div>
                   <span className="uppercase tracking-[0.2em]">Console</span>
                   {statusLabel && (
@@ -341,29 +353,29 @@ const getIndicatorPalette = (state: ResizableConsoleProps['statusState'], isDark
   switch (state) {
     case 'running':
       return palette(
-        ['#FF962F', '#FFB347', '#FFD166'],
-        ['#FFA63C', '#FF8A3C', '#FF7134'],
+        ['#2E31A6', '#4338CA', '#4F46E5'],
+        ['#4338CA', '#6366F1', '#A5B4FC'],
       );
     case 'queued':
       return palette(
-        ['#22D3EE', '#3B82F6', '#7C3AED'],
-        ['#0EA5E9', '#2563EB', '#5B21B6'],
+        ['#B45309', '#D97706', '#F97316'],
+        ['#D97706', '#F59E0B', '#FCD34D'],
       );
     case 'failed':
     case 'cancelled':
       return palette(
-        ['#FB7185', '#F472B6', '#C084FC'],
+        ['#DC2626', '#E11D48', '#BE185D'],
         ['#F43F5E', '#E879F9', '#C084FC'],
       );
     case 'succeeded':
       return palette(
-        ['#34D399', '#4ADE80', '#BBF7D0'],
-        ['#22C55E', '#4ADE80', '#86EFAC'],
+        ['#0E7490', '#0EA5E9', '#2563EB'],
+        ['#0EA5E9', '#3B82F6', '#A78BFA'],
       );
     default:
       return palette(
-        ['#2DD4BF', '#60A5FA', '#A855F7'],
-        ['#14B8A6', '#3B82F6', '#9333EA'],
+        ['#475569', '#64748B', '#94A3B8'],
+        ['#64748B', '#818CF8', '#94A3B8'],
       );
   }
 };

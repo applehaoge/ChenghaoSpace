@@ -486,3 +486,12 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding Python 运行环境对齐**
   - `front/.env.local` 新增 `VITE_RUNNER_API_BASE=http://localhost:8302`，让前端把 `/api/run` 请求直接发给与本地 server 相同的端口，避免默认 8000 未启动时出现 `Failed to fetch`。
   - Checks: pnpm --dir front build:client
+- **2025-11-12 KidsCoding 控制台指示灯联动**
+  - 调整 ResizableConsole 的三颗状态灯：idle 时熄灭，运行后（排队/执行/结束）根据状态亮起或播放动画，并针对明暗主题定制颜色/不透明度。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-12 KidsCoding 控制台指示灯配色调整**
+  - 优化控制台三颗灯在 idle 状态下的底色与阴影，深色模式改用偏冷灰、浅色模式改用柔和蓝灰，不再出现泛绿或过亮问题。
+- **2025-11-12 KidsCoding 控制台状态色重设计**
+  - 重新设计 light 模式下 queued/running/succeeded 的灯光配色，采用高对比的蓝紫/琥珀/深红方案，确保运行状态在白天主题也能被看清。
+- **2025-11-12 KidsCoding 控制台灯光对比增强**
+  - 调整非运行状态下的灯体颜色使用基础色，不再采用过度提亮的 active 色，保证浅色主题也能看清三颗指示灯。

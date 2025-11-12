@@ -212,9 +212,15 @@ body {
   transform-origin: center;
 }
 
+.kids-console-indicator-active {
+  opacity: 0.95;
+  transform: scale(1.05);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
 .kids-console-indicator-idle {
-  opacity: 0.45;
-  transform: scale(0.85);
+  opacity: 0.25;
+  transform: scale(0.75);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
