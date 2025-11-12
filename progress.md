@@ -1,4 +1,10 @@
-﻿- **2025-11-12 Docker 本地/生产流程说明**
+﻿- **2025-11-12 Runner 轮询降频**
+  - python-runner 默认 RUNNER_POLL_INTERVAL_MS 从 1.5s 调整为 5s，减少服务器 request spam，可通过环境变量再调快。
+  - Checks: not run (config tweak) 
+- **2025-11-12 Runner 默认端口同步**
+  - start-dev.ps1 默认 RUNNER_SERVER_URL 改为 http://127.0.0.1:8302，以匹配当前 server 监听端口，避免 runner 抛 ECONNREFUSED。
+  - Checks: not run (script change only) 
+- **2025-11-12 Docker 本地/生产流程说明**
   - 将 compose 文件更名为 docker-compose.yml，补充 README 与 docs/deployment.md，强调本地使用 pnpm dev，部署才用 Docker；docker 镜像参数保持生产所需的 RUNNER 环境变量传递。
   - Checks: pnpm --dir server test, pnpm --dir front build:client 
 - **2025-11-12 Server/Runner docker 部署**
@@ -434,6 +440,8 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-10 KidsCoding 可视化标题统一**
   - 可视化演示标题新增 MonitorPlay 图标并与 AI 助手标题保持同字号左对齐，折叠时自动降低不透明度，展开时恢复，保证状态反馈一致；后续根据设计反馈进一步加强虚化（40% 不透明度）并将电视图标缩至 14px，避免视觉比机器人更大，同时聊天输入框聚焦改为提升内边框和底色，亮度提升到蓝 500 级别（暗色主题则拉高到蓝 300），既能保持边缘完整又更醒目。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
 
 
 
