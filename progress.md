@@ -506,3 +506,9 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding 灯色加深**
   - 将浅色主题下 running/queued/success/failure/idle 的三段色调整体加深，提高阳光场景的可读性，深色模式保持不变。
   - Checks: pnpm --dir front build:client
+- **2025-11-12 部署准备（env + docker build）**
+  - 新增 `server/.env.production`、`python-runner/.env`、`front/.env.production` 作为生产环境样板，便于填写真实凭证。
+  - 尝试执行 `docker compose build` 但本机未启动 Docker Desktop（找不到 `dockerDesktopLinuxEngine` 管道），请先启动 Docker 后重试。
+- **2025-11-12 Docker 镜像构建成功**
+  - 手动拉取 `node:20-bullseye` 与 `node:20-bullseye-slim`，补齐 `server/pnpm-lock.yaml` 与 `python-runner/pnpm-lock.yaml`，最终 `docker compose build` 成功生成 `kids-coding-server`、`kids-coding-runner` 镜像。
+  - Checks: docker compose build
