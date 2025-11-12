@@ -512,3 +512,9 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 Docker 镜像构建成功**
   - 手动拉取 `node:20-bullseye` 与 `node:20-bullseye-slim`，补齐 `server/pnpm-lock.yaml` 与 `python-runner/pnpm-lock.yaml`，最终 `docker compose build` 成功生成 `kids-coding-server`、`kids-coding-runner` 镜像。
   - Checks: docker compose build
+- **2025-11-12 Docker 本地联调启动**
+  - 以最新镜像执行 `docker compose up -d`，server 暴露 `8000` 端口，runner 与其互通（容器日志显示心跳 `POST /api/runner/jobs/claim` 正常）。
+  - Checks: docker compose up -d
+- **2025-11-12 前端生产构建接入 Docker**
+  - 更新 `front/.env.production` 指向 `http://localhost:8000`，并使用 `pnpm --dir front build:client --mode production` 生成静态资源，准备通过任意静态服务器指向 Docker API。
+  - Checks: pnpm --dir front build:client --mode production

@@ -146,6 +146,9 @@ importers:
       https-proxy-agent:
         specifier: ^7.0.6
         version: 7.0.6
+      image-size:
+        specifier: ^2.0.2
+        version: 2.0.2
       langchain:
         specifier: ^0.3.36
         version: 0.3.36(@langchain/core@0.3.79(openai@6.8.1(ws@8.18.3)(zod@3.25.76)))(openai@6.8.1(ws@8.18.3)(zod@3.25.76))(ws@8.18.3)
@@ -210,9 +213,6 @@ importers:
       '@types/ws':
         specifier: ^8.5.10
         version: 8.18.1
-      image-size:
-        specifier: ^2.0.2
-        version: 2.0.2
       ts-node-dev:
         specifier: ^2.0.0
         version: 2.0.0(@types/node@24.10.0)(typescript@5.7.3)
