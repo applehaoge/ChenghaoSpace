@@ -12,8 +12,16 @@ COPY src ./src
 RUN pnpm build && pnpm prune --prod
 
 FROM node:20-bullseye-slim AS production
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends python3 python3-venv python3-pip ca-certificates \
+  && apt-get install -y --no-install-recommends ca-certificates \
+  && sed -i 's|http://deb.debian.org|https://deb.debian.org|g' /etc/apt/sources.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends \
+    python3 \
+    python3-venv \
+    python3-pip \
+    python3-pygame \
   && rm -rf /var/lib/apt/lists/*
 ENV NODE_ENV=production
 ENV RUNNER_PYTHON_BIN=python3

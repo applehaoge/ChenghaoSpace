@@ -518,3 +518,7 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 前端生产构建接入 Docker**
   - 更新 `front/.env.production` 指向 `http://localhost:8000`，并使用 `pnpm --dir front build:client --mode production` 生成静态资源，准备通过任意静态服务器指向 Docker API。
   - Checks: pnpm --dir front build:client --mode production
+- **2025-11-12 Python Runner 支持 pygame**
+  - python-runner 容器安装 python3-pygame（附带依赖），成功通过 /api/run 运行 pygame 代码。
+- **2025-11-12 一键启动脚本**
+  - 新增 `start-prod.bat`：自动执行前端生产构建、`docker compose up -d`，并在独立 PowerShell 窗口启动 `npx serve front/dist/static --listen 4173 --single`。
