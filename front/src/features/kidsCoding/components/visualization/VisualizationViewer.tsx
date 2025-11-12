@@ -1,3 +1,4 @@
+import clsx from 'clsx';
 import { useEffect, useMemo, useRef } from 'react';
 import type { VisualizationFrame } from '@/features/kidsCoding/types/visualization';
 
@@ -9,11 +10,9 @@ type VisualizationViewerProps = {
 
 export function VisualizationViewer({ frame, isDark, className }: VisualizationViewerProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-
-  const statusText = useMemo(() => {
-    if (!frame) return '等待程序生成可视化输出';
-    const timestamp = frame.timestamp ? new Date(frame.timestamp * 1000).toLocaleTimeString() : '';
-    return timestamp ? `最新帧 · ${timestamp}` : '正在绘制';
+  const aspectRatio = useMemo(() => {
+    if (!frame || frame.height === 0) return 16 / 9;
+    return frame.width / frame.height;
   }, [frame]);
 
   useEffect(() => {
@@ -29,33 +28,24 @@ export function VisualizationViewer({ frame, isDark, className }: VisualizationV
     ctx.putImageData(imageData, 0, 0);
   }, [frame]);
 
+  const containerClass = clsx(
+    'relative w-full overflow-hidden',
+    className,
+    isDark ? 'bg-black/80' : 'bg-slate-100',
+  );
+
   return (
-    <div
-      className={className}
-      style={{
-        background: isDark ? 'rgba(15,23,42,0.6)' : 'rgba(241,245,249,0.7)',
-        borderRadius: 24,
-        border: isDark ? '1px solid rgba(59,130,246,0.3)' : '1px solid rgba(191,219,254,0.8)',
-      }}
-    >
-      <div className="flex items-center justify-between px-4 py-3 text-xs text-slate-400">
-        <span className="flex items-center gap-2 text-slate-500 dark:text-slate-300">
-          <i className="fa-solid fa-wave-square text-blue-500" />
-          {statusText}
-        </span>
-      </div>
-      <div className="relative px-4 pb-4">
-        <div className="relative overflow-hidden rounded-2xl border border-dashed border-slate-300/70 dark:border-slate-600/70 bg-black/80">
-          {frame ? (
-            <canvas ref={canvasRef} className="block h-auto w-full" />
-          ) : (
-            <div className="flex h-48 flex-col items-center justify-center gap-3 text-sm text-slate-400 dark:text-slate-500">
-              <i className="fa-solid fa-display text-2xl opacity-70" />
-              <span>运行支持可视化的代码即可在此看到画面</span>
-            </div>
-          )}
+    <div className={containerClass}>
+      {frame ? (
+        <div className="relative w-full" style={{ paddingBottom: `${100 / aspectRatio}%` }}>
+          <canvas ref={canvasRef} className="absolute inset-0 h-full w-full object-cover" />
         </div>
-      </div>
+      ) : (
+        <div className="flex h-48 flex-col items-center justify-center gap-3 text-sm text-slate-400 dark:text-slate-500">
+          <i className="fa-solid fa-display text-2xl opacity-70" />
+          <span>运行支持可视化的代码即可在此看到画面</span>
+        </div>
+      )}
     </div>
   );
 }
