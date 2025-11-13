@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Brain, Lightbulb, Medal, Trophy, Video } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Brain, Lightbulb, Medal, Play, Trophy, Video } from 'lucide-react';
 
 const LESSON_CARD = {
   id: 'mission-astro-weather',
@@ -61,9 +61,7 @@ export function LessonTaskPanel({ isDark, onRequestVideo, onEarnTokens }: Lesson
     }
   };
 
-  const missionView = (
-    <MissionSlide key="mission" isDark={isDark} onRequestVideo={onRequestVideo} />
-  );
+  const missionView = <MissionSlide key="mission" isDark={isDark} onRequestVideo={onRequestVideo} />;
   const quizView = (
     <QuizSlide key="quiz" isDark={isDark} quizState={quizState} onSelectOption={handleSelectOption} />
   );
@@ -104,14 +102,13 @@ function MissionSlide({ isDark, onRequestVideo }: { isDark: boolean; onRequestVi
           </h3>
           <p className={clsx('text-xs', isDark ? 'text-blue-200/80' : 'text-slate-500')}>{LESSON_CARD.subtitle}</p>
         </div>
-        <button
-          type="button"
+        <IconCircleButton
+          isDark={isDark}
+          icon={<Play size={16} />}
+          ariaLabel="观看视频"
           onClick={onRequestVideo}
-          className="inline-flex items-center gap-1 rounded-full bg-blue-600/80 px-3 py-1 text-xs font-semibold text-white shadow hover:bg-blue-500/80"
-        >
-          <Video size={14} />
-          观看视频
-        </button>
+          title="观看视频"
+        />
       </header>
 
       <div className="overflow-hidden rounded-2xl border border-blue-700/40">
@@ -303,62 +300,95 @@ function SlideControls({
     [activeSlide],
   );
 
+  const isMission = activeSlide === 'mission';
+
   return (
-    <div className="flex items-center justify-between text-xs">
-      <div className="flex items-center gap-1.5">
+    <div
+      className={clsx(
+        'flex items-center justify-between rounded-2xl px-1.5 py-0.5 text-[11px]',
+        isDark ? 'bg-blue-950/50 text-blue-200' : 'bg-blue-100/80 text-blue-700',
+      )}
+    >
+      <div className="flex items-center gap-0.5">
         {dots.map(dot => (
           <span
             key={dot.id}
             className={clsx(
-              'h-2.5 rounded-full transition-all',
-              dot.active ? 'w-6 bg-blue-400' : 'w-2.5 bg-blue-400/30',
+              'h-1.5 rounded-full transition-all',
+              dot.active ? 'w-4 bg-blue-400' : 'w-1.5 bg-blue-400/30',
             )}
             title={dot.label}
           />
         ))}
       </div>
 
-      {activeSlide === 'mission' ? (
-        <button
-          type="button"
-          onClick={onNext}
-          className={clsx(
-            'inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium text-white shadow',
-            isDark ? 'bg-blue-600/90' : 'bg-blue-500',
-          )}
-        >
-          下一页
-          <ArrowRight size={14} />
-        </button>
-      ) : (
-        <div className="flex items-center gap-2 text-xs">
-          <button
-            type="button"
-            onClick={onPrev}
-            className={clsx(
-              'inline-flex items-center gap-1 rounded-full border px-3 py-1',
-              isDark ? 'border-blue-800/60 text-blue-200' : 'border-blue-200 text-blue-600',
-            )}
-          >
-            <ArrowLeft size={14} />
-            返回任务
-          </button>
-          <span
-            className={clsx(
-              'rounded-full px-2 py-1 text-[11px]',
-              quizState === 'correct'
-                ? isDark
-                  ? 'bg-emerald-500/20 text-emerald-100'
-                  : 'bg-emerald-50 text-emerald-600'
-                : isDark
-                  ? 'bg-blue-500/10 text-blue-100'
-                  : 'bg-blue-100 text-blue-600',
-            )}
-          >
-            回答 {quizState === 'correct' ? '完成' : '待完成'}
-          </span>
-        </div>
-      )}
+      <div className="flex items-center gap-1.5">
+        {isMission ? (
+          <IconCircleButton
+            isDark={isDark}
+            onClick={onNext}
+            icon={<ArrowRight size={16} />}
+            ariaLabel="下一页"
+            title="下一页"
+          />
+        ) : (
+          <>
+            <IconCircleButton
+              isDark={isDark}
+              onClick={onPrev}
+              icon={<ArrowLeft size={16} />}
+              ariaLabel="返回任务"
+              title="返回任务"
+            />
+            <StatusBadge isDark={isDark} quizState={quizState} />
+          </>
+        )}
+      </div>
     </div>
   );
+}
+
+function IconCircleButton({
+  isDark,
+  icon,
+  onClick,
+  ariaLabel,
+  title,
+}: {
+  isDark: boolean;
+  icon: React.ReactNode;
+  onClick?: () => void;
+  ariaLabel: string;
+  title?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={ariaLabel}
+      title={title}
+      className={clsx(
+        'flex h-7 w-7 items-center justify-center rounded-full border text-white transition-all shadow-sm',
+        isDark ? 'border-blue-700 bg-blue-800/70 hover:bg-blue-700' : 'border-blue-200 bg-blue-500 hover:bg-blue-600',
+      )}
+    >
+      {icon}
+    </button>
+  );
+}
+
+function StatusBadge({ isDark, quizState }: { isDark: boolean; quizState: 'idle' | 'correct' | 'incorrect' }) {
+  const label = quizState === 'correct' ? '完成' : '待完成';
+  const tone = clsx(
+    'inline-flex h-7 min-w-[40px] items-center justify-center rounded-full border px-2 text-[11px] font-semibold',
+    quizState === 'correct'
+      ? isDark
+        ? 'border-emerald-400/60 bg-emerald-500/15 text-emerald-100'
+        : 'border-emerald-200 bg-emerald-50 text-emerald-600'
+      : isDark
+        ? 'border-blue-700 bg-blue-800/25 text-blue-200'
+        : 'border-blue-200 bg-white text-blue-600',
+  );
+
+  return <span className={tone}>{label}</span>;
 }

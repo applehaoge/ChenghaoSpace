@@ -15,7 +15,7 @@ export function SidebarToolbar({ isDark, activeView, onToggleView }: SidebarTool
 
   return (
     <div
-      className={`p-3 flex justify-between items-center border-b ${
+      className={`px-3 py-2 flex justify-between items-center border-b ${
         isDark ? 'border-gray-700' : 'border-blue-200'
       }`}
     >
@@ -23,7 +23,7 @@ export function SidebarToolbar({ isDark, activeView, onToggleView }: SidebarTool
         {isTaskView ? (
           <span
             className={clsx(
-              'inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-semibold',
+              'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold',
               isDark ? 'bg-blue-900/50 text-blue-100' : 'bg-blue-100 text-blue-700',
             )}
           >
