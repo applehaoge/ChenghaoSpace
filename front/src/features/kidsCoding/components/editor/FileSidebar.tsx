@@ -1,8 +1,15 @@
-import type { ReactNode } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Clock, Download, FileText, Folder, Plus, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { FILE_PANEL_COLLAPSED_WIDTH, FILE_PANEL_WIDTH } from '@/features/kidsCoding/constants/editorLayout';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
+import { SidebarToolbar } from '@/features/kidsCoding/components/editor/sidebar/SidebarToolbar';
+import { FileListPanel } from '@/features/kidsCoding/components/editor/sidebar/FileListPanel';
+import { LessonTaskPanel, LESSON_VIDEO_META } from '@/features/kidsCoding/components/editor/sidebar/LessonTaskPanel';
+import { TaskVideoDialog } from '@/features/kidsCoding/components/editor/sidebar/TaskVideoDialog';
+import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
+
+export type { SidebarView };
 
 interface FileSidebarProps {
   isDark: boolean;
@@ -12,81 +19,56 @@ interface FileSidebarProps {
 }
 
 export function FileSidebar({ isDark, isCollapsed, onToggle, files }: FileSidebarProps) {
+  const [activeView, setActiveView] = useState<SidebarView>('tasks');
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+
+  const handleToggleView = () => {
+    setActiveView(prev => (prev === 'tasks' ? 'files' : 'tasks'));
+  };
+
   return (
-    <motion.div
-      initial={false}
-      animate={{
-        opacity: isCollapsed ? 0.85 : 1,
-        scale: isCollapsed ? 0.98 : 1,
-      }}
-      transition={{ duration: 0.4 }}
-      className={`relative flex flex-col border ${
-        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white/90 border-blue-200'
-      } backdrop-blur-sm shadow-xl rounded-3xl overflow-hidden`}
-      style={{ width: isCollapsed ? FILE_PANEL_COLLAPSED_WIDTH : FILE_PANEL_WIDTH }}
-    >
-      <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
-
-      <div
-        className={`flex flex-1 flex-col transition-all duration-300 ${
-          isCollapsed ? 'pointer-events-none opacity-0 h-0 overflow-hidden' : 'opacity-100'
-        }`}
-        aria-hidden={isCollapsed}
+    <>
+      <motion.div
+        initial={false}
+        animate={{
+          opacity: isCollapsed ? 0.85 : 1,
+          scale: isCollapsed ? 0.98 : 1,
+        }}
+        transition={{ duration: 0.4 }}
+        className={`relative flex flex-col border ${
+          isDark ? 'bg-gray-800 border-gray-700' : 'bg-white/90 border-blue-200'
+        } backdrop-blur-sm shadow-xl rounded-3xl overflow-hidden`}
+        style={{ width: isCollapsed ? FILE_PANEL_COLLAPSED_WIDTH : FILE_PANEL_WIDTH }}
       >
+        <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
+
         <div
-          className={`p-3 flex justify-between items-center border-b ${
-            isDark ? 'border-gray-700' : 'border-blue-200'
+          className={`flex flex-1 flex-col transition-all duration-300 ${
+            isCollapsed ? 'pointer-events-none opacity-0 h-0 overflow-hidden' : 'opacity-100'
           }`}
+          aria-hidden={isCollapsed}
         >
-          <div className="flex space-x-2">
-            <SidebarIconButton isDark={isDark} icon={<FileText size={16} />} />
-            <SidebarIconButton isDark={isDark} icon={<Folder size={16} />} />
-          </div>
-          <div className="flex space-x-2">
-            <SidebarIconButton isDark={isDark} icon={<Plus size={16} />} motionButton />
-            <SidebarIconButton isDark={isDark} icon={<Upload size={16} />} motionButton />
-            <SidebarIconButton isDark={isDark} icon={<Download size={16} />} motionButton />
+          <SidebarToolbar isDark={isDark} activeView={activeView} onToggleView={handleToggleView} />
+
+          <div className="flex-1 overflow-y-auto p-3">
+            {activeView === 'tasks' ? (
+              <LessonTaskPanel isDark={isDark} onRequestVideo={() => setIsVideoOpen(true)} />
+            ) : (
+              <FileListPanel isDark={isDark} files={files} />
+            )}
           </div>
         </div>
+      </motion.div>
 
-        <div className="flex-1 overflow-y-auto p-3">
-          {files.map(file => (
-            <motion.div
-              key={file.id}
-              whileHover={{ x: 3 }}
-              className={`flex items-center justify-between p-2.5 rounded-2xl mb-2 cursor-pointer transition-colors duration-300 ${
-                isDark
-                  ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30'
-                  : 'bg-gradient-to-r from-blue-100 to-indigo-50 hover:from-blue-200 hover:to-indigo-100'
-              } shadow-lg`}
-            >
-              <div className="flex items-center space-x-2">
-                <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-800'} />
-                <span className={isDark ? 'text-blue-300 font-medium' : 'text-blue-800 font-medium'}>
-                  {file.name}
-                </span>
-              </div>
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                className="p-0.5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-colors duration-300"
-              >
-                <Trash2 size={14} />
-              </motion.button>
-            </motion.div>
-          ))}
-
-          {!files.length && (
-            <div className="flex flex-col items-center justify-center mt-12 space-y-3">
-              <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}>
-                <Clock size={36} className={isDark ? 'text-gray-600' : 'text-blue-200'} />
-              </motion.div>
-              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-blue-300'}`}>点击上方 “+” 按钮创建新文件</p>
-            </div>
-          )}
-        </div>
-      </div>
-    </motion.div>
+      <TaskVideoDialog
+        isOpen={isVideoOpen}
+        isDark={isDark}
+        onClose={() => setIsVideoOpen(false)}
+        title={LESSON_VIDEO_META.title}
+        videoUrl={LESSON_VIDEO_META.videoUrl}
+        poster={LESSON_VIDEO_META.poster}
+      />
+    </>
   );
 }
 
@@ -127,26 +109,4 @@ function CollapseHandle({
       />
     </>
   );
-}
-
-interface SidebarIconButtonProps {
-  isDark: boolean;
-  icon: ReactNode;
-  motionButton?: boolean;
-}
-
-function SidebarIconButton({ isDark, icon, motionButton = false }: SidebarIconButtonProps) {
-  const baseClasses = `p-1.5 rounded-full transition-colors duration-300 ${
-    isDark ? 'hover:bg-gray-700' : 'hover:bg-blue-100'
-  }`;
-
-  if (motionButton) {
-    return (
-      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={baseClasses}>
-        {icon}
-      </motion.button>
-    );
-  }
-
-  return <button className={baseClasses}>{icon}</button>;
 }
