@@ -540,3 +540,6 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding 顶栏首页入口合并**
   - 移除右侧“橙浩编程首页”按钮，并让左侧房子图标跳转到 /kids-coding，避免重复入口。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-12 KidsCoding 控制台提示裁剪**
+  - 去掉 ResizableConsole 顶栏状态提示文案（仅保留按钮/指示灯），避免错误信息挤压标题布局。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

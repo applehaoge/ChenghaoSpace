@@ -258,22 +258,6 @@ export function ResizableConsole({
                   收起
                 </motion.button>
               </div>
-              {statusHint && (
-                <p
-                  className={clsx(
-                    'mt-1 text-[11px]',
-                    statusTone === 'error'
-                      ? isDark
-                        ? 'text-rose-200'
-                        : 'text-rose-600'
-                      : isDark
-                        ? 'text-blue-200'
-                        : 'text-blue-600',
-                  )}
-                >
-                  {statusHint}
-                </p>
-              )}
             </div>
 
             <div
