@@ -29,9 +29,9 @@ export function VisualizationViewer({ frame, isDark, className }: VisualizationV
   }, [frame]);
 
   const containerClass = clsx(
-    'relative w-full overflow-hidden',
+    'relative w-full overflow-hidden rounded-2xl border transition-all duration-200',
+    isDark ? 'bg-black/80 border-blue-500/40' : 'bg-slate-50 border-blue-200',
     className,
-    isDark ? 'bg-black/80' : 'bg-slate-100',
   );
 
   return (

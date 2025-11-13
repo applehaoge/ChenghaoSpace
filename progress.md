@@ -525,3 +525,11 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding 可视化通道（阶段A）**
   - python-runner 引入 `kids_capture` helper 与 visualization bridge，pygame Surface 会编码为 RGB 帧并通过 runner 事件推送至 server；server/jobStream 支持新的 `visualization` 事件，前端新增 `VisualizationViewer` 在洞察侧栏与 ResultPanel 中实时渲染帧。
   - Checks: pnpm --dir python-runner build; pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-12 KidsCoding 可视化外框润饰**
+  - VisualizationViewer 额外包裹渐变背景+圆角描边，在深浅色主题下自动切换边框/阴影，突出可视化画面而不抢占内容。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-12 KidsCoding 可视化单线描边**
+  - 调整 VisualizationViewer 仅保留一圈细边框，移除额外间距，视觉区域更紧凑。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
