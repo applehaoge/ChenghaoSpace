@@ -69,10 +69,12 @@ export function LessonTaskPanel({ isDark, onRequestVideo, onEarnTokens }: Lesson
   );
 
   return (
-    <div className="flex h-full flex-col">
-      <AnimatePresence mode="wait">
-        {activeSlide === 'mission' ? missionView : quizView}
-      </AnimatePresence>
+    <div className="flex h-full flex-col gap-3">
+      <div className="flex-1 min-h-0 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          {activeSlide === 'mission' ? missionView : quizView}
+        </AnimatePresence>
+      </div>
 
       <SlideControls
         isDark={isDark}
@@ -92,10 +94,7 @@ function MissionSlide({ isDark, onRequestVideo }: { isDark: boolean; onRequestVi
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
-      className={clsx(
-        'h-full px-3 py-3 shadow-inner space-y-3',
-        isDark ? 'bg-gray-900/60' : 'bg-blue-50/60',
-      )}
+      className={clsx('px-3 py-3 shadow-inner space-y-3', isDark ? 'bg-gray-900/60' : 'bg-blue-50/60')}
     >
       <header className="flex items-start justify-between gap-3">
         <div>

@@ -44,14 +44,14 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
         <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
 
         <div
-          className={`flex flex-1 flex-col transition-all duration-300 ${
+          className={`flex flex-1 min-h-0 flex-col transition-all duration-300 ${
             isCollapsed ? 'pointer-events-none opacity-0 h-0 overflow-hidden' : 'opacity-100'
           }`}
           aria-hidden={isCollapsed}
         >
           <SidebarToolbar isDark={isDark} activeView={activeView} onToggleView={handleToggleView} />
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 min-h-0">
             {activeView === 'tasks' ? (
               <LessonTaskPanel
                 isDark={isDark}
