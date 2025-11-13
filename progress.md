@@ -533,3 +533,10 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
   - 调整 VisualizationViewer 仅保留一圈细边框，移除额外间距，视觉区域更紧凑。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
 
+- **2025-11-12 KidsCoding 可视化阴影去除**
+  - 移除 VisualizationViewer 边框下方的投影直角，保留纯描边以避免硬朗阴影。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-12 KidsCoding 顶栏首页入口合并**
+  - 移除右侧“橙浩编程首页”按钮，并让左侧房子图标跳转到 /kids-coding，避免重复入口。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

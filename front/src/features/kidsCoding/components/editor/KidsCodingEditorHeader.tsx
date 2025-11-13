@@ -23,12 +23,12 @@ const ACTION_BUTTONS = [
 ];
 
 const NAV_ITEMS = [
-  { icon: <Home size={20} />, label: '首页' },
+  { icon: <Home size={20} />, label: '首页', path: '/kids-coding' },
   { icon: <Folder size={20} />, label: '文件' },
   { icon: <Settings size={20} />, label: '设置' },
   { icon: <HelpCircle size={20} />, label: '帮助' },
   { icon: <FileText size={20} />, label: '文档' },
-];
+] as const;
 
 export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditorHeaderProps) {
   const navigate = useNavigate();
@@ -53,6 +53,7 @@ export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditor
                 isDark ? 'hover:bg-gray-700 text-white' : 'hover:bg-blue-300/80 text-white'
               }`}
               title={item.label}
+              onClick={item.path ? () => navigate(item.path) : undefined}
             >
               {item.icon}
             </motion.button>
@@ -70,16 +71,6 @@ export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditor
           onClick={() => navigate('/')}
         >
           回橙浩空间（AI对话）
-        </motion.button>
-        <motion.button
-          whileHover={{ scale: 1.03, y: -1 }}
-          whileTap={{ scale: 0.97 }}
-          className={`px-5 py-1.5 rounded-full text-sm font-medium shadow-lg transition-all duration-300 ${
-            isDark ? 'bg-blue-500 text-white hover:bg-blue-400' : 'bg-blue-600 text-white hover:bg-blue-500'
-          }`}
-          onClick={() => navigate('/kids-coding')}
-        >
-          橙浩编程首页
         </motion.button>
       </div>
 
