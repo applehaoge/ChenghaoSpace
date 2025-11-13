@@ -1,18 +1,11 @@
 import { motion } from 'framer-motion';
-import {
-  Home,
-  Folder,
-  Settings,
-  HelpCircle,
-  FileText,
-  Moon,
-  Sun,
-} from 'lucide-react';
+import { Coins, Home, Folder, Settings, HelpCircle, FileText, Moon, Sun } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 interface KidsCodingEditorHeaderProps {
   isDark: boolean;
   toggleTheme: () => void;
+  tokenBalance: number;
 }
 
 const ACTION_BUTTONS = [
@@ -30,7 +23,7 @@ const NAV_ITEMS = [
   { icon: <FileText size={20} />, label: '文档' },
 ] as const;
 
-export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditorHeaderProps) {
+export function KidsCodingEditorHeader({ isDark, toggleTheme, tokenBalance }: KidsCodingEditorHeaderProps) {
   const navigate = useNavigate();
 
   return (
@@ -61,7 +54,8 @@ export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditor
         </nav>
       </div>
 
-      <div className="flex space-x-2">
+      <div className="flex items-center space-x-3">
+        <TokenBalanceBadge isDark={isDark} balance={tokenBalance} />
         <motion.button
           whileHover={{ scale: 1.03, y: -1 }}
           whileTap={{ scale: 0.97 }}
@@ -100,5 +94,27 @@ export function KidsCodingEditorHeader({ isDark, toggleTheme }: KidsCodingEditor
         ))}
       </div>
     </motion.header>
+  );
+}
+
+function TokenBalanceBadge({ isDark, balance }: { isDark: boolean; balance: number }) {
+  return (
+    <div
+      className={`flex items-center gap-2 rounded-2xl border px-3 py-1.5 text-sm font-semibold shadow-md ${
+        isDark ? 'border-blue-700/70 bg-blue-900/60 text-yellow-200' : 'border-white/50 bg-white/30 text-white'
+      }`}
+    >
+      <span
+        className={`flex h-7 w-7 items-center justify-center rounded-xl ${
+          isDark ? 'bg-blue-800/70 text-yellow-200' : 'bg-white/50 text-yellow-400'
+        }`}
+      >
+        <Coins size={16} />
+      </span>
+      <div className="leading-tight">
+        <p className="text-[11px] uppercase tracking-[0.3em] opacity-80">T币</p>
+        <p className="text-lg">{balance}</p>
+      </div>
+    </div>
   );
 }

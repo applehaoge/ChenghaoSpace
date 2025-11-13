@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Brain, Lightbulb, Medal, Sparkles, Trophy, Video } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Brain, Lightbulb, Medal, Trophy, Video } from 'lucide-react';
 
 const LESSON_CARD = {
   id: 'mission-astro-weather',
@@ -39,13 +39,13 @@ const QUIZ_CARD = {
 interface LessonTaskPanelProps {
   isDark: boolean;
   onRequestVideo: () => void;
+  onEarnTokens?: (amount: number) => void;
 }
 
 type Slide = 'mission' | 'quiz';
 
-export function LessonTaskPanel({ isDark, onRequestVideo }: LessonTaskPanelProps) {
+export function LessonTaskPanel({ isDark, onRequestVideo, onEarnTokens }: LessonTaskPanelProps) {
   const [activeSlide, setActiveSlide] = useState<Slide>('mission');
-  const [tCoins, setTCoins] = useState(120);
   const [quizState, setQuizState] = useState<'idle' | 'correct' | 'incorrect'>('idle');
 
   const handleNextSlide = () => setActiveSlide('quiz');
@@ -55,7 +55,7 @@ export function LessonTaskPanel({ isDark, onRequestVideo }: LessonTaskPanelProps
     if (quizState === 'correct') return;
     if (optionId === QUIZ_CARD.correctOptionId) {
       setQuizState('correct');
-      setTCoins(prev => prev + QUIZ_CARD.reward);
+      onEarnTokens?.(QUIZ_CARD.reward);
     } else {
       setQuizState('incorrect');
     }
@@ -69,9 +69,7 @@ export function LessonTaskPanel({ isDark, onRequestVideo }: LessonTaskPanelProps
   );
 
   return (
-    <div className="flex flex-col gap-3">
-      <TokenBalanceCard isDark={isDark} balance={tCoins} />
-
+    <div className="flex h-full flex-col">
       <AnimatePresence mode="wait">
         {activeSlide === 'mission' ? missionView : quizView}
       </AnimatePresence>
@@ -87,45 +85,6 @@ export function LessonTaskPanel({ isDark, onRequestVideo }: LessonTaskPanelProps
   );
 }
 
-function TokenBalanceCard({ isDark, balance }: { isDark: boolean; balance: number }) {
-  return (
-    <div
-      className={clsx(
-        'flex items-center justify-between rounded-2xl border px-4 py-3 text-sm shadow transition-colors',
-        isDark ? 'border-blue-800/60 bg-blue-900/40 text-blue-100' : 'border-blue-100 bg-white text-slate-700',
-      )}
-    >
-      <div>
-        <p
-          className={clsx(
-            'text-xs uppercase tracking-[0.3em]',
-            isDark ? 'text-blue-300' : 'text-blue-500',
-          )}
-        >
-          T币余额
-        </p>
-        <p className={clsx('text-2xl font-semibold', isDark ? 'text-yellow-300' : 'text-amber-500')}>
-          {balance}
-          <span className={clsx('text-sm ms-1', isDark ? 'text-blue-200' : 'text-blue-500/80')}>Token</span>
-        </p>
-      </div>
-      <div className="text-right">
-        <p className={clsx('text-xs', isDark ? 'text-blue-200' : 'text-blue-500/70')}>AI 功能消耗 T币</p>
-        <button
-          type="button"
-          className={clsx(
-            'mt-1 inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold shadow',
-            isDark ? 'bg-blue-700/80 text-blue-50' : 'bg-blue-50 text-blue-700',
-          )}
-        >
-          <Sparkles size={14} />
-          AI 小智
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function MissionSlide({ isDark, onRequestVideo }: { isDark: boolean; onRequestVideo: () => void }) {
   return (
     <motion.section
@@ -134,8 +93,8 @@ function MissionSlide({ isDark, onRequestVideo }: { isDark: boolean; onRequestVi
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
       className={clsx(
-        'rounded-2xl border px-4 py-4 shadow-inner space-y-3',
-        isDark ? 'border-blue-800/50 bg-gray-900/60' : 'border-blue-100 bg-blue-50/60',
+        'h-full px-3 py-3 shadow-inner space-y-3',
+        isDark ? 'bg-gray-900/60' : 'bg-blue-50/60',
       )}
     >
       <header className="flex items-start justify-between gap-3">

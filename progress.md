@@ -1,3 +1,9 @@
+- **2025-11-13 KidsCoding 任务/文件切换 + T币展示**
+  - FileSidebar 支持任务/文件视图切换，并保持原有折叠交互。
+  - LessonTaskPanel + TaskVideoDialog + FileListPanel 完成任务页/文件页分离，测验奖励沿用 +5 T币 机制。
+  - T币展示上移到 KidsCodingEditorHeader（带金币图标），任务栏空间更充足。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client 
+
 - **2025-11-13 KidsCoding 任务/文件切换 + T币样式**
   - FileSidebar 重写为可切换视图，顶部工具条新增‘任务/文件’按钮，默认落在任务页并保留原有折叠手柄过渡。
   - 新建 LessonTaskPanel（含 T币余额、视频入口、测验页与奖励提示）以及 TaskVideoDialog、FileListPanel，完成任务页/文件页分离。
@@ -548,4 +554,6 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding 控制台提示裁剪**
   - 去掉 ResizableConsole 顶栏状态提示文案（仅保留按钮/指示灯），避免错误信息挤压标题布局。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
 

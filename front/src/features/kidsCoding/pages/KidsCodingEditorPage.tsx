@@ -34,6 +34,7 @@ export function KidsCodingEditorPage() {
   const [zoomLevel, setZoomLevel] = useState(100);
   const [codeValue, setCodeValue] = useState(DEFAULT_CODE);
   const [showTutorialHint, setShowTutorialHint] = useState(true);
+  const [tokenBalance, setTokenBalance] = useState(120);
   const { isCollapsed, toggleSidebar } = useFileSidebar();
   const { isCollapsed: isInsightsCollapsed, toggleSidebar: toggleInsightsSidebar } = useInsightsSidebar();
   const { runCode, runState, isRunning } = useRunJob();
@@ -64,6 +65,10 @@ export function KidsCodingEditorPage() {
     });
   }, []);
 
+  const handleEarnTokens = useCallback((amount: number) => {
+    setTokenBalance(prev => Math.max(0, prev + amount));
+  }, []);
+
   const monacoTheme = isDark ? 'vs-dark' : 'vs-light';
 
   return (
@@ -90,10 +95,16 @@ export function KidsCodingEditorPage() {
       <ShootingStar isDark={isDark} top="18%" left="22%" delay={1.5} length={64} yTravel={140} />
       <ShootingStar isDark={isDark} top="65%" left="55%" delay={4} duration={3} repeatDelay={9} length={72} yTravel={160} />
 
-      <KidsCodingEditorHeader isDark={isDark} toggleTheme={toggleTheme} />
+      <KidsCodingEditorHeader isDark={isDark} toggleTheme={toggleTheme} tokenBalance={tokenBalance} />
 
       <div className="relative flex flex-1 overflow-hidden pt-4 gap-3 xl:gap-4 min-w-0">
-        <FileSidebar isDark={isDark} isCollapsed={isCollapsed} onToggle={toggleSidebar} files={FILES} />
+        <FileSidebar
+          isDark={isDark}
+          isCollapsed={isCollapsed}
+          onToggle={toggleSidebar}
+          files={FILES}
+          onEarnTokens={handleEarnTokens}
+        />
         <div className="flex flex-1 gap-3 xl:gap-4 min-w-0">
           <CodeWorkspace
             isDark={isDark}

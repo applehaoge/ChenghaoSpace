@@ -16,9 +16,10 @@ interface FileSidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
   files: FileEntry[];
+  onEarnTokens?: (amount: number) => void;
 }
 
-export function FileSidebar({ isDark, isCollapsed, onToggle, files }: FileSidebarProps) {
+export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens }: FileSidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
@@ -50,9 +51,13 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files }: FileSideba
         >
           <SidebarToolbar isDark={isDark} activeView={activeView} onToggleView={handleToggleView} />
 
-          <div className="flex-1 overflow-y-auto p-3">
+          <div className="flex-1 overflow-y-auto">
             {activeView === 'tasks' ? (
-              <LessonTaskPanel isDark={isDark} onRequestVideo={() => setIsVideoOpen(true)} />
+              <LessonTaskPanel
+                isDark={isDark}
+                onRequestVideo={() => setIsVideoOpen(true)}
+                onEarnTokens={onEarnTokens}
+              />
             ) : (
               <FileListPanel isDark={isDark} files={files} />
             )}
