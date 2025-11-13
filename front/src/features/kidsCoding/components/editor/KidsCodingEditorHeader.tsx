@@ -100,21 +100,12 @@ export function KidsCodingEditorHeader({ isDark, toggleTheme, tokenBalance }: Ki
 function TokenBalanceBadge({ isDark, balance }: { isDark: boolean; balance: number }) {
   return (
     <div
-      className={`flex items-center gap-2 rounded-2xl border px-3 py-1.5 text-sm font-semibold shadow-md ${
-        isDark ? 'border-blue-700/70 bg-blue-900/60 text-yellow-200' : 'border-white/50 bg-white/30 text-white'
+      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold shadow ${
+        isDark ? 'border-blue-700/60 bg-blue-900/50 text-yellow-200' : 'border-white/60 bg-white/30 text-white'
       }`}
     >
-      <span
-        className={`flex h-7 w-7 items-center justify-center rounded-xl ${
-          isDark ? 'bg-blue-800/70 text-yellow-200' : 'bg-white/50 text-yellow-400'
-        }`}
-      >
-        <Coins size={16} />
-      </span>
-      <div className="leading-tight">
-        <p className="text-[11px] uppercase tracking-[0.3em] opacity-80">T币</p>
-        <p className="text-lg">{balance}</p>
-      </div>
+      <Coins size={16} />
+      <span>{balance}</span>
     </div>
   );
 }

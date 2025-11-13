@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Brain, Lightbulb, Medal, Play, Trophy, Video } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Brain, Lightbulb, Medal, Trophy, Video } from 'lucide-react';
 
 const LESSON_CARD = {
   id: 'mission-astro-weather',
@@ -61,7 +61,7 @@ export function LessonTaskPanel({ isDark, onRequestVideo, onEarnTokens }: Lesson
     }
   };
 
-  const missionView = <MissionSlide key="mission" isDark={isDark} onRequestVideo={onRequestVideo} />;
+  const missionView = <MissionSlide key="mission" isDark={isDark} />;
   const quizView = (
     <QuizSlide key="quiz" isDark={isDark} quizState={quizState} onSelectOption={handleSelectOption} />
   );
@@ -80,12 +80,13 @@ export function LessonTaskPanel({ isDark, onRequestVideo, onEarnTokens }: Lesson
         onNext={handleNextSlide}
         onPrev={handlePreviousSlide}
         quizState={quizState}
+        onRequestVideo={onRequestVideo}
       />
     </div>
   );
 }
 
-function MissionSlide({ isDark, onRequestVideo }: { isDark: boolean; onRequestVideo: () => void }) {
+function MissionSlide({ isDark }: { isDark: boolean }) {
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -102,13 +103,6 @@ function MissionSlide({ isDark, onRequestVideo }: { isDark: boolean; onRequestVi
           </h3>
           <p className={clsx('text-xs', isDark ? 'text-blue-200/80' : 'text-slate-500')}>{LESSON_CARD.subtitle}</p>
         </div>
-        <IconCircleButton
-          isDark={isDark}
-          icon={<Play size={16} />}
-          ariaLabel="观看视频"
-          onClick={onRequestVideo}
-          title="观看视频"
-        />
       </header>
 
       <div className="overflow-hidden rounded-2xl border border-blue-700/40">
@@ -285,12 +279,14 @@ function SlideControls({
   onNext,
   onPrev,
   quizState,
+  onRequestVideo,
 }: {
   isDark: boolean;
   activeSlide: Slide;
   onNext: () => void;
   onPrev: () => void;
   quizState: 'idle' | 'correct' | 'incorrect';
+  onRequestVideo: () => void;
 }) {
   const dots = useMemo(
     () => [
@@ -305,7 +301,7 @@ function SlideControls({
   return (
     <div
       className={clsx(
-        'flex items-center justify-between rounded-2xl px-1.5 py-0.5 text-[11px]',
+        'flex items-center justify-between rounded-2xl px-2 py-0.5 text-[11px]',
         isDark ? 'bg-blue-950/50 text-blue-200' : 'bg-blue-100/80 text-blue-700',
       )}
     >
@@ -323,22 +319,31 @@ function SlideControls({
       </div>
 
       <div className="flex items-center gap-1.5">
+        <ActionButton
+          isDark={isDark}
+          ariaLabel="播放课程视频"
+          title="播放课程视频"
+          icon={<Video size={14} />}
+          onClick={onRequestVideo}
+          variant="ghost"
+        />
         {isMission ? (
-          <IconCircleButton
+          <ActionButton
             isDark={isDark}
-            onClick={onNext}
-            icon={<ArrowRight size={16} />}
             ariaLabel="下一页"
-            title="下一页"
+            icon={<ArrowRight size={14} />}
+            label="下一页"
+            onClick={onNext}
           />
         ) : (
           <>
-            <IconCircleButton
+            <ActionButton
               isDark={isDark}
-              onClick={onPrev}
-              icon={<ArrowLeft size={16} />}
               ariaLabel="返回任务"
-              title="返回任务"
+              icon={<ArrowLeft size={14} />}
+              label="返回任务"
+              onClick={onPrev}
+              variant="outline"
             />
             <StatusBadge isDark={isDark} quizState={quizState} />
           </>
@@ -348,31 +353,51 @@ function SlideControls({
   );
 }
 
-function IconCircleButton({
+function ActionButton({
   isDark,
   icon,
+  label,
   onClick,
   ariaLabel,
   title,
+  variant = 'primary',
 }: {
   isDark: boolean;
   icon: React.ReactNode;
+  label?: string;
   onClick?: () => void;
   ariaLabel: string;
   title?: string;
+  variant?: 'primary' | 'outline' | 'ghost';
 }) {
+  const base = 'inline-flex items-center justify-center gap-1 rounded-2xl text-xs font-semibold transition-all';
+  const tone = (() => {
+    switch (variant) {
+      case 'outline':
+        return isDark
+          ? 'border border-blue-700/60 px-3 py-1 text-blue-100 hover:bg-blue-800/50'
+          : 'border border-blue-200 px-3 py-1 text-blue-700 hover:bg-blue-100';
+      case 'ghost':
+        return isDark
+          ? 'h-8 w-8 border border-blue-700/40 text-blue-200 hover:bg-blue-900/40'
+          : 'h-8 w-8 border border-blue-200 text-blue-600 hover:bg-blue-100';
+      default:
+        return isDark
+          ? 'border border-blue-700 bg-blue-700/80 px-4 py-1 text-white hover:bg-blue-600'
+          : 'border border-blue-200 bg-blue-500 px-4 py-1 text-white hover:bg-blue-600';
+    }
+  })();
+
   return (
     <button
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
       title={title}
-      className={clsx(
-        'flex h-7 w-7 items-center justify-center rounded-full border text-white transition-all shadow-sm',
-        isDark ? 'border-blue-700 bg-blue-800/70 hover:bg-blue-700' : 'border-blue-200 bg-blue-500 hover:bg-blue-600',
-      )}
+      className={clsx(base, tone, variant === 'ghost' ? '' : 'shadow-sm')}
     >
       {icon}
+      {label && <span>{label}</span>}
     </button>
   );
 }

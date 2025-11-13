@@ -18,7 +18,7 @@ interface InsightsSidebarProps {
 }
 
 const CARD_BASE =
-  "flex flex-1 min-h-0 flex-col overflow-hidden rounded-3xl backdrop-blur-md transition-colors p-5";
+  "flex flex-1 min-h-0 flex-col overflow-hidden rounded-3xl backdrop-blur-md transition-colors px-4 py-3";
 
 export function InsightsSidebar({ isDark, isCollapsed, onToggle, visualizationFrame }: InsightsSidebarProps) {
   const [showVisualization, setShowVisualization] = useState(true);
