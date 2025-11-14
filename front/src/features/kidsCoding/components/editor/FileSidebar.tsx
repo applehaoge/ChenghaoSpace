@@ -24,11 +24,14 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
   const {
     lesson,
+    lessonId,
+    lessons,
     activeSlide,
     quizState,
     goToNextSlide,
     goToPreviousSlide,
     handleSelectOption,
+    changeLesson,
     isVideoOpen,
     openVideo,
     closeVideo,
@@ -60,11 +63,20 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
           }`}
           aria-hidden={isCollapsed}
         >
-          <SidebarToolbar isDark={isDark} activeView={activeView} onToggleView={handleToggleView} />
+          <SidebarToolbar
+            isDark={isDark}
+            activeView={activeView}
+            onToggleView={handleToggleView}
+            lessons={lessons}
+            activeLessonId={lessonId}
+            onLessonChange={changeLesson}
+          />
 
           <div className="flex-1 min-h-0">
             {activeView === 'tasks' ? (
               <LessonTaskPanel
+                lessonId={lessonId}
+                lessons={lessons}
                 lesson={lesson}
                 isDark={isDark}
                 activeSlide={activeSlide}
@@ -73,6 +85,7 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
                 onPrev={goToPreviousSlide}
                 onSelectOption={handleSelectOption}
                 onRequestVideo={openVideo}
+                onLessonChange={changeLesson}
               />
             ) : (
               <FileListPanel isDark={isDark} files={files} />

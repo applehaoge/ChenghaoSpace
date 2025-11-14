@@ -3,14 +3,25 @@ import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { Plus, Upload, Download, ClipboardList, Folder, FileText } from 'lucide-react';
 import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
+import type { LessonSummary } from '@/features/kidsCoding/data/lessons';
 
 interface SidebarToolbarProps {
   isDark: boolean;
   activeView: SidebarView;
   onToggleView: () => void;
+  lessons: LessonSummary[];
+  activeLessonId: string;
+  onLessonChange: (lessonId: string) => void;
 }
 
-export function SidebarToolbar({ isDark, activeView, onToggleView }: SidebarToolbarProps) {
+export function SidebarToolbar({
+  isDark,
+  activeView,
+  onToggleView,
+  lessons,
+  activeLessonId,
+  onLessonChange,
+}: SidebarToolbarProps) {
   const isTaskView = activeView === 'tasks';
 
   return (
@@ -21,15 +32,12 @@ export function SidebarToolbar({ isDark, activeView, onToggleView }: SidebarTool
     >
       <div className="flex items-center space-x-2">
         {isTaskView ? (
-          <span
-            className={clsx(
-              'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold',
-              isDark ? 'bg-blue-900/50 text-blue-100' : 'bg-blue-100 text-blue-700',
-            )}
-          >
-            <ClipboardList size={16} />
-            任务
-          </span>
+          <LessonSelector
+            isDark={isDark}
+            lessons={lessons}
+            activeLessonId={activeLessonId}
+            onLessonChange={onLessonChange}
+          />
         ) : (
           <>
             <SidebarIconButton isDark={isDark} icon={<FileText size={16} />} title="main.py" />
@@ -42,7 +50,7 @@ export function SidebarToolbar({ isDark, activeView, onToggleView }: SidebarTool
                   ? 'bg-blue-900/40 text-blue-200 hover:bg-blue-800/60'
                   : 'bg-blue-100 text-blue-700 hover:bg-blue-200',
               )}
-              title="切换到任务"
+              title="切换到任务视图"
             >
               <ClipboardList size={15} />
               查看任务
@@ -52,17 +60,7 @@ export function SidebarToolbar({ isDark, activeView, onToggleView }: SidebarTool
       </div>
       <div className="flex items-center space-x-2">
         {isTaskView ? (
-          <button
-            type="button"
-            onClick={onToggleView}
-            className={clsx(
-              'flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold shadow transition-colors',
-              isDark ? 'bg-blue-700/60 text-blue-100 hover:bg-blue-600/70' : 'bg-blue-500 text-white hover:bg-blue-600',
-            )}
-          >
-            <Folder size={15} />
-            回到文件
-          </button>
+          <SidebarReturnButton isDark={isDark} onClick={onToggleView} />
         ) : (
           <>
             <SidebarIconButton isDark={isDark} icon={<Plus size={16} />} motionButton title="新建文件" />
@@ -72,6 +70,60 @@ export function SidebarToolbar({ isDark, activeView, onToggleView }: SidebarTool
         )}
       </div>
     </div>
+  );
+}
+
+function LessonSelector({
+  isDark,
+  lessons,
+  activeLessonId,
+  onLessonChange,
+}: {
+  isDark: boolean;
+  lessons: LessonSummary[];
+  activeLessonId: string;
+  onLessonChange: (lessonId: string) => void;
+}) {
+  return (
+    <div
+      className={clsx(
+        'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold',
+        isDark ? 'bg-blue-900/50 text-blue-100' : 'bg-blue-100 text-blue-700',
+      )}
+    >
+      <ClipboardList size={16} />
+      <select
+        className={clsx(
+          'bg-transparent text-sm font-semibold focus:outline-none cursor-pointer',
+          isDark ? 'text-blue-100' : 'text-blue-700',
+        )}
+        value={activeLessonId}
+        onChange={event => onLessonChange(event.target.value)}
+      >
+        {lessons.map(lesson => (
+          <option key={lesson.id} value={lesson.id} className="text-slate-800">
+            {lesson.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function SidebarReturnButton({ isDark, onClick }: { isDark: boolean; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={clsx(
+        'flex h-10 w-10 items-center justify-center rounded-full shadow transition-colors',
+        isDark ? 'bg-blue-700/60 text-blue-100 hover:bg-blue-600/70' : 'bg-blue-500 text-white hover:bg-blue-600',
+      )}
+      title="回到文件"
+      aria-label="回到文件"
+    >
+      <Folder size={15} />
+    </button>
   );
 }
 
