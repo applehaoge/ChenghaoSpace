@@ -5,9 +5,10 @@ import { FILE_PANEL_COLLAPSED_WIDTH, FILE_PANEL_WIDTH } from '@/features/kidsCod
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 import { SidebarToolbar } from '@/features/kidsCoding/components/editor/sidebar/SidebarToolbar';
 import { FileListPanel } from '@/features/kidsCoding/components/editor/sidebar/FileListPanel';
-import { LessonTaskPanel, LESSON_VIDEO_META } from '@/features/kidsCoding/components/editor/sidebar/LessonTaskPanel';
+import { LessonTaskPanel } from '@/features/kidsCoding/components/editor/sidebar/lesson';
 import { TaskVideoDialog } from '@/features/kidsCoding/components/editor/sidebar/TaskVideoDialog';
 import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
+import { useLessonSlides } from '@/features/kidsCoding/hooks/useLessonSlides';
 
 export type { SidebarView };
 
@@ -21,7 +22,17 @@ interface FileSidebarProps {
 
 export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens }: FileSidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
-  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const {
+    lesson,
+    activeSlide,
+    quizState,
+    goToNextSlide,
+    goToPreviousSlide,
+    handleSelectOption,
+    isVideoOpen,
+    openVideo,
+    closeVideo,
+  } = useLessonSlides({ onEarnTokens });
 
   const handleToggleView = () => {
     setActiveView(prev => (prev === 'tasks' ? 'files' : 'tasks'));
@@ -54,9 +65,14 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
           <div className="flex-1 min-h-0">
             {activeView === 'tasks' ? (
               <LessonTaskPanel
+                lesson={lesson}
                 isDark={isDark}
-                onRequestVideo={() => setIsVideoOpen(true)}
-                onEarnTokens={onEarnTokens}
+                activeSlide={activeSlide}
+                quizState={quizState}
+                onNext={goToNextSlide}
+                onPrev={goToPreviousSlide}
+                onSelectOption={handleSelectOption}
+                onRequestVideo={openVideo}
               />
             ) : (
               <FileListPanel isDark={isDark} files={files} />
@@ -68,10 +84,10 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
       <TaskVideoDialog
         isOpen={isVideoOpen}
         isDark={isDark}
-        onClose={() => setIsVideoOpen(false)}
-        title={LESSON_VIDEO_META.title}
-        videoUrl={LESSON_VIDEO_META.videoUrl}
-        poster={LESSON_VIDEO_META.poster}
+        onClose={closeVideo}
+        title={lesson.mission.title}
+        videoUrl={lesson.mission.videoUrl}
+        poster={lesson.mission.poster}
       />
     </>
   );

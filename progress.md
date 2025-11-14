@@ -1,3 +1,8 @@
+- **2025-11-13 KidsCoding 任务数据抽离**
+  - 按 Lesson/Mission/Quiz 模型在 ront/src/features/kidsCoding/data/lessons.ts 建 mock 数据，并提供 getLessonContent。
+  - 新建 useLessonSlides Hook 负责任务页状态、答题奖励、视频弹窗，LessonTaskPanel 及 Mission/Quiz/Controls 拆分为独立组件，FileSidebar 仅负责切换与传参（样式保持不变）。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client 
+
 - **2025-11-13 KidsCoding 任务/文件切换 + T币展示**
   - FileSidebar 支持任务/文件视图切换，并保持原有折叠交互。
   - LessonTaskPanel + TaskVideoDialog + FileListPanel 完成任务页/文件页分离，测验奖励沿用 +5 T币 机制。
@@ -554,6 +559,7 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 - **2025-11-12 KidsCoding 控制台提示裁剪**
   - 去掉 ResizableConsole 顶栏状态提示文案（仅保留按钮/指示灯），避免错误信息挤压标题布局。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
 
 
 
