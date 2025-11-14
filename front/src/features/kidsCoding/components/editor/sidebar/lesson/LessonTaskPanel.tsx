@@ -2,7 +2,7 @@ import { AnimatePresence } from 'framer-motion';
 import type { LessonContent, QuizQuestion } from '@/features/kidsCoding/data/lessons';
 import type { LessonSlide, QuizState } from '@/features/kidsCoding/hooks/useLessonSlides';
 import { MissionSlide } from './MissionSlide';
-import { QuizSlide } from './QuizSlide';
+import { QuizSlide } from '../quiz/QuizSlide';
 import { SlideControls } from './SlideControls';
 
 interface LessonTaskPanelProps {

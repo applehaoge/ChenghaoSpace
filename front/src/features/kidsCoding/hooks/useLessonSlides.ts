@@ -6,6 +6,7 @@ import {
   type LessonSummary,
   type QuizQuestion,
 } from '@/features/kidsCoding/data/lessons';
+import { useQuizProgressStore } from '@/features/kidsCoding/store/useQuizProgressStore';
 
 export type LessonSlide = 'mission' | 'quiz';
 export type QuizState = 'idle' | 'correct' | 'incorrect';
@@ -43,12 +44,13 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
   const [currentLessonId, setCurrentLessonId] = useState(initialLessonId);
   const [activeSlide, setActiveSlide] = useState<LessonSlide>('mission');
   const [quizQuestionIndex, setQuizQuestionIndex] = useState(0);
-  const [questionStates, setQuestionStates] = useState<Record<string, QuizState>>({});
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const lesson = useMemo(() => getLessonContent(currentLessonId), [currentLessonId]);
   const totalQuestions = lesson.quiz.questions.length;
   const currentQuestion = totalQuestions ? lesson.quiz.questions[quizQuestionIndex] : null;
-  const quizState: QuizState = currentQuestion ? questionStates[currentQuestion.id] ?? 'idle' : 'idle';
+  const quizState = useQuizProgressStore(state => state.getQuestionState(currentLessonId, currentQuestion?.id));
+  const markState = useQuizProgressStore(state => state.markQuestionState);
+  const resetLessonProgress = useQuizProgressStore(state => state.resetLesson);
 
   const goToNextSlide = () => {
     setQuizQuestionIndex(0);
@@ -84,10 +86,7 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
 
   const markCurrentQuestion = (status: QuizState, reward = 0) => {
     if (!currentQuestion) return;
-    setQuestionStates(prev => {
-      if (prev[currentQuestion.id] === 'correct') return prev;
-      return { ...prev, [currentQuestion.id]: status };
-    });
+    markState(currentLessonId, currentQuestion.id, status);
     if (status === 'correct' && reward > 0) {
       onEarnTokens?.(reward);
     }
@@ -97,7 +96,7 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
     if (!nextLessonId || nextLessonId === currentLessonId) return;
     setCurrentLessonId(nextLessonId);
     setQuizQuestionIndex(0);
-    setQuestionStates({});
+    resetLessonProgress(nextLessonId);
     setActiveSlide('mission');
   };
 
