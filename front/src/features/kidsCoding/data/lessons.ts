@@ -90,13 +90,13 @@ const LESSON_CONTENTS: Record<string, LessonContent> = {
       subtitle: '把温度传感器数据绘制成趋势图，让同学们随时掌握天气变化。',
       coverImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=60',
       story:
-        '你的队伍需要在 20 分钟内完成气象站的可视化面板。孩子需要整理数据、绘制折线图，并给出 AI 提示，帮助老师快速判断是否需要发布降温提醒。',
+        '你的队伍需要在 20 分钟内完成气象站的可视化面板。孩子需要整理数据、绘制折线图，并给出 AI 提示，帮助老师快速判断是否需要发布降温提醒。完成过程中记得问候对方 Hello 哦！',
       objectives: ['读取 csv 数据', '使用循环整理温度', '绘制折线图', '输出 AI 建议'],
       tips: ['图表要有标题和轴标签', '温度单位统一成 ℃', 'AI 建议需要提到安全提醒'],
       videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
       poster: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=60',
       timeEstimate: '约 18 分钟',
-      vocabHighlights: ['折线图', '降温提醒', '温度'],
+      vocabHighlights: ['折线图', '降温提醒', '温度', 'Hello'],
     },
     quiz: {
       id: 'mission-astro-weather-quiz',

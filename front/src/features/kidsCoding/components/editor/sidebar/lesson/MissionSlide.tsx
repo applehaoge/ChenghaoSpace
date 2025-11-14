@@ -12,6 +12,10 @@ interface MissionSlideProps {
 export function MissionSlide({ mission, isDark }: MissionSlideProps) {
   const vocabSet = new Set(mission.vocabHighlights ?? []);
   const storyNodes = renderStoryWithVocabulary(mission.story, vocabSet, isDark);
+  if (vocabSet.size > 0 && storyNodes.length <= 1 && mission.vocabHighlights?.[0]) {
+    storyNodes.push(' ');
+    storyNodes.push(<SpeakableWord key="fallback-demo" word={mission.vocabHighlights[0]} isDark={isDark} />);
+  }
 
   return (
     <motion.section
