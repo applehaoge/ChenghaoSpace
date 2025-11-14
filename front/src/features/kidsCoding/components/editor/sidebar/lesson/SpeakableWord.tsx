@@ -36,11 +36,11 @@ export function SpeakableWord({ word, isDark, panelRef }: SpeakableWordProps) {
       setCardLeft((host.clientWidth - nextWidth) / 2);
       const wordRect = containerRef.current.getBoundingClientRect();
       const hostRect = host.getBoundingClientRect();
-      setCardTop(wordRect.bottom - hostRect.top + host.scrollTop + 8);
+      setCardTop(wordRect.bottom - hostRect.top + host.scrollTop - 6);
     } else if (containerRef.current) {
       setPanelWidth(undefined);
       setCardLeft(0);
-      setCardTop(containerRef.current.getBoundingClientRect().height + 8);
+      setCardTop(containerRef.current.getBoundingClientRect().height - 6);
     }
   }, [panelRef]);
 
