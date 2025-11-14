@@ -20,14 +20,6 @@ export interface QuizOption {
   text: string;
 }
 
-export interface QuizContent {
-  id: string;
-  question: string;
-  options: QuizOption[];
-  correctOptionId: string;
-  reward: number;
-}
-
 export interface LessonContent {
   id: string;
   label: string;
@@ -40,6 +32,50 @@ export interface LessonSummary {
   id: string;
   label: string;
   summary: string;
+}
+
+interface QuizQuestionBase {
+  id: string;
+  prompt: string;
+  reward?: number;
+  optional?: boolean;
+  tip?: string;
+}
+
+export interface SingleChoiceQuestion extends QuizQuestionBase {
+  type: 'single-choice';
+  options: QuizOption[];
+  answerId: string;
+}
+
+export interface FillBlankQuestion extends QuizQuestionBase {
+  type: 'fill-blank';
+  answer: string;
+  placeholder?: string;
+}
+
+export interface ShortAnswerQuestion extends QuizQuestionBase {
+  type: 'short-answer';
+  referenceAnswer: string;
+}
+
+export interface MatchingPair {
+  id: string;
+  left: string;
+  right: string;
+}
+
+export interface MatchingQuestion extends QuizQuestionBase {
+  type: 'matching';
+  pairs: MatchingPair[];
+}
+
+export type QuizQuestion = SingleChoiceQuestion | FillBlankQuestion | ShortAnswerQuestion | MatchingQuestion;
+
+export interface QuizContent {
+  id: string;
+  title?: string;
+  questions: QuizQuestion[];
 }
 
 const LESSON_CONTENTS: Record<string, LessonContent> = {
@@ -62,14 +98,37 @@ const LESSON_CONTENTS: Record<string, LessonContent> = {
     },
     quiz: {
       id: 'mission-astro-weather-quiz',
-      question: '在绘制折线图时，哪段代码负责设置折线颜色？',
-      options: [
-        { id: 'a', label: 'A', text: 'plt.title("AI 气象站")' },
-        { id: 'b', label: 'B', text: 'plt.plot(x, y, color="#3B82F6")' },
-        { id: 'c', label: 'C', text: 'plt.xlabel("时间")' },
+      title: '气象站小测验',
+      questions: [
+        {
+          id: 'weather-choice',
+          type: 'single-choice',
+          prompt: '在绘制折线图时，哪段代码负责设置折线颜色？',
+          options: [
+            { id: 'a', label: 'A', text: 'plt.title("AI 气象站")' },
+            { id: 'b', label: 'B', text: 'plt.plot(x, y, color="#3B82F6")' },
+            { id: 'c', label: 'C', text: 'plt.xlabel("时间")' },
+          ],
+          answerId: 'b',
+          reward: 5,
+        },
+        {
+          id: 'weather-fill',
+          type: 'fill-blank',
+          prompt: '折线图上最常用来表示时间的轴是？（示例：x 轴）',
+          answer: 'x轴',
+          placeholder: '请输入轴名称',
+          reward: 3,
+          optional: true,
+        },
+        {
+          id: 'weather-short',
+          type: 'short-answer',
+          prompt: '如果温度在 10 分钟内骤降 8℃，你会给老师什么提示？',
+          referenceAnswer: '提醒老师通知同学添衣或暂停室外活动，并说明降温幅度和时间。',
+          optional: true,
+        },
       ],
-      correctOptionId: 'b',
-      reward: 5,
     },
   },
   'mission-ocean-clean': {
@@ -91,14 +150,40 @@ const LESSON_CONTENTS: Record<string, LessonContent> = {
     },
     quiz: {
       id: 'mission-ocean-clean-quiz',
-      question: '想突出「海域 A」的柱状条，你应该调整哪项参数？',
-      options: [
-        { id: 'a', label: 'A', text: 'plt.xlabel("海域")' },
-        { id: 'b', label: 'B', text: 'plt.bar(areas, counts, color="#10B981")' },
-        { id: 'c', label: 'C', text: 'plt.ylabel("吨数")' },
+      title: '海洋清洁思考题',
+      questions: [
+        {
+          id: 'ocean-matching',
+          type: 'matching',
+          prompt: '将海域与最适合的清理策略配对（为每个海域选择一个策略）。',
+          pairs: [
+            { id: 'm1', left: '海域 A · 港口', right: '增加机械臂' },
+            { id: 'm2', left: '海域 B · 渔场', right: '安排人工巡检' },
+            { id: 'm3', left: '海域 C · 旅游区', right: '投放宣传与护栏' },
+          ],
+          reward: 6,
+        },
+        {
+          id: 'ocean-choice',
+          type: 'single-choice',
+          prompt: '想突出「海域 A」的柱状条，你应该调整哪项参数？',
+          options: [
+            { id: 'a', label: 'A', text: 'plt.xlabel("海域")' },
+            { id: 'b', label: 'B', text: 'plt.bar(areas, counts, color="#10B981")' },
+            { id: 'c', label: 'C', text: 'plt.ylabel("吨数")' },
+          ],
+          answerId: 'b',
+          reward: 5,
+        },
+        {
+          id: 'ocean-fill',
+          type: 'fill-blank',
+          prompt: '汇报结尾要提醒的环保口号是？',
+          answer: '少用一次性塑料',
+          reward: 2,
+          optional: true,
+        },
       ],
-      correctOptionId: 'b',
-      reward: 8,
     },
   },
 };

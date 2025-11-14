@@ -41,20 +41,7 @@ export function SidebarToolbar({
         ) : (
           <>
             <SidebarIconButton isDark={isDark} icon={<FileText size={16} />} title="main.py" />
-            <button
-              type="button"
-              onClick={onToggleView}
-              className={clsx(
-                'flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold transition-colors duration-300',
-                isDark
-                  ? 'bg-blue-900/40 text-blue-200 hover:bg-blue-800/60'
-                  : 'bg-blue-100 text-blue-700 hover:bg-blue-200',
-              )}
-              title="切换到任务视图"
-            >
-              <ClipboardList size={15} />
-              查看任务
-            </button>
+            <IconToggleButton isDark={isDark} onClick={onToggleView} icon={<ClipboardList size={15} />} title="查看任务" />
           </>
         )}
       </div>
@@ -119,6 +106,33 @@ function SidebarReturnButton({ isDark, onClick }: { isDark: boolean; onClick: ()
       aria-label="回到文件"
     >
       <Folder size={14} />
+    </button>
+  );
+}
+
+function IconToggleButton({
+  isDark,
+  onClick,
+  icon,
+  title,
+}: {
+  isDark: boolean;
+  onClick: () => void;
+  icon: ReactNode;
+  title: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={clsx(
+        'flex h-8 w-8 items-center justify-center rounded-full transition-colors border',
+        isDark ? 'border-blue-700 text-blue-200 hover:bg-blue-900/40' : 'border-blue-200 text-blue-700 hover:bg-blue-50',
+      )}
+      title={title}
+      aria-label={title}
+    >
+      {icon}
     </button>
   );
 }

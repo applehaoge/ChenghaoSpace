@@ -28,9 +28,15 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
     lessons,
     activeSlide,
     quizState,
+    quizQuestion,
+    quizQuestionIndex,
+    quizQuestionTotal,
+    quizQuestionState,
     goToNextSlide,
     goToPreviousSlide,
-    handleSelectOption,
+    goToNextQuestion,
+    goToPreviousQuestion,
+    markCurrentQuestion,
     changeLesson,
     isVideoOpen,
     openVideo,
@@ -75,17 +81,20 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
           <div className="flex-1 min-h-0">
             {activeView === 'tasks' ? (
               <LessonTaskPanel
-                lessonId={lessonId}
-                lessons={lessons}
                 lesson={lesson}
                 isDark={isDark}
                 activeSlide={activeSlide}
                 quizState={quizState}
+                quizQuestion={quizQuestion}
+                quizQuestionIndex={quizQuestionIndex}
+                quizQuestionTotal={quizQuestionTotal}
+                quizQuestionState={quizQuestionState}
+                onQuestionResult={markCurrentQuestion}
+                onNextQuestion={goToNextQuestion}
+                onPreviousQuestion={goToPreviousQuestion}
                 onNext={goToNextSlide}
                 onPrev={goToPreviousSlide}
-                onSelectOption={handleSelectOption}
                 onRequestVideo={openVideo}
-                onLessonChange={changeLesson}
               />
             ) : (
               <FileListPanel isDark={isDark} files={files} />

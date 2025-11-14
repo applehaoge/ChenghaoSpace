@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
-import { getLessonContent, listLessons, type LessonContent, type LessonSummary } from '@/features/kidsCoding/data/lessons';
+import {
+  getLessonContent,
+  listLessons,
+  type LessonContent,
+  type LessonSummary,
+  type QuizQuestion,
+} from '@/features/kidsCoding/data/lessons';
 
 export type LessonSlide = 'mission' | 'quiz';
 export type QuizState = 'idle' | 'correct' | 'incorrect';
@@ -17,11 +23,17 @@ interface UseLessonSlidesResult {
   quizState: QuizState;
   goToNextSlide: () => void;
   goToPreviousSlide: () => void;
-  handleSelectOption: (optionId: string) => void;
   changeLesson: (lessonId: string) => void;
   isVideoOpen: boolean;
   openVideo: () => void;
   closeVideo: () => void;
+  quizQuestion: QuizQuestion | null;
+  quizQuestionIndex: number;
+  quizQuestionTotal: number;
+  quizQuestionState: QuizState;
+  goToNextQuestion: () => void;
+  goToPreviousQuestion: () => void;
+  markCurrentQuestion: (status: QuizState, reward?: number) => void;
 }
 
 export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLessonSlidesResult {
@@ -30,9 +42,13 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
   const initialLessonId = lessonId ?? lessonSummaries[0]?.id ?? 'mission-astro-weather';
   const [currentLessonId, setCurrentLessonId] = useState(initialLessonId);
   const [activeSlide, setActiveSlide] = useState<LessonSlide>('mission');
-  const [quizState, setQuizState] = useState<QuizState>('idle');
+  const [quizQuestionIndex, setQuizQuestionIndex] = useState(0);
+  const [questionStates, setQuestionStates] = useState<Record<string, QuizState>>({});
   const [isVideoOpen, setIsVideoOpen] = useState(false);
   const lesson = useMemo(() => getLessonContent(currentLessonId), [currentLessonId]);
+  const totalQuestions = lesson.quiz.questions.length;
+  const currentQuestion = totalQuestions ? lesson.quiz.questions[quizQuestionIndex] : null;
+  const quizState: QuizState = currentQuestion ? questionStates[currentQuestion.id] ?? 'idle' : 'idle';
 
   const goToNextSlide = () => {
     setActiveSlide('quiz');
@@ -42,21 +58,39 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
     setActiveSlide('mission');
   };
 
-  const handleSelectOption = (optionId: string) => {
-    if (quizState === 'correct') return;
-    if (optionId === lesson.quiz.correctOptionId) {
-      setQuizState('correct');
-      onEarnTokens?.(lesson.quiz.reward);
-    } else {
-      setQuizState('incorrect');
+  const goToNextQuestion = () => {
+    if (quizQuestionIndex >= totalQuestions - 1) {
+      setActiveSlide('mission');
+      return;
+    }
+    setQuizQuestionIndex(prev => prev + 1);
+  };
+
+  const goToPreviousQuestion = () => {
+    if (quizQuestionIndex <= 0) {
+      setActiveSlide('mission');
+      return;
+    }
+    setQuizQuestionIndex(prev => prev - 1);
+  };
+
+  const markCurrentQuestion = (status: QuizState, reward = 0) => {
+    if (!currentQuestion) return;
+    setQuestionStates(prev => {
+      if (prev[currentQuestion.id] === 'correct') return prev;
+      return { ...prev, [currentQuestion.id]: status };
+    });
+    if (status === 'correct' && reward > 0) {
+      onEarnTokens?.(reward);
     }
   };
 
   const changeLesson = (nextLessonId: string) => {
     if (!nextLessonId || nextLessonId === currentLessonId) return;
     setCurrentLessonId(nextLessonId);
+    setQuizQuestionIndex(0);
+    setQuestionStates({});
     setActiveSlide('mission');
-    setQuizState('idle');
   };
 
   const openVideo = () => setIsVideoOpen(true);
@@ -70,10 +104,16 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
     quizState,
     goToNextSlide,
     goToPreviousSlide,
-    handleSelectOption,
     changeLesson,
     isVideoOpen,
     openVideo,
     closeVideo,
+    quizQuestion: currentQuestion,
+    quizQuestionIndex,
+    quizQuestionTotal: totalQuestions,
+    quizQuestionState: quizState,
+    goToNextQuestion,
+    goToPreviousQuestion,
+    markCurrentQuestion,
   };
 }

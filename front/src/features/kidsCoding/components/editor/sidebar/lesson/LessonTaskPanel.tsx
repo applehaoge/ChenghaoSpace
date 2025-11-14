@@ -1,5 +1,5 @@
 import { AnimatePresence } from 'framer-motion';
-import type { LessonContent } from '@/features/kidsCoding/data/lessons';
+import type { LessonContent, QuizQuestion } from '@/features/kidsCoding/data/lessons';
 import type { LessonSlide, QuizState } from '@/features/kidsCoding/hooks/useLessonSlides';
 import { MissionSlide } from './MissionSlide';
 import { QuizSlide } from './QuizSlide';
@@ -10,9 +10,15 @@ interface LessonTaskPanelProps {
   isDark: boolean;
   activeSlide: LessonSlide;
   quizState: QuizState;
+  quizQuestion: QuizQuestion | null;
+  quizQuestionIndex: number;
+  quizQuestionTotal: number;
+  quizQuestionState: QuizState;
+  onQuestionResult: (status: QuizState, reward?: number) => void;
+  onNextQuestion: () => void;
+  onPreviousQuestion: () => void;
   onNext: () => void;
   onPrev: () => void;
-  onSelectOption: (optionId: string) => void;
   onRequestVideo: () => void;
 }
 
@@ -21,9 +27,15 @@ export function LessonTaskPanel({
   isDark,
   activeSlide,
   quizState,
+  quizQuestion,
+  quizQuestionIndex,
+  quizQuestionTotal,
+  quizQuestionState,
+  onQuestionResult,
+  onNextQuestion,
+  onPreviousQuestion,
   onNext,
   onPrev,
-  onSelectOption,
   onRequestVideo,
 }: LessonTaskPanelProps) {
   return (
@@ -33,7 +45,18 @@ export function LessonTaskPanel({
           {activeSlide === 'mission' ? (
             <MissionSlide key="mission" mission={lesson.mission} isDark={isDark} />
           ) : (
-            <QuizSlide key="quiz" quiz={lesson.quiz} isDark={isDark} quizState={quizState} onSelectOption={onSelectOption} />
+            <QuizSlide
+              key={quizQuestion?.id ?? 'quiz'}
+              quiz={lesson.quiz}
+              question={quizQuestion}
+              questionIndex={quizQuestionIndex}
+              totalQuestions={quizQuestionTotal}
+              questionState={quizQuestionState}
+              isDark={isDark}
+              onQuestionResult={onQuestionResult}
+              onNextQuestion={onNextQuestion}
+              onPreviousQuestion={onPreviousQuestion}
+            />
           )}
         </AnimatePresence>
       </div>
