@@ -8,12 +8,27 @@ interface SlideControlsProps {
   isDark: boolean;
   activeSlide: LessonSlide;
   quizState: QuizState;
+  quizQuestionIndex?: number;
+  quizQuestionTotal?: number;
+  quizQuestionOptional?: boolean;
+  onNextQuestion?: () => void;
   onNext: () => void;
   onPrev: () => void;
   onRequestVideo: () => void;
 }
 
-export function SlideControls({ isDark, activeSlide, quizState, onNext, onPrev, onRequestVideo }: SlideControlsProps) {
+export function SlideControls({
+  isDark,
+  activeSlide,
+  quizState,
+  quizQuestionIndex,
+  quizQuestionTotal,
+  quizQuestionOptional,
+  onNextQuestion,
+  onNext,
+  onPrev,
+  onRequestVideo,
+}: SlideControlsProps) {
   const dots = useMemo(
     () => [
       { id: 'mission', label: '任务', active: activeSlide === 'mission' },
@@ -23,6 +38,10 @@ export function SlideControls({ isDark, activeSlide, quizState, onNext, onPrev, 
   );
 
   const isMission = activeSlide === 'mission';
+  const isLastQuestion =
+    typeof quizQuestionIndex === 'number' && typeof quizQuestionTotal === 'number'
+      ? quizQuestionIndex >= quizQuestionTotal - 1
+      : true;
 
   return (
     <div
@@ -41,7 +60,7 @@ export function SlideControls({ isDark, activeSlide, quizState, onNext, onPrev, 
         ))}
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <ActionButton
           isDark={isDark}
           ariaLabel="播放课程视频"
@@ -53,9 +72,8 @@ export function SlideControls({ isDark, activeSlide, quizState, onNext, onPrev, 
         {isMission ? (
           <ActionButton
             isDark={isDark}
-            ariaLabel="下一页"
+            ariaLabel="前往测验"
             icon={<ArrowRight size={14} />}
-            label="下一页"
             onClick={onNext}
           />
         ) : (
@@ -64,11 +82,17 @@ export function SlideControls({ isDark, activeSlide, quizState, onNext, onPrev, 
               isDark={isDark}
               ariaLabel="返回任务"
               icon={<ArrowLeft size={14} />}
-              label="返回任务"
               onClick={onPrev}
               variant="outline"
             />
-            <StatusBadge isDark={isDark} quizState={quizState} />
+            <ActionButton
+              isDark={isDark}
+              ariaLabel={isLastQuestion ? '完成测验' : '下一题'}
+              icon={<ArrowRight size={14} />}
+              onClick={onNextQuestion ?? onNext}
+              disabled={!onNextQuestion}
+            />
+            <StatusBadge isDark={isDark} quizState={quizState} optional={quizQuestionOptional} />
           </>
         )}
       </div>
@@ -79,35 +103,35 @@ export function SlideControls({ isDark, activeSlide, quizState, onNext, onPrev, 
 function ActionButton({
   isDark,
   icon,
-  label,
   onClick,
   ariaLabel,
   title,
   variant = 'primary',
+  disabled = false,
 }: {
   isDark: boolean;
   icon: ReactNode;
-  label?: string;
   onClick?: () => void;
   ariaLabel: string;
   title?: string;
   variant?: 'primary' | 'outline' | 'ghost';
+  disabled?: boolean;
 }) {
-  const base = 'inline-flex items-center justify-center gap-1 rounded-2xl text-xs font-semibold transition-all';
+  const base = 'inline-flex items-center justify-center rounded-full transition-all';
   const tone = (() => {
     switch (variant) {
       case 'outline':
         return isDark
-          ? 'border border-blue-700/60 px-3 py-1 text-blue-100 hover:bg-blue-800/50'
-          : 'border border-blue-200 px-3 py-1 text-blue-700 hover:bg-blue-100';
+          ? 'border border-blue-700/60 h-8 w-8 text-blue-100 hover:bg-blue-800/50'
+          : 'border border-blue-200 h-8 w-8 text-blue-700 hover:bg-blue-100';
       case 'ghost':
         return isDark
           ? 'h-8 w-8 border border-blue-700/40 text-blue-200 hover:bg-blue-900/40'
           : 'h-8 w-8 border border-blue-200 text-blue-600 hover:bg-blue-100';
       default:
         return isDark
-          ? 'border border-blue-700 bg-blue-700/80 px-4 py-1 text-white hover:bg-blue-600'
-          : 'border border-blue-200 bg-blue-500 px-4 py-1 text-white hover:bg-blue-600';
+          ? 'border border-blue-700 bg-blue-700/80 h-8 w-8 text-white hover:bg-blue-600'
+          : 'border border-blue-200 bg-blue-500 h-8 w-8 text-white hover:bg-blue-600';
     }
   })();
 
@@ -117,16 +141,25 @@ function ActionButton({
       onClick={onClick}
       aria-label={ariaLabel}
       title={title}
-      className={clsx(base, tone, variant === 'ghost' ? '' : 'shadow-sm')}
+      disabled={disabled}
+      className={clsx(base, tone, variant === 'ghost' ? '' : 'shadow-sm', disabled && 'opacity-50 cursor-not-allowed')}
     >
       {icon}
-      {label && <span>{label}</span>}
     </button>
   );
 }
 
-function StatusBadge({ isDark, quizState }: { isDark: boolean; quizState: QuizState }) {
-  const label = quizState === 'correct' ? '完成' : '待完成';
+function StatusBadge({
+  isDark,
+  quizState,
+  optional,
+}: {
+  isDark: boolean;
+  quizState: QuizState;
+  optional?: boolean;
+}) {
+  const label =
+    quizState === 'correct' ? '已完成' : optional ? '可跳过' : quizState === 'incorrect' ? '再试试' : '待完成';
   const tone = clsx(
     'inline-flex h-7 min-w-[40px] items-center justify-center rounded-full border px-2 text-[11px] font-semibold',
     quizState === 'correct'

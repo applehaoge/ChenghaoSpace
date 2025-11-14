@@ -16,7 +16,6 @@ interface LessonTaskPanelProps {
   quizQuestionState: QuizState;
   onQuestionResult: (status: QuizState, reward?: number) => void;
   onNextQuestion: () => void;
-  onPreviousQuestion: () => void;
   onNext: () => void;
   onPrev: () => void;
   onRequestVideo: () => void;
@@ -33,7 +32,6 @@ export function LessonTaskPanel({
   quizQuestionState,
   onQuestionResult,
   onNextQuestion,
-  onPreviousQuestion,
   onNext,
   onPrev,
   onRequestVideo,
@@ -54,8 +52,6 @@ export function LessonTaskPanel({
               questionState={quizQuestionState}
               isDark={isDark}
               onQuestionResult={onQuestionResult}
-              onNextQuestion={onNextQuestion}
-              onPreviousQuestion={onPreviousQuestion}
             />
           )}
         </AnimatePresence>
@@ -65,6 +61,10 @@ export function LessonTaskPanel({
         isDark={isDark}
         activeSlide={activeSlide}
         quizState={quizState}
+        quizQuestionIndex={quizQuestionIndex}
+        quizQuestionTotal={quizQuestionTotal}
+        quizQuestionOptional={quizQuestion?.optional}
+        onNextQuestion={onNextQuestion}
         onNext={onNext}
         onPrev={onPrev}
         onRequestVideo={onRequestVideo}

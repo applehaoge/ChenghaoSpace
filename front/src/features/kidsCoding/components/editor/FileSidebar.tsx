@@ -91,7 +91,6 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
                 quizQuestionState={quizQuestionState}
                 onQuestionResult={markCurrentQuestion}
                 onNextQuestion={goToNextQuestion}
-                onPreviousQuestion={goToPreviousQuestion}
                 onNext={goToNextSlide}
                 onPrev={goToPreviousSlide}
                 onRequestVideo={openVideo}

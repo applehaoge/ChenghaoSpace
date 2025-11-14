@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Brain, Medal, SkipForward } from 'lucide-react';
+import { Brain, Medal } from 'lucide-react';
 import type {
   FillBlankQuestion,
   MatchingQuestion,
@@ -20,21 +20,9 @@ interface QuizSlideProps {
   questionState: QuizState;
   isDark: boolean;
   onQuestionResult: (status: QuizState, reward?: number) => void;
-  onNextQuestion: () => void;
-  onPreviousQuestion: () => void;
 }
 
-export function QuizSlide({
-  quiz,
-  question,
-  questionIndex,
-  totalQuestions,
-  questionState,
-  isDark,
-  onQuestionResult,
-  onNextQuestion,
-  onPreviousQuestion,
-}: QuizSlideProps) {
+export function QuizSlide({ quiz, question, questionIndex, totalQuestions, questionState, isDark, onQuestionResult }: QuizSlideProps) {
   if (!question) {
     return (
       <div
@@ -75,15 +63,6 @@ export function QuizSlide({
         onQuestionResult={onQuestionResult}
       />
 
-      <QuestionFooter
-        questionIndex={questionIndex}
-        totalQuestions={totalQuestions}
-        onNextQuestion={onNextQuestion}
-        onPreviousQuestion={onPreviousQuestion}
-        isDark={isDark}
-        optional={question.optional}
-        questionState={questionState}
-      />
     </motion.section>
   );
 }
@@ -179,58 +158,6 @@ function QuestionBody({
   }
 }
 
-function QuestionFooter({
-  questionIndex,
-  totalQuestions,
-  onNextQuestion,
-  onPreviousQuestion,
-  isDark,
-  optional,
-  questionState,
-}: {
-  questionIndex: number;
-  totalQuestions: number;
-  onNextQuestion: () => void;
-  onPreviousQuestion: () => void;
-  isDark: boolean;
-  optional?: boolean;
-  questionState: QuizState;
-}) {
-  return (
-    <div className="flex items-center justify-between text-xs">
-      <button
-        type="button"
-        disabled={questionIndex === 0}
-        onClick={onPreviousQuestion}
-        className={clsx(
-          'inline-flex items-center gap-1 rounded-full border px-3 py-1 transition',
-          questionIndex === 0
-            ? 'opacity-40 cursor-not-allowed'
-            : isDark
-              ? 'border-indigo-700 text-indigo-100 hover:bg-indigo-900/30'
-              : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50',
-        )}
-      >
-        <ArrowLeft size={12} />
-        上一题
-      </button>
-      <div className={clsx('text-[11px]', isDark ? 'text-indigo-200' : 'text-indigo-500')}>
-        {optional ? '可跳过' : questionState === 'correct' ? '已完成' : '建议尝试'}
-      </div>
-      <button
-        type="button"
-        onClick={onNextQuestion}
-        className={clsx(
-          'inline-flex items-center gap-1 rounded-full border px-3 py-1 transition',
-          isDark ? 'border-indigo-600 text-indigo-100 hover:bg-indigo-900/40' : 'border-indigo-200 text-indigo-700 hover:bg-indigo-50',
-        )}
-      >
-        {questionIndex >= totalQuestions - 1 ? '完成' : '下一题'}
-        {questionIndex >= totalQuestions - 1 ? <SkipForward size={12} /> : <ArrowRight size={12} />}
-      </button>
-    </div>
-  );
-}
 
 function ChoiceQuestion({
   question,
