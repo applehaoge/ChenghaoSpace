@@ -14,6 +14,7 @@ interface SpeakableWordProps {
 
 export function SpeakableWord({ word, isDark, panelRef }: SpeakableWordProps) {
   const containerRef = useRef<HTMLSpanElement | null>(null);
+  const hideTimerRef = useRef<number | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [panelWidth, setPanelWidth] = useState<number>();
   const [cardTop, setCardTop] = useState(0);
@@ -44,9 +45,30 @@ export function SpeakableWord({ word, isDark, panelRef }: SpeakableWordProps) {
     }
   }, [panelRef]);
 
+  const clearHideTimer = useCallback(() => {
+    if (hideTimerRef.current) {
+      window.clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  }, []);
+
+  const scheduleHide = useCallback(() => {
+    clearHideTimer();
+    hideTimerRef.current = window.setTimeout(() => {
+      hideTimerRef.current = null;
+      setIsActive(false);
+    }, 300);
+  }, [clearHideTimer]);
+
   useEffect(() => {
     updateCardMetrics();
   }, [updateCardMetrics]);
+
+  useEffect(() => {
+    return () => {
+      clearHideTimer();
+    };
+  }, [clearHideTimer]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -86,8 +108,13 @@ export function SpeakableWord({ word, isDark, panelRef }: SpeakableWordProps) {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 12 }}
         transition={{ duration: 0.15 }}
-        className="pointer-events-none absolute z-40"
+        className="absolute z-40"
         style={overlayStyle}
+        onMouseEnter={() => {
+          clearHideTimer();
+          setIsActive(true);
+        }}
+        onMouseLeave={() => scheduleHide()}
       >
         <VocabularyCard content={cardContent} isDark={isDark} />
       </motion.div>
@@ -102,15 +129,21 @@ export function SpeakableWord({ word, isDark, panelRef }: SpeakableWordProps) {
         ref={containerRef}
         className="inline-flex flex-col items-center"
         onMouseEnter={() => {
+          clearHideTimer();
           setIsActive(true);
           updateCardMetrics();
         }}
-        onMouseLeave={() => setIsActive(false)}
+        onMouseLeave={() => {
+          scheduleHide();
+        }}
         onFocus={() => {
+          clearHideTimer();
           setIsActive(true);
           updateCardMetrics();
         }}
-        onBlur={() => setIsActive(false)}
+        onBlur={() => {
+          scheduleHide();
+        }}
       >
         <button
           type="button"
