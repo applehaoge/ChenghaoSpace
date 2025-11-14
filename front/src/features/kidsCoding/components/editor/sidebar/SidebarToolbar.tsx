@@ -85,16 +85,10 @@ function LessonSelector({
   onLessonChange: (lessonId: string) => void;
 }) {
   return (
-    <div
-      className={clsx(
-        'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold',
-        isDark ? 'bg-blue-900/50 text-blue-100' : 'bg-blue-100 text-blue-700',
-      )}
-    >
-      <ClipboardList size={16} />
+    <div className="inline-flex items-center gap-1 text-xs font-semibold">
       <select
         className={clsx(
-          'bg-transparent text-sm font-semibold focus:outline-none cursor-pointer',
+          'bg-transparent focus:outline-none cursor-pointer rounded-full px-2 py-0.5',
           isDark ? 'text-blue-100' : 'text-blue-700',
         )}
         value={activeLessonId}
@@ -116,13 +110,15 @@ function SidebarReturnButton({ isDark, onClick }: { isDark: boolean; onClick: ()
       type="button"
       onClick={onClick}
       className={clsx(
-        'flex h-10 w-10 items-center justify-center rounded-full shadow transition-colors',
-        isDark ? 'bg-blue-700/60 text-blue-100 hover:bg-blue-600/70' : 'bg-blue-500 text-white hover:bg-blue-600',
+        'flex h-8 w-8 items-center justify-center rounded-full transition-colors border',
+        isDark
+          ? 'border-blue-600 text-blue-200 hover:bg-blue-900/40'
+          : 'border-blue-200 text-blue-600 hover:bg-blue-50',
       )}
       title="回到文件"
       aria-label="回到文件"
     >
-      <Folder size={15} />
+      <Folder size={14} />
     </button>
   );
 }
