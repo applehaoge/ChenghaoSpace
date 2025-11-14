@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { Lightbulb, Trophy } from 'lucide-react';
 import type { MissionContent } from '@/features/kidsCoding/data/lessons';
+import { SpeakableWord } from './SpeakableWord';
 
 interface MissionSlideProps {
   mission: MissionContent;
@@ -9,6 +10,9 @@ interface MissionSlideProps {
 }
 
 export function MissionSlide({ mission, isDark }: MissionSlideProps) {
+  const vocabSet = new Set(mission.vocabHighlights ?? []);
+  const storyNodes = renderStoryWithVocabulary(mission.story, vocabSet, isDark);
+
   return (
     <motion.section
       initial={{ opacity: 0, y: 12 }}
@@ -31,7 +35,9 @@ export function MissionSlide({ mission, isDark }: MissionSlideProps) {
         <img src={mission.coverImage} alt={mission.title} className="h-32 w-full object-cover" />
       </div>
 
-      <p className={clsx('text-sm leading-relaxed', isDark ? 'text-blue-50/90' : 'text-slate-600')}>{mission.story}</p>
+      <p className={clsx('text-sm leading-relaxed space-x-1', isDark ? 'text-blue-50/90' : 'text-slate-600')}>
+        {storyNodes}
+      </p>
 
       <div
         className={clsx(
@@ -86,5 +92,19 @@ export function MissionSlide({ mission, isDark }: MissionSlideProps) {
         建议完成时间：{mission.timeEstimate}
       </p>
     </motion.section>
+  );
+}
+
+function renderStoryWithVocabulary(story: string, vocabSet: Set<string>, isDark: boolean) {
+  if (!story || !vocabSet.size) {
+    return [story];
+  }
+  const escaped = Array.from(vocabSet)
+    .map(term => term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    .join('|');
+  const regex = new RegExp(`(${escaped})`, 'g');
+  const segments = story.split(regex).filter(Boolean);
+  return segments.map((segment, index) =>
+    vocabSet.has(segment) ? <SpeakableWord key={`${segment}-${index}`} word={segment} isDark={isDark} /> : <span key={`${segment}-${index}`}>{segment}</span>,
   );
 }

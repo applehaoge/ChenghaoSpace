@@ -12,6 +12,7 @@ export interface MissionContent {
   videoUrl: string;
   poster: string;
   timeEstimate: string;
+  vocabHighlights?: string[];
 }
 
 export interface QuizOption {
@@ -95,6 +96,7 @@ const LESSON_CONTENTS: Record<string, LessonContent> = {
       videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
       poster: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=600&q=60',
       timeEstimate: '约 18 分钟',
+      vocabHighlights: ['折线图', '降温提醒', '温度'],
     },
     quiz: {
       id: 'mission-astro-weather-quiz',
@@ -147,6 +149,7 @@ const LESSON_CONTENTS: Record<string, LessonContent> = {
       videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
       poster: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=60',
       timeEstimate: '约 22 分钟',
+      vocabHighlights: ['塑料瓶', '海域'],
     },
     quiz: {
       id: 'mission-ocean-clean-quiz',

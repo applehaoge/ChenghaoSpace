@@ -12,11 +12,11 @@ interface QuizProgressState {
   resetLesson: (lessonId: string) => void;
 }
 
-export const useQuizProgressStore = create<QuizProgressState>(set => ({
+export const useQuizProgressStore = create<QuizProgressState>((set, get) => ({
   lessons: {},
   getQuestionState: (lessonId, questionId) => {
     if (!lessonId || !questionId) return 'idle';
-    return set.getState().lessons[lessonId]?.[questionId] ?? 'idle';
+    return get().lessons[lessonId]?.[questionId] ?? 'idle';
   },
   markQuestionState: (lessonId, questionId, state) =>
     set(current => {
