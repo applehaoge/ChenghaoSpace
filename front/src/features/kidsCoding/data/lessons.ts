@@ -39,7 +39,7 @@ const LESSON_CONTENTS: Record<string, LessonContent> = {
     id: 'mission-astro-weather',
     mission: {
       id: 'mission-astro-weather-mission',
-      title: '任务 05 · 建造 AI 气象站',
+      title: '学习函数',
       subtitle: '把温度传感器数据绘制成趋势图，让同学们随时掌握天气变化。',
       coverImage: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=60',
       story:
