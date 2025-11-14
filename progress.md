@@ -563,3 +563,38 @@ sHelpers??ttachmentContext 与前?? iService 单元测试
 
 
 
+
+- **2025-11-14 KidsCoding vocabulary hover cards**
+  - Added centralized vocabulary metadata and hover cards for SpeakableWord terms.
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+- **2025-11-14 KidsCoding vocabulary card layout fix**
+  - Fixed hover card width measurement + vertical card layout to keep image on top and description below.
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+- **2025-11-14 KidsCoding vocab card alignment**
+  - Portaled vocabulary cards into mission panel, centering 90% width under hovered word without sidebar overflow.
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+- **2025-11-14 KidsCoding vocab card width lock**
+  - Passed mission panel ref into SpeakableWord so hover cards render via portal at 90% panel width and stay centered under the word.
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+- **2025-11-14 KidsCoding vocab card width CSS**
+  - Simplified SpeakableWord overlay to use pure CSS width=90% of mission panel, ensuring hover card stays centered without scrollbar overlap.
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+- **2025-11-14 KidsCoding vocab card scroll sync**
+  - Hooked SpeakableWord back into panel scroll/resize events so hover cards reposition with highlighted words while keeping 90% width.
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+
+- **2025-11-14 KidsCoding vocab card horizontal center**
+  - Compute dynamic left offset based on mission panel width so 90% hover cards truly center and no longer overlap the scrollbar.
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+

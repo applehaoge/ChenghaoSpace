@@ -1,3 +1,4 @@
+import { useRef, type RefObject } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { Lightbulb, Trophy } from 'lucide-react';
@@ -10,20 +11,28 @@ interface MissionSlideProps {
 }
 
 export function MissionSlide({ mission, isDark }: MissionSlideProps) {
+  const panelRef = useRef<HTMLElement | null>(null);
   const vocabSet = new Set(mission.vocabHighlights ?? []);
-  const storyNodes = renderStoryWithVocabulary(mission.story, vocabSet, isDark);
+  const storyNodes = renderStoryWithVocabulary(mission.story, vocabSet, isDark, panelRef);
   if (vocabSet.size > 0 && storyNodes.length <= 1 && mission.vocabHighlights?.[0]) {
     storyNodes.push(' ');
-    storyNodes.push(<SpeakableWord key="fallback-demo" word={mission.vocabHighlights[0]} isDark={isDark} />);
+    storyNodes.push(
+      <SpeakableWord key="fallback-demo" word={mission.vocabHighlights[0]} isDark={isDark} panelRef={panelRef} />,
+    );
   }
 
   return (
     <motion.section
+      ref={panelRef}
+      data-lesson-panel="mission"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
-      className={clsx('px-3 py-3 shadow-inner space-y-3', isDark ? 'bg-gray-900/60' : 'bg-blue-50/60')}
+      className={clsx(
+        'relative px-3 py-3 shadow-inner space-y-3',
+        isDark ? 'bg-gray-900/60' : 'bg-blue-50/60',
+      )}
     >
       <header className="flex items-start justify-between gap-3">
         <div>
@@ -99,7 +108,12 @@ export function MissionSlide({ mission, isDark }: MissionSlideProps) {
   );
 }
 
-function renderStoryWithVocabulary(story: string, vocabSet: Set<string>, isDark: boolean) {
+function renderStoryWithVocabulary(
+  story: string,
+  vocabSet: Set<string>,
+  isDark: boolean,
+  panelRef: RefObject<HTMLElement | null>,
+) {
   if (!story || !vocabSet.size) {
     return [story];
   }
@@ -109,6 +123,10 @@ function renderStoryWithVocabulary(story: string, vocabSet: Set<string>, isDark:
   const regex = new RegExp(`(${escaped})`, 'g');
   const segments = story.split(regex).filter(Boolean);
   return segments.map((segment, index) =>
-    vocabSet.has(segment) ? <SpeakableWord key={`${segment}-${index}`} word={segment} isDark={isDark} /> : <span key={`${segment}-${index}`}>{segment}</span>,
+    vocabSet.has(segment) ? (
+      <SpeakableWord key={`${segment}-${index}`} word={segment} isDark={isDark} panelRef={panelRef} />
+    ) : (
+      <span key={`${segment}-${index}`}>{segment}</span>
+    ),
   );
 }
