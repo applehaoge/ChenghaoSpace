@@ -51,6 +51,7 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
   const quizState: QuizState = currentQuestion ? questionStates[currentQuestion.id] ?? 'idle' : 'idle';
 
   const goToNextSlide = () => {
+    setQuizQuestionIndex(0);
     setActiveSlide('quiz');
   };
 
@@ -59,19 +60,26 @@ export function useLessonSlides(options: UseLessonSlidesOptions = {}): UseLesson
   };
 
   const goToNextQuestion = () => {
+    if (!totalQuestions) return;
     if (quizQuestionIndex >= totalQuestions - 1) {
       setActiveSlide('mission');
       return;
     }
-    setQuizQuestionIndex(prev => prev + 1);
+    setQuizQuestionIndex(prev => Math.min(prev + 1, totalQuestions - 1));
+    setActiveSlide('quiz');
   };
 
   const goToPreviousQuestion = () => {
+    if (!totalQuestions) {
+      setActiveSlide('mission');
+      return;
+    }
     if (quizQuestionIndex <= 0) {
       setActiveSlide('mission');
       return;
     }
-    setQuizQuestionIndex(prev => prev - 1);
+    setQuizQuestionIndex(prev => Math.max(prev - 1, 0));
+    setActiveSlide('quiz');
   };
 
   const markCurrentQuestion = (status: QuizState, reward = 0) => {
