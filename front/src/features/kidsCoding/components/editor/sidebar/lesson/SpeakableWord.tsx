@@ -57,7 +57,7 @@ export function SpeakableWord({ word, isDark, panelRef }: SpeakableWordProps) {
     hideTimerRef.current = window.setTimeout(() => {
       hideTimerRef.current = null;
       setIsActive(false);
-    }, 300);
+    }, 200);
   }, [clearHideTimer]);
 
   useEffect(() => {
@@ -116,7 +116,7 @@ export function SpeakableWord({ word, isDark, panelRef }: SpeakableWordProps) {
         }}
         onMouseLeave={() => scheduleHide()}
       >
-        <VocabularyCard content={cardContent} isDark={isDark} />
+        <VocabularyCard content={cardContent} isDark={isDark} onSpeak={handleSpeak} />
       </motion.div>
     ) : null;
 
