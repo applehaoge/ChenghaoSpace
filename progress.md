@@ -1,3 +1,9 @@
+- **2025-11-15 KidsCoding 多标签联动**
+  - useProjectFiles 记录激活文件、内容及语言，新增文件自动切换并保持唯一命名。
+  - FileSidebar/FileListPanel 支持选中高亮，点击文件会驱动 CodeWorkspace，左侧删除也会切换到下一个文件。
+  - CodeWorkspace 顶部恢复原有卡片样式并可横向展示多个标签，点击即可切换；编辑器内容、控制台提示和语法高亮与选中文件保持一致。
+  - KidsCodingEditorPage 负责把文件状态传给左右侧组件，实现真正的联动体验。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
 - **2025-11-15 KidsCoding 文件栏新建按钮**
   - 去掉 QuickCreate 弹窗，Toolbar 直接提供“新建 Python 文件”“新建文件夹”两个按钮，点击立即执行，移动端更友好。
   - FileSidebar 添加 data-file-panel-root 仅供后续定位使用（当前无弹窗逻辑）。

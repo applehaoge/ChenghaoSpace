@@ -270,20 +270,20 @@ function WorkspaceTabs({
   activeId?: string;
   onSelect?: (entryId: string) => void;
 }) {
+  const containerClass = clsx('flex items-center px-4 rounded-t-3xl h-12 border-b', {
+    'bg-gray-800 border-gray-700': isDark,
+    'bg-blue-50/70 border-blue-100': !isDark,
+  });
+
+  const cardClass = clsx(
+    'flex items-center space-x-2 border border-b-transparent px-3 py-1.5 shadow-md rounded-t-2xl',
+    isDark ? 'bg-gray-900 border-gray-700 text-blue-200' : 'bg-white border-blue-200 text-blue-700',
+  );
+
   if (!tabs.length) {
     return (
-      <div
-        className={clsx('flex items-center px-4 rounded-t-3xl', {
-          'bg-gray-800': isDark,
-          'bg-blue-50/70': !isDark,
-        })}
-      >
-        <motion.div
-          className={clsx('flex items-center space-x-2 border border-b-transparent px-3 py-2 shadow-md rounded-t-2xl', {
-            'bg-gray-900 border-gray-700': isDark,
-            'bg-white border-blue-200': !isDark,
-          })}
-        >
+      <div className={containerClass}>
+        <motion.div className={cardClass}>
           <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
           <span className={isDark ? 'text-blue-300 font-medium' : 'text-blue-800 font-medium'}>main.py</span>
         </motion.div>
@@ -292,30 +292,21 @@ function WorkspaceTabs({
   }
 
   return (
-    <div
-      className={clsx('flex items-center px-4 rounded-t-3xl border-b', {
-        'bg-gray-800 border-gray-700': isDark,
-        'bg-blue-50/70 border-blue-100': !isDark,
-      })}
-    >
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin py-3 w-full">
+    <div className={containerClass}>
+      <div className="flex items-center gap-0 overflow-x-auto scrollbar-thin py-1.5 w-full">
         {tabs.map(tab => {
           const isActive = tab.id === activeId;
           return (
             <motion.button
               key={tab.id}
               type="button"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => onSelect?.(tab.id)}
-              className={clsx(
-                'flex items-center space-x-2 border border-b-transparent px-3 py-2 shadow-md rounded-t-2xl',
-                isDark ? 'bg-gray-900 border-gray-700 text-blue-200' : 'bg-white border-blue-200 text-blue-700',
-                isActive ? 'opacity-100' : 'opacity-60 hover:opacity-80',
-              )}
+              className={clsx(cardClass, isActive ? 'opacity-100' : 'opacity-60 hover:opacity-80')}
             >
               <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-              <span className="text-sm font-medium truncate max-w-[140px]">{tab.name}</span>
+              <span className="font-medium truncate">{tab.name}</span>
             </motion.button>
           );
         })}
