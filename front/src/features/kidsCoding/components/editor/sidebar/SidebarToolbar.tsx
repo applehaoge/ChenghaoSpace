@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { Upload, Download, ClipboardList, Folder, FileText, FilePlus2, FolderPlus } from 'lucide-react';
+import { Upload, ClipboardList, Folder, FileText, FilePlus2, FolderPlus } from 'lucide-react';
 import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
 import type { LessonSummary } from '@/features/kidsCoding/data/lessons';
 
@@ -69,7 +69,6 @@ export function SidebarToolbar({
               onClick={onCreateFolder}
             />
             <SidebarIconButton isDark={isDark} icon={<Upload size={16} />} motionButton title="上传" />
-            <SidebarIconButton isDark={isDark} icon={<Download size={16} />} motionButton title="下载" />
           </>
         )}
       </div>
