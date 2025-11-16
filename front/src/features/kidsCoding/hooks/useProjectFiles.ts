@@ -1,61 +1,98 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
-const DEFAULT_FILES: FileEntry[] = [
+const FALLBACK_FILES: FileEntry[] = [
   {
     id: 'main',
     name: 'main.py',
     kind: 'file',
     extension: 'py',
+    language: 'python',
+    content: '',
   },
 ];
 
-export function useProjectFiles(initialFiles: FileEntry[] = DEFAULT_FILES) {
-  const [files, setFiles] = useState<FileEntry[]>(initialFiles);
+export interface ProjectFilesState {
+  files: FileEntry[];
+  activeFileId: string;
+  activeFile?: FileEntry;
+  selectFile: (entryId: string) => void;
+  updateFileContent: (entryId: string, content: string) => void;
+  createPythonFile: (name?: string) => FileEntry;
+  createFolder: (name?: string) => FileEntry;
+  renameEntry: (entryId: string, name: string) => void;
+  removeEntry: (entryId: string) => void;
+}
+
+export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): ProjectFilesState {
+  const prepared = useRef(normalizeInitialFiles(initialFiles));
+  const [files, setFiles] = useState<FileEntry[]>(prepared.current.files);
+  const [activeFileId, setActiveFileId] = useState<string>(prepared.current.activeId);
+
+  const activeFile = useMemo(
+    () => files.find(file => file.id === activeFileId && file.kind !== 'folder'),
+    [files, activeFileId],
+  );
+
+  const selectFile = useCallback(
+    (entryId: string) => {
+      if (files.some(file => file.id === entryId && file.kind !== 'folder')) {
+        setActiveFileId(entryId);
+      }
+    },
+    [files],
+  );
+
+  const updateFileContent = useCallback((entryId: string, content: string) => {
+    setFiles(prev => prev.map(file => (file.id === entryId ? { ...file, content } : file)));
+  }, []);
 
   const createPythonFile = useCallback(
     (requestedName?: string): FileEntry => {
-      let createdEntry: FileEntry | undefined;
+      let created: FileEntry | undefined;
       setFiles(prev => {
         const nextName = buildUniqueName(
-          prev.map(item => item.name),
+          prev.map(file => file.name),
           buildCandidateName(requestedName, { extension: 'py', fallbackBase: '新的代码' }),
         );
-        createdEntry = {
+        created = {
           id: createEntryId(),
           name: nextName,
           kind: 'file',
           extension: 'py',
+          language: 'python',
+          content: '',
         };
-        return [...prev, createdEntry];
+        return [...prev, created];
       });
-      if (!createdEntry) {
-        throw new Error('Failed to create Python file');
+      if (!created) {
+        throw new Error('Failed to create python file');
       }
-      return createdEntry;
+      setActiveFileId(created.id);
+      return created;
     },
     [],
   );
 
   const createFolder = useCallback(
     (requestedName?: string): FileEntry => {
-      let createdEntry: FileEntry | undefined;
+      let created: FileEntry | undefined;
       setFiles(prev => {
         const nextName = buildUniqueName(
-          prev.map(item => item.name),
+          prev.map(file => file.name),
           buildCandidateName(requestedName, { fallbackBase: '新建文件夹' }),
         );
-        createdEntry = {
+        created = {
           id: createEntryId(),
           name: nextName,
           kind: 'folder',
         };
-        return [...prev, createdEntry];
+        return [...prev, created];
       });
-      if (!createdEntry) {
+      if (!created) {
         throw new Error('Failed to create folder');
       }
-      return createdEntry;
+      return created;
     },
     [],
   );
@@ -77,15 +114,49 @@ export function useProjectFiles(initialFiles: FileEntry[] = DEFAULT_FILES) {
   }, []);
 
   const removeEntry = useCallback((entryId: string) => {
-    setFiles(prev => prev.filter(file => file.id !== entryId));
+    setFiles(prev => {
+      const nextFiles = prev.filter(file => file.id !== entryId);
+      setActiveFileId(currentActive => {
+        if (currentActive !== entryId) {
+          return currentActive;
+        }
+        const nextActive = nextFiles.find(file => file.kind !== 'folder');
+        return nextActive?.id ?? '';
+      });
+      return nextFiles;
+    });
   }, []);
 
   return {
     files,
+    activeFileId,
+    activeFile,
+    selectFile,
+    updateFileContent,
     createPythonFile,
     createFolder,
     renameEntry,
     removeEntry,
+  };
+}
+
+function normalizeInitialFiles(seed: FileEntry[]) {
+  const base = seed.length ? seed : FALLBACK_FILES;
+  const normalized = base.map(file => {
+    const extension = file.extension ?? inferExtension(file.name);
+    return {
+      ...file,
+      id: file.id ?? createEntryId(),
+      kind: file.kind ?? 'file',
+      extension,
+      language: file.language ?? (extension === 'py' ? 'python' : undefined),
+      content: file.content ?? '',
+    };
+  });
+  const firstFile = normalized.find(file => file.kind !== 'folder');
+  return {
+    files: normalized,
+    activeId: firstFile?.id ?? normalized[0]?.id ?? '',
   };
 }
 
@@ -115,7 +186,6 @@ function buildUniqueName(existingNames: string[], candidate: string) {
   if (!existingNames.includes(candidate)) {
     return candidate;
   }
-
   const { base, ext } = splitName(candidate);
   let counter = 2;
   while (true) {
@@ -133,6 +203,15 @@ function splitName(input: string) {
     return { base: input.slice(0, dotIndex), ext: input.slice(dotIndex) };
   }
   return { base: input, ext: '' };
+}
+
+function inferExtension(name: string | undefined) {
+  if (!name) return undefined;
+  const dotIndex = name.lastIndexOf('.');
+  if (dotIndex > 0 && dotIndex < name.length - 1) {
+    return name.slice(dotIndex + 1);
+  }
+  return undefined;
 }
 
 const createEntryId = () => {

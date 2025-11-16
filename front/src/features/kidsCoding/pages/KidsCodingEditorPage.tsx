@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Sparkles, Star, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
@@ -29,13 +29,35 @@ const DEFAULT_CODE = [
 export function KidsCodingEditorPage() {
   const { toggleTheme, isDark } = useTheme();
   const [zoomLevel, setZoomLevel] = useState(100);
-  const [codeValue, setCodeValue] = useState(DEFAULT_CODE);
   const [showTutorialHint, setShowTutorialHint] = useState(true);
   const [tokenBalance, setTokenBalance] = useState(120);
   const { isCollapsed, toggleSidebar } = useFileSidebar();
   const { isCollapsed: isInsightsCollapsed, toggleSidebar: toggleInsightsSidebar } = useInsightsSidebar();
   const { runCode, runState, isRunning } = useRunJob();
-  const { files, createPythonFile, createFolder, renameEntry, removeEntry } = useProjectFiles();
+  const initialProjectFiles = useMemo(
+    () => [
+      {
+        id: 'main',
+        name: 'main.py',
+        kind: 'file',
+        extension: 'py',
+        language: 'python',
+        content: DEFAULT_CODE,
+      },
+    ],
+    [],
+  );
+  const {
+    files,
+    activeFile,
+    activeFileId,
+    selectFile,
+    updateFileContent,
+    createPythonFile,
+    createFolder,
+    renameEntry,
+    removeEntry,
+  } = useProjectFiles(initialProjectFiles);
 
   useEffect(() => {
     const timer = setTimeout(() => setShowTutorialHint(false), 5000);
@@ -54,6 +76,14 @@ export function KidsCodingEditorPage() {
       });
     });
   };
+
+  const handleCodeChange = useCallback(
+    (value: string) => {
+      if (!activeFile) return;
+      updateFileContent(activeFile.id, value);
+    },
+    [activeFile, updateFileContent],
+  );
 
   const handleAskAssistant = useCallback((payload: { text: string }) => {
     window.dispatchEvent(new CustomEvent(KIDS_CODING_CONSOLE_ASK_AI, { detail: payload }));
@@ -101,6 +131,8 @@ export function KidsCodingEditorPage() {
           isCollapsed={isCollapsed}
           onToggle={toggleSidebar}
           files={files}
+          activeFileId={activeFileId}
+          onSelectFile={selectFile}
           onCreatePythonFile={createPythonFile}
           onCreateFolder={createFolder}
           onRenameEntry={renameEntry}
@@ -111,8 +143,8 @@ export function KidsCodingEditorPage() {
           <CodeWorkspace
             isDark={isDark}
             zoomLevel={zoomLevel}
-            codeValue={codeValue}
-            onCodeChange={setCodeValue}
+            codeValue={activeFile?.content ?? ''}
+            onCodeChange={handleCodeChange}
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
             onRunCode={handleRunCode}
@@ -120,6 +152,11 @@ export function KidsCodingEditorPage() {
             runState={runState}
             isRunBusy={isRunning}
             onAskAssistant={handleAskAssistant}
+            fileName={activeFile?.name ?? 'main.py'}
+            language={activeFile?.language ?? 'python'}
+            files={files}
+            activeFileId={activeFileId}
+            onSelectFile={selectFile}
           />
           <InsightsSidebar
             isDark={isDark}

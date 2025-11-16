@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal, Trash2 } from 'lucide-react';
+import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal } from 'lucide-react';
 import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
 import { ResizableConsole } from '@/features/kidsCoding/components/editor/ResizableConsole';
 import type { RunConsoleState } from '@/features/kidsCoding/hooks/useRunJob';
+import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
 interface CodeWorkspaceProps {
   isDark: boolean;
@@ -18,6 +19,11 @@ interface CodeWorkspaceProps {
   runState?: RunConsoleState;
   isRunBusy?: boolean;
   onAskAssistant?: (payload: { text: string }) => void;
+  fileName?: string;
+  language?: string;
+  files?: FileEntry[];
+  activeFileId?: string;
+  onSelectFile?: (entryId: string) => void;
 }
 
 const DEFAULT_CONSOLE_HEIGHT = 220;
@@ -34,7 +40,20 @@ export function CodeWorkspace({
   runState,
   isRunBusy,
   onAskAssistant,
+  fileName = 'main.py',
+  language = 'python',
+  files = [],
+  activeFileId,
+  onSelectFile,
 }: CodeWorkspaceProps) {
+  const fileTabs = useMemo(() => files.filter(file => file.kind !== 'folder'), [files]);
+  const activeTab = useMemo(
+    () => fileTabs.find(file => file.id === activeFileId) ?? fileTabs[0],
+    [fileTabs, activeFileId],
+  );
+  const displayName = activeTab?.name ?? fileName;
+  const displayLanguage = activeTab?.language ?? language;
+
   const safeRunState: RunConsoleState =
     runState ?? {
       status: 'idle',
@@ -44,7 +63,7 @@ export function CodeWorkspace({
   const editorFontSize = Math.max(12, Math.round((zoomLevel / 100) * 16));
   const [isConsoleOpen, setIsConsoleOpen] = useState(false);
   const [consoleHeight, setConsoleHeight] = useState(DEFAULT_CONSOLE_HEIGHT);
-  const consoleTimestamp = useMemo(() => new Date().toLocaleTimeString(), [codeValue]);
+  const consoleTimestamp = useMemo(() => new Date().toLocaleTimeString(), [codeValue, displayName]);
 
   useEffect(() => {
     if (safeRunState.status !== 'idle') {
@@ -53,7 +72,7 @@ export function CodeWorkspace({
   }, [safeRunState.status]);
 
   const consoleOutput = useMemo(() => {
-    const defaultMessage = `>>> Waiting to run main.py · ${consoleTimestamp}\nUse "Run Code" to send the latest output here.`;
+    const defaultMessage = `>>> Waiting to run ${displayName} · ${consoleTimestamp}\nUse "Run Code" to send the latest output here.`;
     if (safeRunState.status === 'idle') {
       return defaultMessage;
     }
@@ -103,29 +122,7 @@ export function CodeWorkspace({
         'bg-white': !isDark,
       })}
     >
-      <div
-        className={clsx('flex items-center px-4 rounded-t-3xl', {
-          'bg-gray-800': isDark,
-          'bg-blue-50/70': !isDark,
-        })}
-      >
-        <motion.div
-          className={clsx('flex items-center space-x-2 border border-b-transparent px-3 py-2 shadow-md rounded-t-2xl', {
-            'bg-gray-900 border-gray-700': isDark,
-            'bg-white border-blue-200': !isDark,
-          })}
-        >
-          <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-          <span className={isDark ? 'text-blue-300 font-medium' : 'text-blue-800 font-medium'}>main.py</span>
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            className="p-0.5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-colors duration-300"
-          >
-            <Trash2 size={14} />
-          </motion.button>
-        </motion.div>
-      </div>
+      <WorkspaceTabs isDark={isDark} tabs={fileTabs} activeId={activeTab?.id} onSelect={onSelectFile} />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <div className="flex-1 flex overflow-hidden relative">
@@ -138,7 +135,7 @@ export function CodeWorkspace({
             <CodeEditor
               value={codeValue}
               onChange={onCodeChange}
-              language="python"
+              language={displayLanguage}
               theme={editorTheme}
               fontSize={editorFontSize}
             />
@@ -261,3 +258,68 @@ const getRunStatusMeta = (
       return { label: '就绪', tone: 'default' };
   }
 };
+
+function WorkspaceTabs({
+  isDark,
+  tabs,
+  activeId,
+  onSelect,
+}: {
+  isDark: boolean;
+  tabs: FileEntry[];
+  activeId?: string;
+  onSelect?: (entryId: string) => void;
+}) {
+  if (!tabs.length) {
+    return (
+      <div
+        className={clsx('flex items-center px-4 rounded-t-3xl', {
+          'bg-gray-800': isDark,
+          'bg-blue-50/70': !isDark,
+        })}
+      >
+        <motion.div
+          className={clsx('flex items-center space-x-2 border border-b-transparent px-3 py-2 shadow-md rounded-t-2xl', {
+            'bg-gray-900 border-gray-700': isDark,
+            'bg-white border-blue-200': !isDark,
+          })}
+        >
+          <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+          <span className={isDark ? 'text-blue-300 font-medium' : 'text-blue-800 font-medium'}>main.py</span>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={clsx('flex items-center px-4 rounded-t-3xl border-b', {
+        'bg-gray-800 border-gray-700': isDark,
+        'bg-blue-50/70 border-blue-100': !isDark,
+      })}
+    >
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-thin py-3 w-full">
+        {tabs.map(tab => {
+          const isActive = tab.id === activeId;
+          return (
+            <motion.button
+              key={tab.id}
+              type="button"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onSelect?.(tab.id)}
+              className={clsx(
+                'flex items-center space-x-2 border border-b-transparent px-3 py-2 shadow-md rounded-t-2xl',
+                isDark ? 'bg-gray-900 border-gray-700 text-blue-200' : 'bg-white border-blue-200 text-blue-700',
+                isActive ? 'opacity-100' : 'opacity-60 hover:opacity-80',
+              )}
+            >
+              <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
+              <span className="text-sm font-medium truncate max-w-[140px]">{tab.name}</span>
+            </motion.button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

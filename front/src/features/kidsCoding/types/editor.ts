@@ -9,4 +9,6 @@ export interface FileEntry {
   name: string;
   kind?: 'file' | 'folder';
   extension?: string;
+  language?: string;
+  content?: string;
 }

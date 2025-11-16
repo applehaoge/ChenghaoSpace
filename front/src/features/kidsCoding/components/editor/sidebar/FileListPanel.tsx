@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { Clock, FileText, Folder, Trash2 } from 'lucide-react';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
@@ -13,6 +14,8 @@ interface FileListPanelProps {
   onCancelEditing?: () => void;
   onRequestRename?: (entry: FileEntry) => void;
   onRemoveEntry?: (entry: FileEntry) => void;
+  activeEntryId?: string;
+  onSelectEntry?: (entry: FileEntry) => void;
 }
 
 export function FileListPanel({
@@ -25,6 +28,8 @@ export function FileListPanel({
   onCancelEditing,
   onRequestRename,
   onRemoveEntry,
+  activeEntryId,
+  onSelectEntry,
 }: FileListPanelProps) {
   if (!files.length) {
     return (
@@ -45,12 +50,14 @@ export function FileListPanel({
           file={file}
           isDark={isDark}
           isEditing={file.id === editingEntryId}
+          isSelected={file.id === activeEntryId}
           editingValue={editingValue}
           onEditingValueChange={onEditingValueChange}
           onCommitEditing={onCommitEditing}
           onCancelEditing={onCancelEditing}
           onRequestRename={onRequestRename}
           onRemoveEntry={onRemoveEntry}
+          onSelectEntry={onSelectEntry}
         />
       ))}
     </>
@@ -61,22 +68,26 @@ function FileRow({
   file,
   isDark,
   isEditing,
+  isSelected,
   editingValue,
   onEditingValueChange,
   onCommitEditing,
   onCancelEditing,
   onRequestRename,
   onRemoveEntry,
+  onSelectEntry,
 }: {
   file: FileEntry;
   isDark: boolean;
   isEditing: boolean;
+  isSelected: boolean;
   editingValue: string;
   onEditingValueChange?: (value: string) => void;
   onCommitEditing?: () => void;
   onCancelEditing?: () => void;
   onRequestRename?: (entry: FileEntry) => void;
   onRemoveEntry?: (entry: FileEntry) => void;
+  onSelectEntry?: (entry: FileEntry) => void;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -87,14 +98,32 @@ function FileRow({
     }
   }, [isEditing]);
 
+  const handleSelect = () => {
+    if (!isEditing && file.kind !== 'folder') {
+      onSelectEntry?.(file);
+    }
+  };
+
   return (
     <motion.div
+      onClick={handleSelect}
       whileHover={{ x: 3 }}
-      className={`flex items-center justify-between p-2.5 rounded-2xl mb-2 transition-colors duration-300 ${
+      className={clsx(
+        'flex items-center justify-between p-2.5 rounded-2xl mb-2 transition-colors duration-300 cursor-pointer shadow-lg',
         isDark
           ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30'
-          : 'bg-gradient-to-r from-blue-100 to-indigo-50 hover:from-blue-200 hover:to-indigo-100'
-      } shadow-lg ${isEditing ? (isDark ? 'ring-2 ring-blue-500/60' : 'ring-2 ring-blue-400') : ''}`}
+          : 'bg-gradient-to-r from-blue-100 to-indigo-50 hover:from-blue-200 hover:to-indigo-100',
+        isEditing
+          ? isDark
+            ? 'ring-2 ring-blue-500/60'
+            : 'ring-2 ring-blue-400'
+          : '',
+        isSelected && !isEditing
+          ? isDark
+            ? 'ring-2 ring-blue-500/60 bg-blue-900/20'
+            : 'ring-2 ring-blue-400 bg-white'
+          : '',
+      )}
     >
       <div className="flex items-center space-x-2 flex-1 min-w-0">
         {file.kind === 'folder' ? (

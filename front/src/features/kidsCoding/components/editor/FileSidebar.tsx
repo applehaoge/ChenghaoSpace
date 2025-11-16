@@ -17,6 +17,8 @@ interface FileSidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
   files: FileEntry[];
+  activeFileId?: string;
+  onSelectFile: (entryId: string) => void;
   onCreatePythonFile: (name?: string) => FileEntry;
   onCreateFolder: (name?: string) => FileEntry;
   onRenameEntry: (entryId: string, name: string) => void;
@@ -29,6 +31,8 @@ export function FileSidebar({
   isCollapsed,
   onToggle,
   files,
+  activeFileId,
+  onSelectFile,
   onCreatePythonFile,
   onCreateFolder,
   onRenameEntry,
@@ -118,6 +122,17 @@ export function FileSidebar({
     beginEditing(entry);
   }, [beginEditing, editingEntryId, handleCommitEditing, onCreateFolder]);
 
+  const handleSelectEntry = useCallback(
+    (entry: FileEntry) => {
+      if (entry.kind === 'folder') return;
+      if (editingEntryId && editingEntryId !== entry.id) {
+        handleCommitEditing();
+      }
+      onSelectFile(entry.id);
+    },
+    [editingEntryId, handleCommitEditing, onSelectFile],
+  );
+
   return (
     <>
       <motion.div
@@ -180,6 +195,8 @@ export function FileSidebar({
                 onCancelEditing={handleCancelEditing}
                 onRequestRename={handleRequestRename}
                 onRemoveEntry={handleRemoveEntry}
+                activeEntryId={activeFileId}
+                onSelectEntry={handleSelectEntry}
               />
             )}
           </div>
