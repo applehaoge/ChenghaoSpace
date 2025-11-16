@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { FILE_PANEL_COLLAPSED_WIDTH, FILE_PANEL_WIDTH } from '@/features/kidsCoding/constants/editorLayout';
@@ -17,11 +17,27 @@ interface FileSidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
   files: FileEntry[];
+  onCreatePythonFile: (name?: string) => FileEntry;
+  onCreateFolder: (name?: string) => FileEntry;
+  onRenameEntry: (entryId: string, name: string) => void;
+  onRemoveEntry: (entryId: string) => void;
   onEarnTokens?: (amount: number) => void;
 }
 
-export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens }: FileSidebarProps) {
+export function FileSidebar({
+  isDark,
+  isCollapsed,
+  onToggle,
+  files,
+  onCreatePythonFile,
+  onCreateFolder,
+  onRenameEntry,
+  onRemoveEntry,
+  onEarnTokens,
+}: FileSidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
+  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
+  const [editingValue, setEditingValue] = useState('');
   const {
     lesson,
     lessonId,
@@ -47,6 +63,61 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
     setActiveView(prev => (prev === 'tasks' ? 'files' : 'tasks'));
   };
 
+  const beginEditing = useCallback((entry: FileEntry) => {
+    setEditingEntryId(entry.id);
+    setEditingValue(entry.name);
+  }, []);
+
+  const handleCommitEditing = useCallback(() => {
+    if (!editingEntryId) return;
+    const trimmed = editingValue.trim();
+    if (trimmed) {
+      onRenameEntry(editingEntryId, trimmed);
+    }
+    setEditingEntryId(null);
+    setEditingValue('');
+  }, [editingEntryId, editingValue, onRenameEntry]);
+
+  const handleCancelEditing = useCallback(() => {
+    setEditingEntryId(null);
+    setEditingValue('');
+  }, []);
+  const handleRemoveEntry = useCallback(
+    (entry: FileEntry) => {
+      if (editingEntryId === entry.id) {
+        handleCancelEditing();
+      }
+      onRemoveEntry(entry.id);
+    },
+    [editingEntryId, handleCancelEditing, onRemoveEntry],
+  );
+
+  const handleRequestRename = useCallback(
+    (entry: FileEntry) => {
+      if (editingEntryId && editingEntryId !== entry.id) {
+        handleCommitEditing();
+      }
+      beginEditing(entry);
+    },
+    [beginEditing, editingEntryId, handleCommitEditing],
+  );
+
+  const handleCreatePythonEntry = useCallback(() => {
+    if (editingEntryId) {
+      handleCommitEditing();
+    }
+    const entry = onCreatePythonFile();
+    beginEditing(entry);
+  }, [beginEditing, editingEntryId, handleCommitEditing, onCreatePythonFile]);
+
+  const handleCreateFolderEntry = useCallback(() => {
+    if (editingEntryId) {
+      handleCommitEditing();
+    }
+    const entry = onCreateFolder();
+    beginEditing(entry);
+  }, [beginEditing, editingEntryId, handleCommitEditing, onCreateFolder]);
+
   return (
     <>
       <motion.div
@@ -59,6 +130,7 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
         className={`relative flex flex-col border ${
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white/90 border-blue-200'
         } backdrop-blur-sm shadow-xl rounded-3xl overflow-hidden`}
+        data-file-panel-root="files-panel"
         style={{ width: isCollapsed ? FILE_PANEL_COLLAPSED_WIDTH : FILE_PANEL_WIDTH }}
       >
         <CollapseHandle isDark={isDark} isCollapsed={isCollapsed} onToggle={onToggle} />
@@ -76,6 +148,8 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
             lessons={lessons}
             activeLessonId={lessonId}
             onLessonChange={changeLesson}
+            onCreatePythonFile={handleCreatePythonEntry}
+            onCreateFolder={handleCreateFolderEntry}
           />
 
           <div className="flex-1 min-h-0">
@@ -96,7 +170,17 @@ export function FileSidebar({ isDark, isCollapsed, onToggle, files, onEarnTokens
                 onRequestVideo={openVideo}
               />
             ) : (
-              <FileListPanel isDark={isDark} files={files} />
+              <FileListPanel
+                isDark={isDark}
+                files={files}
+                editingEntryId={editingEntryId}
+                editingValue={editingValue}
+                onEditingValueChange={setEditingValue}
+                onCommitEditing={handleCommitEditing}
+                onCancelEditing={handleCancelEditing}
+                onRequestRename={handleRequestRename}
+                onRemoveEntry={handleRemoveEntry}
+              />
             )}
           </div>
         </div>

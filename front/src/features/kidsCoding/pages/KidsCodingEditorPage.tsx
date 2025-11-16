@@ -10,11 +10,8 @@ import { InsightsSidebar } from '@/features/kidsCoding/components/editor/Insight
 import { useFileSidebar } from '@/features/kidsCoding/hooks/useFileSidebar';
 import { useInsightsSidebar } from '@/features/kidsCoding/hooks/useInsightsSidebar';
 import { useRunJob } from '@/features/kidsCoding/hooks/useRunJob';
+import { useProjectFiles } from '@/features/kidsCoding/hooks/useProjectFiles';
 import { KIDS_CODING_CONSOLE_ASK_AI } from '@/features/kidsCoding/constants/events';
-
-import type { FileEntry } from '@/features/kidsCoding/types/editor';
-
-const FILES: FileEntry[] = [{ id: 'main', name: 'main.py' }];
 
 const DEFAULT_CODE = [
   'import matplotlib.pyplot as plt',
@@ -38,6 +35,7 @@ export function KidsCodingEditorPage() {
   const { isCollapsed, toggleSidebar } = useFileSidebar();
   const { isCollapsed: isInsightsCollapsed, toggleSidebar: toggleInsightsSidebar } = useInsightsSidebar();
   const { runCode, runState, isRunning } = useRunJob();
+  const { files, createPythonFile, createFolder, renameEntry, removeEntry } = useProjectFiles();
 
   useEffect(() => {
     const timer = setTimeout(() => setShowTutorialHint(false), 5000);
@@ -102,7 +100,11 @@ export function KidsCodingEditorPage() {
           isDark={isDark}
           isCollapsed={isCollapsed}
           onToggle={toggleSidebar}
-          files={FILES}
+          files={files}
+          onCreatePythonFile={createPythonFile}
+          onCreateFolder={createFolder}
+          onRenameEntry={renameEntry}
+          onRemoveEntry={removeEntry}
           onEarnTokens={handleEarnTokens}
         />
         <div className="flex flex-1 gap-3 xl:gap-4 min-w-0">

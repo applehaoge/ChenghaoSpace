@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { Plus, Upload, Download, ClipboardList, Folder, FileText } from 'lucide-react';
+import { Upload, Download, ClipboardList, Folder, FileText, FilePlus2, FolderPlus } from 'lucide-react';
 import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
 import type { LessonSummary } from '@/features/kidsCoding/data/lessons';
 
@@ -12,6 +12,8 @@ interface SidebarToolbarProps {
   lessons: LessonSummary[];
   activeLessonId: string;
   onLessonChange: (lessonId: string) => void;
+  onCreatePythonFile: () => void;
+  onCreateFolder: () => void;
 }
 
 export function SidebarToolbar({
@@ -21,6 +23,8 @@ export function SidebarToolbar({
   lessons,
   activeLessonId,
   onLessonChange,
+  onCreatePythonFile,
+  onCreateFolder,
 }: SidebarToolbarProps) {
   const isTaskView = activeView === 'tasks';
 
@@ -50,7 +54,20 @@ export function SidebarToolbar({
           <SidebarReturnButton isDark={isDark} onClick={onToggleView} />
         ) : (
           <>
-            <SidebarIconButton isDark={isDark} icon={<Plus size={16} />} motionButton title="新建文件" />
+            <SidebarIconButton
+              isDark={isDark}
+              icon={<FilePlus2 size={16} />}
+              motionButton
+              title="新建 Python 文件"
+              onClick={onCreatePythonFile}
+            />
+            <SidebarIconButton
+              isDark={isDark}
+              icon={<FolderPlus size={16} />}
+              motionButton
+              title="新建文件夹"
+              onClick={onCreateFolder}
+            />
             <SidebarIconButton isDark={isDark} icon={<Upload size={16} />} motionButton title="上传" />
             <SidebarIconButton isDark={isDark} icon={<Download size={16} />} motionButton title="下载" />
           </>
@@ -142,23 +159,31 @@ interface SidebarIconButtonProps {
   icon: ReactNode;
   motionButton?: boolean;
   title?: string;
+  onClick?: () => void;
 }
 
-function SidebarIconButton({ isDark, icon, motionButton = false, title }: SidebarIconButtonProps) {
+function SidebarIconButton({ isDark, icon, motionButton = false, title, onClick }: SidebarIconButtonProps) {
   const baseClasses = `p-1.5 rounded-full transition-colors duration-300 ${
     isDark ? 'hover:bg-gray-700' : 'hover:bg-blue-100'
   }`;
 
   if (motionButton) {
     return (
-      <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={baseClasses} title={title}>
+      <motion.button
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className={baseClasses}
+        title={title}
+        onClick={onClick}
+        type="button"
+      >
         {icon}
       </motion.button>
     );
   }
 
   return (
-    <button className={baseClasses} title={title}>
+    <button className={baseClasses} title={title} onClick={onClick} type="button">
       {icon}
     </button>
   );
