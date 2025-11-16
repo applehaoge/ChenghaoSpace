@@ -109,10 +109,10 @@ function FileRow({
       onClick={handleSelect}
       whileHover={{ x: 3 }}
       className={clsx(
-        'flex items-center justify-between p-2.5 rounded-2xl mb-2 transition-colors duration-300 cursor-pointer shadow-lg',
+        'flex items-center justify-between p-2.5 transition-colors duration-300 cursor-pointer shadow-lg border rounded-2xl -mt-px first:mt-0',
         isDark
-          ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30'
-          : 'bg-gradient-to-r from-blue-100 to-indigo-50 hover:from-blue-200 hover:to-indigo-100',
+          ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30 border-blue-900/50'
+          : 'bg-gradient-to-r from-blue-100 to-indigo-50 hover:from-blue-200 hover:to-indigo-100 border-blue-200',
         isEditing
           ? isDark
             ? 'ring-2 ring-blue-500/60'

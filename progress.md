@@ -617,3 +617,10 @@ sHelpers??ttachmentContext ��ǰ?? iService ��Ԫ����
 - **2025-11-14 KidsCoding vocab card horizontal center**
   - Compute dynamic left offset based on mission panel width so 90% hover cards truly center and no longer overlap the scrollbar.
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-16 KidsCoding 文件卡片全圆角贴合**
+  - FileListPanel 改回所有条目均为圆角卡片，并保留共享边框/无间距效果，实现既贴合又有圆角的视觉。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
+
+- **2025-11-16 KidsCoding 文件卡片贴合边界**
+  - FileListPanel 去掉文件卡片之间的默认间距，改成首尾圆角+共享边框，让上下条目紧贴但仍有清晰分界线。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
