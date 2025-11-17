@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { createJobRecord, getJobRecord, updateJobStatus, appendJobOutput, setJobResult, setJobVisualizationFrame, } from './jobStore.js';
 import { enqueueJobId, claimNextJobId } from './jobQueue.js';
 import { assertRunnerAuthorized } from './runnerAuth.js';
+import { sanitizeRunJobDTO } from './runJobValidator.js';
 const MAX_TIMEOUT_MS = Number(process.env.RUN_JOB_TIMEOUT_MS ?? 60000);
 const clampTimeout = (input) => {
     if (!input || Number.isNaN(input))
@@ -11,20 +12,20 @@ const clampTimeout = (input) => {
 export const registerRunRoutes = async (fastify) => {
     fastify.post('/api/run', async (request, reply) => {
         const body = request.body;
-        if (!body || typeof body.code !== 'string' || !body.code.trim()) {
-            return reply.code(400).send({ message: 'code is required' });
+        let sanitized;
+        try {
+            sanitized = sanitizeRunJobDTO(body);
         }
-        if (body.language && body.language !== 'python') {
-            return reply.code(400).send({ message: 'Only python language is supported currently' });
+        catch (error) {
+            return reply.code(400).send({ message: error.message });
         }
         const jobId = randomUUID();
         const job = createJobRecord({
             id: jobId,
-            code: body.code,
             language: 'python',
-            stdin: typeof body.stdin === 'string' ? body.stdin : undefined,
-            timeoutMs: clampTimeout(body.timeout),
+            timeoutMs: clampTimeout(undefined),
             createdAt: Date.now(),
+            ...sanitized,
         });
         enqueueJobId(job.id);
         return reply.code(202).send({ jobId: job.id, status: job.status });
@@ -60,11 +61,12 @@ export const registerRunRoutes = async (fastify) => {
         updateJobStatus(jobId, 'running');
         return {
             jobId: job.id,
-            code: job.code,
-            stdin: job.stdin,
             language: job.language,
             timeoutMs: job.timeoutMs,
             createdAt: job.createdAt,
+            protocolVersion: job.protocolVersion,
+            files: job.files,
+            entryPath: job.entryPath,
         };
     });
     fastify.post('/api/runner/jobs/:jobId/events', async (request, reply) => {

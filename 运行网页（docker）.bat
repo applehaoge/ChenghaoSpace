@@ -19,7 +19,7 @@ popd
 
 pushd "%ROOT%"
 echo [2/3] Start Docker containers (server + python-runner)...
-call docker compose up -d
+call docker compose up -d --build
 if errorlevel 1 (
   echo !!! Docker compose failed. Make sure Docker Desktop is running.
   popd
