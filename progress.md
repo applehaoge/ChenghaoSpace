@@ -672,3 +672,18 @@ sHelpers??ttachmentContext   ǰ?? iService   Ԫ
   - FileSidebar 将单个 pending id 替换为队列，支持连续创建多条目时依次进入改名，不再出现“第二个无法改名”的回归。
   - FileListPanel 调整默认/选中/编辑底色，对浅色模式使用更亮的琥珀背景，深色模式强化蓝色叠加，保证选中状态一眼可见。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-17 KidsCoding 新建立即改名 + 颜色适配**
+  - FileSidebar 在创建时立刻进入编辑态，并保留队列兜底，确保无论点击多少次“新建”都能触发改名。
+  - FileListPanel 取消黄底，浅色模式改用高亮蓝色、深色模式改用青蓝色叠加，提升与整体主题的适配和可见度。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-17 KidsCoding 改名重试机制 + 蓝色选中**
+  - FileSidebar 将 pending rename 改成 requestAnimationFrame 重试，最多尝试 ~200ms，彻底消除“第二次不进入改名”的竞争条件。
+  - FileListPanel 扩大选中色块对比：浅色主题使用半透明蓝色、深色主题使用亮青色，保留紧凑布局同时保证状态清晰。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-17 KidsCoding useRenameWorkflow**
+  - 新增 hooks/useRenameWorkflow，将改名状态与队列封装成可复用逻辑，通过文件列表渲染完成后再激活输入，杜绝“新建多次只有第一次能改名”的竞态。
+  - FileSidebar 接入新 Hook，所有入口（双击、工具栏创建、删除后重建）统一走队列，组件本身仅负责 UI，逻辑更清晰。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

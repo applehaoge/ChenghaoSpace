@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { FILE_PANEL_COLLAPSED_WIDTH, FILE_PANEL_WIDTH } from '@/features/kidsCoding/constants/editorLayout';
@@ -9,6 +9,7 @@ import { LessonTaskPanel } from '@/features/kidsCoding/components/editor/sidebar
 import { TaskVideoDialog } from '@/features/kidsCoding/components/editor/sidebar/TaskVideoDialog';
 import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
 import { useLessonSlides } from '@/features/kidsCoding/hooks/useLessonSlides';
+import { useRenameWorkflow } from '@/features/kidsCoding/hooks/useRenameWorkflow';
 
 export type { SidebarView };
 
@@ -40,9 +41,15 @@ export function FileSidebar({
   onEarnTokens,
 }: FileSidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
-  const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
-  const [editingValue, setEditingValue] = useState('');
-  const [pendingRenameQueue, setPendingRenameQueue] = useState<string[]>([]);
+  const {
+    editingEntryId,
+    editingValue,
+    requestRename,
+    beginRenameNow,
+    updateEditingValue,
+    commitEditing,
+    cancelEditing,
+  } = useRenameWorkflow({ files, onRename: onRenameEntry });
   const {
     lesson,
     lessonId,
@@ -68,33 +75,13 @@ export function FileSidebar({
     setActiveView(prev => (prev === 'tasks' ? 'files' : 'tasks'));
   };
 
-  const beginEditing = useCallback((entry: FileEntry) => {
-    setEditingEntryId(entry.id);
-    setEditingValue(entry.name);
-  }, []);
-
-  useEffect(() => {
-    if (!pendingRenameQueue.length) return;
-    const pendingEntry = files.find(file => file.id === pendingRenameQueue[0]);
-    if (!pendingEntry) return;
-    beginEditing(pendingEntry);
-    setPendingRenameQueue(queue => queue.slice(1));
-  }, [beginEditing, files, pendingRenameQueue]);
-
   const handleCommitEditing = useCallback(() => {
-    if (!editingEntryId) return;
-    const trimmed = editingValue.trim();
-    if (trimmed) {
-      onRenameEntry(editingEntryId, trimmed);
-    }
-    setEditingEntryId(null);
-    setEditingValue('');
-  }, [editingEntryId, editingValue, onRenameEntry]);
+    commitEditing();
+  }, [commitEditing]);
 
   const handleCancelEditing = useCallback(() => {
-    setEditingEntryId(null);
-    setEditingValue('');
-  }, []);
+    cancelEditing();
+  }, [cancelEditing]);
   const handleRemoveEntry = useCallback(
     (entry: FileEntry) => {
       if (editingEntryId === entry.id) {
@@ -110,9 +97,9 @@ export function FileSidebar({
       if (editingEntryId && editingEntryId !== entry.id) {
         handleCommitEditing();
       }
-      beginEditing(entry);
+      beginRenameNow(entry);
     },
-    [beginEditing, editingEntryId, handleCommitEditing],
+    [beginRenameNow, editingEntryId, handleCommitEditing],
   );
 
   const handleCreatePythonEntry = useCallback(() => {
@@ -120,18 +107,18 @@ export function FileSidebar({
       handleCommitEditing();
     }
     const entry = onCreatePythonFile();
-    setPendingRenameQueue(queue => [...queue, entry.id]); // 等待文件列表落盘后再进入改名态，避免偶发失焦
+    requestRename(entry.id, entry.name);
     setActiveView('files');
-  }, [editingEntryId, handleCommitEditing, onCreatePythonFile]);
+  }, [editingEntryId, handleCommitEditing, onCreatePythonFile, requestRename]);
 
   const handleCreateFolderEntry = useCallback(() => {
     if (editingEntryId) {
       handleCommitEditing();
     }
     const entry = onCreateFolder();
-    setPendingRenameQueue(queue => [...queue, entry.id]); // 同上，保证新建文件夹必定进入改名状态
+    requestRename(entry.id, entry.name);
     setActiveView('files');
-  }, [editingEntryId, handleCommitEditing, onCreateFolder]);
+  }, [editingEntryId, handleCommitEditing, onCreateFolder, requestRename]);
 
   const handleSelectEntry = useCallback(
     (entry: FileEntry) => {
@@ -201,7 +188,7 @@ export function FileSidebar({
                 files={files}
                 editingEntryId={editingEntryId}
                 editingValue={editingValue}
-                onEditingValueChange={setEditingValue}
+                onEditingValueChange={updateEditingValue}
                 onCommitEditing={handleCommitEditing}
                 onCancelEditing={handleCancelEditing}
                 onRequestRename={handleRequestRename}

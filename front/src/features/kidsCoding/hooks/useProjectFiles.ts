@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
 const FALLBACK_FILES: FileEntry[] = [
@@ -28,7 +28,12 @@ export interface ProjectFilesState {
 export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): ProjectFilesState {
   const prepared = useRef(normalizeInitialFiles(initialFiles));
   const [files, setFiles] = useState<FileEntry[]>(prepared.current.files);
+  const filesSnapshotRef = useRef<FileEntry[]>(prepared.current.files);
   const [activeFileId, setActiveFileId] = useState<string>(prepared.current.activeId);
+
+  useEffect(() => {
+    filesSnapshotRef.current = files;
+  }, [files]);
 
   const activeFile = useMemo(
     () => files.find(file => file.id === activeFileId && file.kind !== 'folder'),
@@ -48,59 +53,47 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     setFiles(prev => prev.map(file => (file.id === entryId ? { ...file, content } : file)));
   }, []);
 
-  const createPythonFile = useCallback(
-    (requestedName?: string): FileEntry => {
-      let created: FileEntry | undefined;
-      setFiles(prev => {
-        const existingPaths = prev.map(file => file.path ?? file.name);
-        const nextName = buildUniqueName(
-          existingPaths,
-          buildCandidateName(requestedName, { extension: 'py', fallbackBase: '新的代码' }),
-        );
-        created = {
-          id: createEntryId(),
-          name: nextName,
-          path: nextName,
-          kind: 'file',
-          extension: 'py',
-          language: 'python',
-          content: '',
-        };
-        return [...prev, created];
-      });
-      if (!created) {
-        throw new Error('Failed to create python file');
-      }
-      setActiveFileId(created.id);
-      return created;
-    },
-    [],
-  );
+  const createPythonFile = useCallback((requestedName?: string): FileEntry => {
+    const snapshot = filesSnapshotRef.current;
+    const existingPaths = snapshot.map(file => file.path ?? file.name);
+    const nextName = buildUniqueName(
+      existingPaths,
+      buildCandidateName(requestedName, { extension: 'py', fallbackBase: '\u65b0\u7684\u4ee3\u7801' }),
+    );
+    const created: FileEntry = {
+      id: createEntryId(),
+      name: nextName,
+      path: nextName,
+      kind: 'file',
+      extension: 'py',
+      language: 'python',
+      content: '',
+    };
+    const nextFiles = [...snapshot, created];
+    filesSnapshotRef.current = nextFiles; // 先同步快照，避免连续创建时仍读到旧命名
+    setFiles(nextFiles);
+    setActiveFileId(created.id);
+    return created;
+  }, []);
 
-  const createFolder = useCallback(
-    (requestedName?: string): FileEntry => {
-      let created: FileEntry | undefined;
-      setFiles(prev => {
-        const existingPaths = prev.map(file => file.path ?? file.name);
-        const nextName = buildUniqueName(
-          existingPaths,
-          buildCandidateName(requestedName, { fallbackBase: '新建文件夹' }),
-        );
-        created = {
-          id: createEntryId(),
-          name: nextName,
-          path: nextName,
-          kind: 'folder',
-        };
-        return [...prev, created];
-      });
-      if (!created) {
-        throw new Error('Failed to create folder');
-      }
-      return created;
-    },
-    [],
-  );
+  const createFolder = useCallback((requestedName?: string): FileEntry => {
+    const snapshot = filesSnapshotRef.current;
+    const existingPaths = snapshot.map(file => file.path ?? file.name);
+    const nextName = buildUniqueName(
+      existingPaths,
+      buildCandidateName(requestedName, { fallbackBase: '\u65b0\u5efa\u6587\u4ef6\u5939' }),
+    );
+    const created: FileEntry = {
+      id: createEntryId(),
+      name: nextName,
+      path: nextName,
+      kind: 'folder',
+    };
+    const nextFiles = [...snapshot, created];
+    filesSnapshotRef.current = nextFiles; // 文件夹也需同步快照，避免连续创建导致命名冲突
+    setFiles(nextFiles);
+    return created;
+  }, []);
 
   const renameEntry = useCallback((entryId: string, requestedName: string) => {
     setFiles(prev => {

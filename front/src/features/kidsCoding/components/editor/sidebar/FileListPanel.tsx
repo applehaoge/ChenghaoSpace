@@ -122,7 +122,7 @@ function FileRow({
       whileHover={{ x: 3 }}
       className={clsx(
         'relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0',
-        isDark ? 'bg-blue-950/30 text-blue-100 hover:bg-blue-900/60' : 'bg-white text-blue-900 hover:bg-blue-50/80',
+        isDark ? 'bg-blue-950/40 text-blue-100 hover:bg-blue-900/60' : 'bg-white text-blue-900 hover:bg-blue-50/70',
         isEditing
           ? isDark
             ? 'border-blue-400 bg-blue-950/70 shadow-[0_0_0_1px_rgba(59,130,246,0.4)] z-10'
@@ -130,8 +130,8 @@ function FileRow({
           : '',
         isSelected && !isEditing
           ? isDark
-            ? 'bg-blue-500/50 text-white border-blue-200/60 shadow-lg z-10'
-            : 'bg-amber-100 text-amber-900 border-amber-300 shadow-md z-10'
+            ? 'bg-cyan-400/55 text-gray-900 border-cyan-200/80 font-semibold shadow-[0_4px_18px_rgba(34,211,238,0.45)] z-10'
+            : 'bg-blue-400/25 text-blue-900 border-blue-500/60 font-semibold shadow-[0_4px_16px_rgba(59,130,246,0.35)] z-10'
           : '',
       )}
     >
