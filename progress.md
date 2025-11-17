@@ -703,3 +703,8 @@ sHelpers??ttachmentContext   ǰ?? iService   Ԫ
   - FileListPanel 再次启用 `overflow-hidden + min-w-0` 的输入布局，防止改名输入框溢出卡片。
   - CodeWorkspace 恢复 active/inactive 分离的标签样式，移除不透明度衰减，让未选标签文字保持清晰易读。
   - Checks: pnpm --dir front build:client
+- **2025-11-17 KidsCoding RunJobDTO v2 多文件执行**
+  - DTO 升级至 protocolVersion=2，前端新增 `encoding` 支持，`buildRunJobPayload` 允许子目录/资源文件并统一封装 `language: 'python'`，`FileEntry` 持久化 path+encoding；RunJobDTO 类型在前端统一更新。
+  - server `sanitizeRunJobDTO`/`runRoutes` 全面改用 v2，校验 language、路径（path.posix.normalize 防止穿越）、encoding 以及 30 文件 / 200KB 限制，错误结构统一 `{ errorCode, message }`；runner 提供 `ensureSafeRelativePath` + `materializeRunFiles` 写入所有文件后以 entryPath 执行。
+  - python-runner 与 server 类型保持一致，新增 docs/run-multi-file.md 说明协议结构、执行流程、限制与未来扩展。
+  - Checks: `pnpm --dir server test`; `pnpm --dir front build:client`（受 Windows 权限限制无法清理 dist/static/assets/index-*.{css,js}，多次尝试 takeown/icacls 仍被拒绝，导致 Vite 无法写入/删除该目录）

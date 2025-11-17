@@ -11,7 +11,7 @@ import {
 import { enqueueJobId, claimNextJobId } from './jobQueue.js';
 import { assertRunnerAuthorized } from './runnerAuth.js';
 import type { RunJobDTO, RunnerEvent } from './jobTypes.js';
-import { sanitizeRunJobDTO } from './runJobValidator.js';
+import { RunJobValidationError, sanitizeRunJobDTO } from './runJobValidator.js';
 
 const MAX_TIMEOUT_MS = Number(process.env.RUN_JOB_TIMEOUT_MS ?? 60000);
 
@@ -27,13 +27,16 @@ export const registerRunRoutes = async (fastify: FastifyInstance) => {
     try {
       sanitized = sanitizeRunJobDTO(body);
     } catch (error) {
-      return reply.code(400).send({ message: (error as Error).message });
+      if (error instanceof RunJobValidationError) {
+        return reply.code(400).send({ errorCode: error.errorCode, message: error.message });
+      }
+      request.log.error({ err: error }, 'Failed to sanitize run job request');
+      return reply.code(400).send({ errorCode: 'INVALID_PAYLOAD', message: '任务参数不合法' });
     }
 
     const jobId = randomUUID();
     const job = createJobRecord({
       id: jobId,
-      language: 'python',
       timeoutMs: clampTimeout(undefined),
       createdAt: Date.now(),
       ...sanitized,

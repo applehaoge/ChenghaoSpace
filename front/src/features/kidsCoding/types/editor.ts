@@ -12,4 +12,5 @@ export interface FileEntry {
   extension?: string;
   language?: string;
   content?: string;
+  encoding?: 'utf8' | 'base64';
 }

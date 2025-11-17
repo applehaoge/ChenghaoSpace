@@ -10,6 +10,7 @@ const FALLBACK_FILES: FileEntry[] = [
     extension: 'py',
     language: 'python',
     content: '',
+    encoding: 'utf8',
   },
 ];
 
@@ -68,6 +69,7 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
       extension: 'py',
       language: 'python',
       content: '',
+      encoding: 'utf8',
     };
     const nextFiles = [...snapshot, created];
     filesSnapshotRef.current = nextFiles; // 先同步快照，避免连续创建时仍读到旧命名
@@ -162,6 +164,7 @@ function normalizeInitialFiles(seed: FileEntry[]) {
       extension,
       language: file.language ?? (extension === 'py' ? 'python' : undefined),
       content: file.content ?? '',
+      encoding: file.encoding ?? 'utf8',
     };
   });
   const firstFile = normalized.find(file => file.kind !== 'folder');

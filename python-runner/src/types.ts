@@ -2,15 +2,18 @@ import type { VisualizationFramePayload } from './viz/types.js';
 
 export type RunJobLanguage = 'python';
 
+export type RunFileEncoding = 'utf8' | 'base64';
+
 export interface RunFileDTO {
   path: string;
   content: string;
+  encoding: RunFileEncoding;
 }
 
 export interface ClaimedJob {
   jobId: string;
   language: RunJobLanguage;
-  protocolVersion: 1;
+  protocolVersion: 2;
   files: RunFileDTO[];
   entryPath: string;
   timeoutMs: number;
