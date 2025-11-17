@@ -43,7 +43,7 @@ export function FileListPanel({
   }
 
   return (
-    <div className="flex flex-col gap-1 px-2.5 py-1.5">
+    <div className="flex flex-col gap-0.5 px-2.5 py-1.5">
       {files.map(file => (
         <FileRow
           key={file.id}
@@ -122,16 +122,16 @@ function FileRow({
       whileHover={{ x: 3 }}
       className={clsx(
         'relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0',
-        isDark ? 'bg-blue-950/40 text-blue-100 hover:bg-blue-900/50' : 'bg-white/80 text-blue-900 hover:bg-white',
+        isDark ? 'bg-blue-950/30 text-blue-100 hover:bg-blue-900/60' : 'bg-white text-blue-900 hover:bg-blue-50/80',
         isEditing
           ? isDark
-            ? 'border-blue-500/60 bg-blue-950/70 shadow-inner z-10'
-            : 'border-blue-300 bg-white shadow-inner z-10'
+            ? 'border-blue-400 bg-blue-950/70 shadow-[0_0_0_1px_rgba(59,130,246,0.4)] z-10'
+            : 'border-blue-400 bg-white shadow-[0_0_0_1px_rgba(59,130,246,0.4)] z-10'
           : '',
         isSelected && !isEditing
           ? isDark
-            ? 'bg-blue-500/30 text-white shadow-md z-10'
-            : 'bg-amber-50 text-amber-800 shadow-sm z-10'
+            ? 'bg-blue-500/50 text-white border-blue-200/60 shadow-lg z-10'
+            : 'bg-amber-100 text-amber-900 border-amber-300 shadow-md z-10'
           : '',
       )}
     >

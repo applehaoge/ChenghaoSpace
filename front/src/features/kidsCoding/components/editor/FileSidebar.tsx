@@ -42,7 +42,7 @@ export function FileSidebar({
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
-  const [pendingRenameId, setPendingRenameId] = useState<string | null>(null);
+  const [pendingRenameQueue, setPendingRenameQueue] = useState<string[]>([]);
   const {
     lesson,
     lessonId,
@@ -74,12 +74,12 @@ export function FileSidebar({
   }, []);
 
   useEffect(() => {
-    if (!pendingRenameId) return;
-    const pendingEntry = files.find(file => file.id === pendingRenameId);
+    if (!pendingRenameQueue.length) return;
+    const pendingEntry = files.find(file => file.id === pendingRenameQueue[0]);
     if (!pendingEntry) return;
     beginEditing(pendingEntry);
-    setPendingRenameId(null);
-  }, [beginEditing, files, pendingRenameId]);
+    setPendingRenameQueue(queue => queue.slice(1));
+  }, [beginEditing, files, pendingRenameQueue]);
 
   const handleCommitEditing = useCallback(() => {
     if (!editingEntryId) return;
@@ -120,7 +120,7 @@ export function FileSidebar({
       handleCommitEditing();
     }
     const entry = onCreatePythonFile();
-    setPendingRenameId(entry.id); // 等待文件列表落盘后再进入改名态，避免偶发失焦
+    setPendingRenameQueue(queue => [...queue, entry.id]); // 等待文件列表落盘后再进入改名态，避免偶发失焦
     setActiveView('files');
   }, [editingEntryId, handleCommitEditing, onCreatePythonFile]);
 
@@ -129,7 +129,7 @@ export function FileSidebar({
       handleCommitEditing();
     }
     const entry = onCreateFolder();
-    setPendingRenameId(entry.id); // 同上，保证新建文件夹必定进入改名状态
+    setPendingRenameQueue(queue => [...queue, entry.id]); // 同上，保证新建文件夹必定进入改名状态
     setActiveView('files');
   }, [editingEntryId, handleCommitEditing, onCreateFolder]);
 

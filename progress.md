@@ -667,3 +667,8 @@ sHelpers??ttachmentContext   ǰ?? iService   Ԫ
   - FileSidebar 引入 pending rename 机制，先等待新建条目写入列表再进入编辑，彻底修复偶发的默认改名失效。
   - FileListPanel 去掉重叠描边，改用极窄间距 + 选中底色高亮，并抬升选中/编辑条目的 z-index，避免卡片互相遮挡。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-17 KidsCoding 文件重命名队列 + 选中色彩**
+  - FileSidebar 将单个 pending id 替换为队列，支持连续创建多条目时依次进入改名，不再出现“第二个无法改名”的回归。
+  - FileListPanel 调整默认/选中/编辑底色，对浅色模式使用更亮的琥珀背景，深色模式强化蓝色叠加，保证选中状态一眼可见。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client
