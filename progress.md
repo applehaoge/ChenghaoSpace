@@ -687,3 +687,8 @@ sHelpers??ttachmentContext   ǰ?? iService   Ԫ
   - 新增 hooks/useRenameWorkflow，将改名状态与队列封装成可复用逻辑，通过文件列表渲染完成后再激活输入，杜绝“新建多次只有第一次能改名”的竞态。
   - FileSidebar 接入新 Hook，所有入口（双击、工具栏创建、删除后重建）统一走队列，组件本身仅负责 UI，逻辑更清晰。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-17 KidsCoding 文件新增自动改名兜底**
+  - FileSidebar 通过 knownEntryIds + pending 队列比对新旧文件列表，只要检测到新条目就触发改名，彻底规避 useProjectFiles 同步返回失败导致默认改名只执行一次的问题。
+  - 新建文件/文件夹统一先入队，再等待渲染后解队，确保 UI 先呈现再聚焦；失败时仅打印错误，不再打断后续逻辑。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

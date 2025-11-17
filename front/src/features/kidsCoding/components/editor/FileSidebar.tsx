@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { FILE_PANEL_COLLAPSED_WIDTH, FILE_PANEL_WIDTH } from '@/features/kidsCoding/constants/editorLayout';
@@ -41,6 +41,8 @@ export function FileSidebar({
   onEarnTokens,
 }: FileSidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
+  const knownEntryIdsRef = useRef(new Set(files.map(file => file.id)));
+  const pendingAutoRenameRef = useRef(0);
   const {
     editingEntryId,
     editingValue,
@@ -50,6 +52,24 @@ export function FileSidebar({
     commitEditing,
     cancelEditing,
   } = useRenameWorkflow({ files, onRename: onRenameEntry });
+  useEffect(() => {
+    const previousIds = knownEntryIdsRef.current;
+    const newEntries = files.filter(file => !previousIds.has(file.id));
+    if (newEntries.length && pendingAutoRenameRef.current > 0) {
+      let remaining = pendingAutoRenameRef.current;
+      const toProcess: FileEntry[] = [];
+      for (const entry of newEntries) {
+        if (remaining <= 0) {
+          break;
+        }
+        toProcess.push(entry);
+        remaining -= 1;
+      }
+      pendingAutoRenameRef.current = remaining;
+      toProcess.forEach(entry => requestRename(entry.id, entry.name)); // 新建完毕后再触发默认改名，避免焦点丢失
+    }
+    knownEntryIdsRef.current = new Set(files.map(file => file.id));
+  }, [files, requestRename]);
   const {
     lesson,
     lessonId,
@@ -106,19 +126,27 @@ export function FileSidebar({
     if (editingEntryId) {
       handleCommitEditing();
     }
-    const entry = onCreatePythonFile();
-    requestRename(entry.id, entry.name);
+    pendingAutoRenameRef.current += 1;
+    try {
+      onCreatePythonFile();
+    } catch (error) {
+      console.error(error);
+    }
     setActiveView('files');
-  }, [editingEntryId, handleCommitEditing, onCreatePythonFile, requestRename]);
+  }, [editingEntryId, handleCommitEditing, onCreatePythonFile]);
 
   const handleCreateFolderEntry = useCallback(() => {
     if (editingEntryId) {
       handleCommitEditing();
     }
-    const entry = onCreateFolder();
-    requestRename(entry.id, entry.name);
+    pendingAutoRenameRef.current += 1;
+    try {
+      onCreateFolder();
+    } catch (error) {
+      console.error(error);
+    }
     setActiveView('files');
-  }, [editingEntryId, handleCommitEditing, onCreateFolder, requestRename]);
+  }, [editingEntryId, handleCommitEditing, onCreateFolder]);
 
   const handleSelectEntry = useCallback(
     (entry: FileEntry) => {
