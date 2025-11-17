@@ -275,15 +275,19 @@ function WorkspaceTabs({
     'bg-blue-50/70 border-blue-100': !isDark,
   });
 
-  const cardClass = clsx(
-    'flex items-center space-x-2 border border-b-transparent px-3 py-1.5 shadow-md rounded-t-3xl',
-    isDark ? 'bg-gray-900 border-gray-700 text-blue-200' : 'bg-white border-blue-200 text-blue-700',
-  );
+  const cardBaseClass =
+    'flex items-center space-x-2 border border-transparent px-4 py-1.5 rounded-t-3xl transition-colors duration-200 shadow-sm focus:outline-none whitespace-nowrap';
+  const activeCardClass = isDark
+    ? 'bg-blue-600/30 text-white font-semibold shadow-[0_6px_16px_rgba(59,130,246,0.45)]'
+    : 'bg-white text-blue-900 font-semibold shadow-[0_6px_16px_rgba(59,130,246,0.25)]';
+  const inactiveCardClass = isDark
+    ? 'bg-gray-800/70 text-blue-200 hover:bg-gray-700/80 hover:text-blue-50'
+    : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-900';
 
   if (!tabs.length) {
     return (
       <div className={containerClass}>
-        <motion.div className={cardClass}>
+        <motion.div className={clsx(cardBaseClass, activeCardClass)}>
           <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
           <span className={isDark ? 'text-blue-300 font-medium' : 'text-blue-800 font-medium'}>main.py</span>
         </motion.div>
@@ -303,7 +307,7 @@ function WorkspaceTabs({
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => onSelect?.(tab.id)}
-              className={clsx(cardClass, isActive ? 'opacity-100' : 'opacity-60 hover:opacity-80')}
+              className={clsx(cardBaseClass, isActive ? activeCardClass : inactiveCardClass)}
             >
               <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
               <span className="font-medium truncate">{tab.name}</span>

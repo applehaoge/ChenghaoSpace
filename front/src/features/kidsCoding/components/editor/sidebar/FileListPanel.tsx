@@ -121,7 +121,7 @@ function FileRow({
       onClick={handleSelect}
       whileHover={{ x: 3 }}
       className={clsx(
-        'relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0',
+        'relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0 overflow-hidden',
         isDark ? 'bg-blue-950/40 text-blue-100 hover:bg-blue-900/60' : 'bg-white text-blue-900 hover:bg-blue-50/70',
         isEditing
           ? isDark
@@ -156,7 +156,7 @@ function FileRow({
                 onCancelEditing?.();
               }
             }}
-            className={`flex-1 rounded-xl border px-2 py-1 text-sm font-medium outline-none ${
+            className={`flex-1 w-full min-w-0 rounded-xl border px-2 py-1 text-sm font-medium outline-none ${
               isDark
                 ? 'bg-gray-900/80 border-blue-800 text-blue-100 placeholder:text-blue-300/40'
                 : 'bg-white border-blue-200 text-blue-800 placeholder:text-blue-400/60'

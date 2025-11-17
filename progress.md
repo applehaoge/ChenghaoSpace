@@ -692,3 +692,8 @@ sHelpers??ttachmentContext   ǰ?? iService   Ԫ
   - FileSidebar 通过 knownEntryIds + pending 队列比对新旧文件列表，只要检测到新条目就触发改名，彻底规避 useProjectFiles 同步返回失败导致默认改名只执行一次的问题。
   - 新建文件/文件夹统一先入队，再等待渲染后解队，确保 UI 先呈现再聚焦；失败时仅打印错误，不再打断后续逻辑。
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+
+- **2025-11-17 KidsCoding 文件栏与标签配色（回滚后重应用）**
+  - FileListPanel 再次启用 `overflow-hidden + min-w-0` 的输入布局，防止改名输入框溢出卡片。
+  - CodeWorkspace 恢复 active/inactive 分离的标签样式，移除不透明度衰减，让未选标签文字保持清晰易读。
+  - Checks: pnpm --dir front build:client
