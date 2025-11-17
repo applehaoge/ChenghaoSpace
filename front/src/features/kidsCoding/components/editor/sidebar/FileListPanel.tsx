@@ -115,31 +115,40 @@ function FileRow({
       onSelectEntry?.(file);
     }
   };
+  const isActive = isSelected && !isEditing;
 
   return (
     <motion.div
       onClick={handleSelect}
       whileHover={{ x: 3 }}
       className={clsx(
-        'relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0 overflow-hidden',
-        isDark ? 'bg-blue-950/40 text-blue-100 hover:bg-blue-900/60' : 'bg-white text-blue-900 hover:bg-blue-50/70',
+        'group relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0 overflow-hidden',
+        isDark ? 'bg-blue-950/40 text-blue-100' : 'bg-white text-[#60709A]',
+        !isEditing &&
+          (isDark ? 'hover:bg-blue-900/60 hover:text-blue-50' : 'hover:bg-[#EBF3FF] hover:text-[#45527A]'),
         isEditing
           ? isDark
             ? 'border-blue-400 bg-blue-950/70 shadow-[0_0_0_1px_rgba(59,130,246,0.4)] z-10'
             : 'border-blue-400 bg-white shadow-[0_0_0_1px_rgba(59,130,246,0.4)] z-10'
           : '',
-        isSelected && !isEditing
+        isActive
           ? isDark
-            ? 'bg-cyan-400/55 text-gray-900 border-cyan-200/80 font-semibold shadow-[0_4px_18px_rgba(34,211,238,0.45)] z-10'
-            : 'bg-blue-400/25 text-blue-900 border-blue-500/60 font-semibold shadow-[0_4px_16px_rgba(59,130,246,0.35)] z-10'
+            ? 'bg-blue-900/70 text-blue-50 font-semibold border-l-[3px] border-l-[#4C8DFF]'
+            : 'bg-[#D8E6FF] text-[#45527A] font-semibold border-l-[3px] border-l-[#4C8DFF]'
           : '',
       )}
     >
       <div className="flex items-center space-x-2 flex-1 min-w-0">
         {file.kind === 'folder' ? (
-          <Folder size={16} className={isDark ? 'text-amber-300' : 'text-amber-600'} />
+          <Folder
+            size={16}
+            className={isActive ? 'text-[#4C8DFF]' : isDark ? 'text-amber-300' : 'text-amber-600'}
+          />
         ) : (
-          <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-800'} />
+          <FileText
+            size={16}
+            className={isActive ? 'text-[#4C8DFF]' : isDark ? 'text-blue-400' : 'text-blue-800'}
+          />
         )}
         {isEditing ? (
           <input
@@ -166,9 +175,19 @@ function FileRow({
           <button
             type="button"
             onDoubleClick={() => onRequestRename?.(file)}
-            className={`text-left font-medium truncate ${
-              isDark ? 'text-blue-200 hover:text-white' : 'text-blue-800 hover:text-blue-900'
-            }`}
+            className={clsx(
+              'text-left truncate transition-colors duration-200',
+              isActive ? 'font-semibold' : 'font-medium',
+              isDark
+                ? isActive
+                  ? 'text-blue-50'
+                  : 'text-blue-200'
+                : isActive
+                  ? 'text-[#45527A]'
+                  : 'text-[#60709A]',
+              !isDark && !isActive ? 'group-hover:text-[#45527A]' : '',
+              isDark && !isActive ? 'group-hover:text-blue-50' : '',
+            )}
           >
             {file.name}
           </button>

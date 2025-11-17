@@ -20,6 +20,11 @@
 
 所有潜在危险点（例如路径校验、资源限制）要在代码里加简短注释（中文），标明为什么要这么做。
 
+- **2025-11-17 KidsCoding 编辑器高亮**
+  - FileListPanel 左侧文件项 hover/active 使用浅蓝色背景与 3px 左色条，文字与图标加粗/变色，提升主次感且不改 DOM。
+  - CodeWorkspace 顶部 tabs 应用透明上边框、hover 下边框与激活态蓝色上边条，文字/图标遵循新的颜色规范。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
+
 - **2025-11-15 KidsCoding 多标签联动**
   - useProjectFiles 记录激活文件、内容及语言，新增文件自动切换并保持唯一命名。
   - FileSidebar/FileListPanel 支持选中高亮，点击文件会驱动 CodeWorkspace，左侧删除也会切换到下一个文件。

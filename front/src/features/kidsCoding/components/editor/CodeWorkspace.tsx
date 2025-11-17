@@ -276,20 +276,31 @@ function WorkspaceTabs({
   });
 
   const cardBaseClass =
-    'flex items-center space-x-2 border border-transparent px-4 py-1.5 rounded-t-3xl transition-colors duration-200 shadow-sm focus:outline-none whitespace-nowrap';
+    'group flex items-center space-x-2 px-4 py-1.5 rounded-t-3xl transition-colors duration-200 shadow-sm focus:outline-none whitespace-nowrap border border-transparent border-b-0 border-b-transparent';
+  const lightActiveCardClass =
+    'bg-[#FDFEFF] text-[#45527A] font-semibold border-t-[3px] border-t-[#4C8DFF] border-b-0 border-b-transparent hover:border-b-0 shadow-[0_6px_16px_rgba(76,141,255,0.25)]';
+  const lightInactiveCardClass =
+    'bg-[#F5F7FF] text-[#60709A] border-t-2 border-t-transparent border-b-0 border-b-transparent hover:border-b-2 hover:border-b-[#BBD3FF] hover:text-[#45527A]';
   const activeCardClass = isDark
     ? 'bg-blue-600/30 text-white font-semibold shadow-[0_6px_16px_rgba(59,130,246,0.45)]'
-    : 'bg-white text-blue-900 font-semibold shadow-[0_6px_16px_rgba(59,130,246,0.25)]';
+    : lightActiveCardClass;
   const inactiveCardClass = isDark
     ? 'bg-gray-800/70 text-blue-200 hover:bg-gray-700/80 hover:text-blue-50'
-    : 'bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-900';
+    : lightInactiveCardClass;
 
   if (!tabs.length) {
     return (
       <div className={containerClass}>
         <motion.div className={clsx(cardBaseClass, activeCardClass)}>
-          <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-          <span className={isDark ? 'text-blue-300 font-medium' : 'text-blue-800 font-medium'}>main.py</span>
+          <FileText size={16} className={isDark ? 'text-blue-400' : 'text-[#4C8DFF]'} />
+          <span
+            className={clsx(
+              'truncate transition-colors duration-200',
+              isDark ? 'text-blue-300 font-medium' : 'text-[#45527A] font-semibold',
+            )}
+          >
+            main.py
+          </span>
         </motion.div>
       </div>
     );
@@ -300,6 +311,13 @@ function WorkspaceTabs({
       <div className="flex items-center gap-0 overflow-x-auto scrollbar-thin py-1.5 w-full">
         {tabs.map(tab => {
           const isActive = tab.id === activeId;
+          const iconClass = isDark
+            ? isActive
+              ? 'text-blue-200'
+              : 'text-blue-400'
+            : isActive
+              ? 'text-[#4C8DFF]'
+              : 'text-[#60709A]';
           return (
             <motion.button
               key={tab.id}
@@ -309,8 +327,31 @@ function WorkspaceTabs({
               onClick={() => onSelect?.(tab.id)}
               className={clsx(cardBaseClass, isActive ? activeCardClass : inactiveCardClass)}
             >
-              <FileText size={16} className={isDark ? 'text-blue-400' : 'text-blue-600'} />
-              <span className="font-medium truncate">{tab.name}</span>
+              <FileText
+                size={16}
+                className={clsx(
+                  iconClass,
+                  !isDark && !isActive ? 'group-hover:text-[#45527A]' : '',
+                  isDark && !isActive ? 'group-hover:text-blue-100' : '',
+                )}
+              />
+              <span
+                className={clsx(
+                  'truncate transition-colors duration-200',
+                  isActive ? 'font-semibold' : 'font-medium',
+                  isDark
+                    ? isActive
+                      ? 'text-blue-50'
+                      : 'text-blue-200'
+                    : isActive
+                      ? 'text-[#45527A]'
+                      : 'text-[#60709A]',
+                  !isDark && !isActive ? 'group-hover:text-[#45527A]' : '',
+                  isDark && !isActive ? 'group-hover:text-blue-100' : '',
+                )}
+              >
+                {tab.name}
+              </span>
             </motion.button>
           );
         })}
