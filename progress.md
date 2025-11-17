@@ -23,6 +23,7 @@
 - **2025-11-17 KidsCoding 编辑器高亮**
   - FileListPanel 左侧文件项 hover/active 使用浅蓝色背景与 3px 左色条，文字与图标加粗/变色，提升主次感且不改 DOM。
   - CodeWorkspace 顶部 tabs 应用透明上边框、hover 下边框与激活态蓝色上边条，文字/图标遵循新的颜色规范。
+  - 微调：顶部 Tab 激活上边线与文件列表色条统一减至 2px，使视觉更柔和。
   - Checks: pnpm --dir server test, pnpm --dir front build:client
 
 - **2025-11-15 KidsCoding 多标签联动**

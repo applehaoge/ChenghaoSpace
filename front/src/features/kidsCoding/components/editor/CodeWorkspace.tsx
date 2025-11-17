@@ -278,7 +278,7 @@ function WorkspaceTabs({
   const cardBaseClass =
     'group flex items-center space-x-2 px-4 py-1.5 rounded-t-3xl transition-colors duration-200 shadow-sm focus:outline-none whitespace-nowrap border border-transparent border-b-0 border-b-transparent';
   const lightActiveCardClass =
-    'bg-[#FDFEFF] text-[#45527A] font-semibold border-t-[3px] border-t-[#4C8DFF] border-b-0 border-b-transparent hover:border-b-0 shadow-[0_6px_16px_rgba(76,141,255,0.25)]';
+    'bg-[#FDFEFF] text-[#45527A] font-semibold border-t-[2px] border-t-[#4C8DFF] border-b-0 border-b-transparent hover:border-b-0 shadow-[0_6px_16px_rgba(76,141,255,0.25)]';
   const lightInactiveCardClass =
     'bg-[#F5F7FF] text-[#60709A] border-t-2 border-t-transparent border-b-0 border-b-transparent hover:border-b-2 hover:border-b-[#BBD3FF] hover:text-[#45527A]';
   const activeCardClass = isDark

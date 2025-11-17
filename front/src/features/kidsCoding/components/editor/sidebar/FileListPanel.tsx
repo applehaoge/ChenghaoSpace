@@ -133,8 +133,8 @@ function FileRow({
           : '',
         isActive
           ? isDark
-            ? 'bg-blue-900/70 text-blue-50 font-semibold border-l-[3px] border-l-[#4C8DFF]'
-            : 'bg-[#D8E6FF] text-[#45527A] font-semibold border-l-[3px] border-l-[#4C8DFF]'
+            ? 'bg-blue-900/70 text-blue-50 font-semibold border-l-[2px] border-l-[#4C8DFF]'
+            : 'bg-[#D8E6FF] text-[#45527A] font-semibold border-l-[2px] border-l-[#4C8DFF]'
           : '',
       )}
     >
