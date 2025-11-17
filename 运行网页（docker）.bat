@@ -2,10 +2,15 @@
 setlocal enabledelayedexpansion
 
 set "ROOT=%~dp0"
+set "MISSING_TOOL="
 
-call :ensure_tool pnpm || goto :missing_tool
-call :ensure_tool docker || goto :missing_tool
-call :ensure_tool npx || goto :missing_tool
+for %%T in (pnpm docker npx) do (
+  call :ensure_tool %%T
+  if errorlevel 1 (
+    set "MISSING_TOOL=%%T"
+    goto :missing_tool
+  )
+)
 
 pushd "%ROOT%front"
 echo [1/3] Build frontend (production mode)...
@@ -40,7 +45,11 @@ echo To stop: close the serve window and run "docker compose down".
 goto :end
 
 :missing_tool
-echo !!! Required tool missing. Please ensure pnpm / docker / npx are installed and on PATH.
+if defined MISSING_TOOL (
+  echo !!! Required tool missing: %MISSING_TOOL%. Please ensure it is installed and on PATH.
+) else (
+  echo !!! Required tool missing. Please ensure pnpm / docker / npx are installed and on PATH.
+)
 goto :fail
 
 :fail
