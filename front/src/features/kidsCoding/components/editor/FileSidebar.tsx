@@ -112,6 +112,7 @@ export function FileSidebar({
     }
     const entry = onCreatePythonFile();
     beginEditing(entry);
+    setActiveView('files');
   }, [beginEditing, editingEntryId, handleCommitEditing, onCreatePythonFile]);
 
   const handleCreateFolderEntry = useCallback(() => {
@@ -120,6 +121,7 @@ export function FileSidebar({
     }
     const entry = onCreateFolder();
     beginEditing(entry);
+    setActiveView('files');
   }, [beginEditing, editingEntryId, handleCommitEditing, onCreateFolder]);
 
   const handleSelectEntry = useCallback(

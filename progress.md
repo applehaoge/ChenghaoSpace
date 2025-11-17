@@ -617,6 +617,15 @@ sHelpers??ttachmentContext ��ǰ?? iService ��Ԫ����
 - **2025-11-14 KidsCoding vocab card horizontal center**
   - Compute dynamic left offset based on mission panel width so 90% hover cards truly center and no longer overlap the scrollbar.
   - Checks: pnpm --dir server test; pnpm --dir front build:client
+- **2025-11-16 KidsCoding 文件卡片样式+重命名体验**
+  - FileListPanel 卡片缩短为 `py-1.5`，整体比例更紧凑；重命名时显示完整文件名并默认选中 `.扩展名` 前部分，学生如需可修改后缀。
+  - FileSidebar 重命名输入改为使用完整文件名，新建文件/文件夹后自动切回文件视图进入编辑；`useProjectFiles` 允许输入自定义扩展名（仅在缺省时补齐）。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
+
+- **2025-11-16 KidsCoding 文件重命名修复**
+  - 新建 Python 文件时强制切回文件视图并立即进入重命名；编辑框只显示 `.py` 之前的部分并锁定扩展名，避免误改后缀。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
+
 - **2025-11-16 KidsCoding 文件卡片全圆角贴合**
   - FileListPanel 改回所有条目均为圆角卡片，并保留共享边框/无间距效果，实现既贴合又有圆角的视觉。
   - Checks: pnpm --dir server test, pnpm --dir front build:client

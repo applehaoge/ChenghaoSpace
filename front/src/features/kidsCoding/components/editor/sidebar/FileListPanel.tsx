@@ -90,13 +90,25 @@ function FileRow({
   onSelectEntry?: (entry: FileEntry) => void;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
+  const extensionSuffix = file.extension ? `.${file.extension}` : '';
 
   useEffect(() => {
     if (isEditing) {
-      inputRef.current?.focus();
-      inputRef.current?.select();
+      const input = inputRef.current;
+      if (!input) return;
+      input.focus();
+      if (!extensionSuffix) {
+        input.select();
+        return;
+      }
+      const suffixIndex = input.value.lastIndexOf(extensionSuffix);
+      if (suffixIndex > 0) {
+        input.setSelectionRange(0, suffixIndex);
+      } else {
+        input.select();
+      }
     }
-  }, [isEditing]);
+  }, [isEditing, extensionSuffix]);
 
   const handleSelect = () => {
     if (!isEditing && file.kind !== 'folder') {
@@ -109,7 +121,7 @@ function FileRow({
       onClick={handleSelect}
       whileHover={{ x: 3 }}
       className={clsx(
-        'flex items-center justify-between p-2.5 transition-colors duration-300 cursor-pointer shadow-lg border rounded-2xl -mt-px first:mt-0',
+        'flex items-center justify-between px-2.5 py-1.5 transition-colors duration-300 cursor-pointer shadow-lg border rounded-2xl -mt-px first:mt-0',
         isDark
           ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30 border-blue-900/50'
           : 'bg-gradient-to-r from-blue-100 to-indigo-50 hover:from-blue-200 hover:to-indigo-100 border-blue-200',

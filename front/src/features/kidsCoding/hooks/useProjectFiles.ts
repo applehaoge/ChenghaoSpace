@@ -179,7 +179,11 @@ function normalizeName(input: string, extension?: string) {
   if (!extension) {
     return trimmed;
   }
-  return trimmed.endsWith(`.${extension}`) ? trimmed : `${trimmed}.${extension}`;
+  const dotIndex = trimmed.lastIndexOf('.');
+  if (dotIndex > 0) {
+    return trimmed;
+  }
+  return `${trimmed}.${extension}`;
 }
 
 function buildUniqueName(existingNames: string[], candidate: string) {
