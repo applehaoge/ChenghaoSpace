@@ -5,6 +5,7 @@ const FALLBACK_FILES: FileEntry[] = [
   {
     id: 'main',
     name: 'main.py',
+    path: 'main.py',
     kind: 'file',
     extension: 'py',
     language: 'python',
@@ -51,13 +52,15 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     (requestedName?: string): FileEntry => {
       let created: FileEntry | undefined;
       setFiles(prev => {
+        const existingPaths = prev.map(file => file.path ?? file.name);
         const nextName = buildUniqueName(
-          prev.map(file => file.name),
+          existingPaths,
           buildCandidateName(requestedName, { extension: 'py', fallbackBase: '新的代码' }),
         );
         created = {
           id: createEntryId(),
           name: nextName,
+          path: nextName,
           kind: 'file',
           extension: 'py',
           language: 'python',
@@ -78,13 +81,15 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     (requestedName?: string): FileEntry => {
       let created: FileEntry | undefined;
       setFiles(prev => {
+        const existingPaths = prev.map(file => file.path ?? file.name);
         const nextName = buildUniqueName(
-          prev.map(file => file.name),
+          existingPaths,
           buildCandidateName(requestedName, { fallbackBase: '新建文件夹' }),
         );
         created = {
           id: createEntryId(),
           name: nextName,
+          path: nextName,
           kind: 'folder',
         };
         return [...prev, created];
@@ -107,9 +112,18 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
       if (!normalized) {
         return prev;
       }
-      const otherNames = prev.filter(file => file.id !== entryId).map(file => file.name);
+      const otherNames = prev.filter(file => file.id !== entryId).map(file => file.path ?? file.name);
       const nextName = buildUniqueName(otherNames, normalized);
-      return prev.map(file => (file.id === entryId ? { ...file, name: nextName } : file));
+      return prev.map(file =>
+        file.id === entryId
+          ? {
+              ...file,
+              name: nextName,
+              path: nextName,
+              extension: file.kind === 'file' ? inferExtension(nextName) ?? file.extension : file.extension,
+            }
+          : file,
+      );
     });
   }, []);
 
@@ -143,11 +157,15 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
 function normalizeInitialFiles(seed: FileEntry[]) {
   const base = seed.length ? seed : FALLBACK_FILES;
   const normalized = base.map(file => {
-    const extension = file.extension ?? inferExtension(file.name);
+    const resolvedPath = (file.path ?? file.name ?? '').trim();
+    const safePath = resolvedPath || `${file.name ?? 'file'}-${createEntryId()}`;
+    const extension = file.extension ?? inferExtension(safePath);
     return {
       ...file,
       id: file.id ?? createEntryId(),
       kind: file.kind ?? 'file',
+      name: file.name ?? safePath,
+      path: safePath,
       extension,
       language: file.language ?? (extension === 'py' ? 'python' : undefined),
       content: file.content ?? '',

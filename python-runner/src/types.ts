@@ -2,11 +2,17 @@ import type { VisualizationFramePayload } from './viz/types.js';
 
 export type RunJobLanguage = 'python';
 
+export interface RunFileDTO {
+  path: string;
+  content: string;
+}
+
 export interface ClaimedJob {
   jobId: string;
   language: RunJobLanguage;
-  code: string;
-  stdin?: string;
+  protocolVersion: 1;
+  files: RunFileDTO[];
+  entryPath: string;
   timeoutMs: number;
   createdAt: number;
 }

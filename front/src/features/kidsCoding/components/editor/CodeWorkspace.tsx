@@ -14,7 +14,7 @@ interface CodeWorkspaceProps {
   onCodeChange: (value: string) => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
-  onRunCode: (code: string) => void;
+  onRunCode: () => void;
   editorTheme: string;
   runState?: RunConsoleState;
   isRunBusy?: boolean;
@@ -199,7 +199,7 @@ export function CodeWorkspace({
                 'opacity-80 cursor-not-allowed': runBusy,
               },
             )}
-            onClick={() => onRunCode(codeValue)}
+            onClick={() => onRunCode()}
             disabled={runBusy}
           >
             <motion.div whileHover={{ rotate: 15 }}>

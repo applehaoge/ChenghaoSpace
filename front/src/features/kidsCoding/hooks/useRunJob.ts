@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { fetchRunJob, openRunJobStream, submitRunJob, type RunJobResponse, type RunJobStatus } from '@/features/kidsCoding/api/runClient';
+import type { RunJobDTO } from '@/features/kidsCoding/types/run';
 import type { VisualizationFrame } from '@/features/kidsCoding/types/visualization';
 
 export interface RunConsoleState {
@@ -63,14 +64,11 @@ export function useRunJob() {
   }, [cleanupConnections]);
 
   const runCode = useCallback(
-    async (code: string) => {
-      if (!code.trim()) {
-        throw new Error('请输入要运行的代码');
-      }
+    async (payload: RunJobDTO) => {
       cleanupConnections();
       setIsSubmitting(true);
       try {
-        const { jobId, status } = await submitRunJob({ code });
+        const { jobId, status } = await submitRunJob(payload);
         jobIdRef.current = jobId;
         setState({
           jobId,

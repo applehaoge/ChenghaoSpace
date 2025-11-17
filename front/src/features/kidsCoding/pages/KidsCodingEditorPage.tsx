@@ -11,6 +11,7 @@ import { useFileSidebar } from '@/features/kidsCoding/hooks/useFileSidebar';
 import { useInsightsSidebar } from '@/features/kidsCoding/hooks/useInsightsSidebar';
 import { useRunJob } from '@/features/kidsCoding/hooks/useRunJob';
 import { useProjectFiles } from '@/features/kidsCoding/hooks/useProjectFiles';
+import { buildRunJobPayload } from '@/features/kidsCoding/core/buildRunJobPayload';
 import { KIDS_CODING_CONSOLE_ASK_AI } from '@/features/kidsCoding/constants/events';
 
 const DEFAULT_CODE = [
@@ -39,6 +40,7 @@ export function KidsCodingEditorPage() {
       {
         id: 'main',
         name: 'main.py',
+        path: 'main.py',
         kind: 'file',
         extension: 'py',
         language: 'python',
@@ -67,14 +69,23 @@ export function KidsCodingEditorPage() {
   const handleZoomIn = () => setZoomLevel(prev => Math.min(prev + 10, 150));
   const handleZoomOut = () => setZoomLevel(prev => Math.max(prev - 10, 60));
 
-  const handleRunCode = (source: string) => {
-    runCode(source).catch(error => {
+  const handleRunCode = () => {
+    try {
+      const payload = buildRunJobPayload(files, activeFileId);
+      runCode(payload).catch(error => {
+        toast.error('运行任务提交失败', {
+          description: error instanceof Error ? error.message : '请稍后再试',
+          duration: 4000,
+          className: 'rounded-xl shadow-lg',
+        });
+      });
+    } catch (error) {
       toast.error('运行任务提交失败', {
         description: error instanceof Error ? error.message : '请稍后再试',
         duration: 4000,
         className: 'rounded-xl shadow-lg',
       });
-    });
+    }
   };
 
   const handleCodeChange = useCallback(

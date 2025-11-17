@@ -658,3 +658,7 @@ sHelpers??ttachmentContext   ǰ?? iService   Ԫ
 - **2025-11-16 KidsCoding 标签圆角统一**
   - CodeWorkspace 标签按钮的圆角改为 rounded-t-3xl，与标签栏的弧度一致，视觉过渡更自然。
   - Checks: pnpm --dir server test, pnpm --dir front build:client
+- **2025-11-16 KidsCoding 多文件运行升级**
+  - 前端：FileEntry 增加 path，新增 `buildRunJobPayload` 构建 RunJobDTO，`useRunJob`/API 全面改为提交 `files + entryPath`，CodeWorkspace/页层整合运行按钮；限制 20 个文件、单文件 100KB 并校验路径。
+  - 服务端 & Runner：RunJobDTO 校验/存储、Runner 在临时目录写入所有 `.py` 并以 entryPath 执行，禁用旧 `code` 字段；新增 docs/run-multi-file.md 记录协议与限制。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client

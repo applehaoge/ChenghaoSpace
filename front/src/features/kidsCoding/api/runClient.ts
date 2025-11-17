@@ -1,3 +1,4 @@
+import type { RunJobDTO } from '@/features/kidsCoding/types/run';
 import type { VisualizationSnapshot } from '@/features/kidsCoding/types/visualization';
 
 const API_BASE = import.meta.env.VITE_RUNNER_API_BASE || 'http://localhost:8000';
@@ -24,14 +25,11 @@ export interface RunJobResponse {
   visualization?: VisualizationSnapshot;
 }
 
-export async function submitRunJob(payload: { code: string; language?: 'python'; stdin?: string; timeout?: number }) {
+export async function submitRunJob(payload: RunJobDTO) {
   const res = await fetch(resolveApiUrl('/api/run'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      ...payload,
-      language: payload.language ?? 'python',
-    }),
+    body: JSON.stringify(payload),
   });
 
   if (!res.ok) {

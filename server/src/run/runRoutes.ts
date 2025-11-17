@@ -10,7 +10,8 @@ import {
 } from './jobStore.js';
 import { enqueueJobId, claimNextJobId } from './jobQueue.js';
 import { assertRunnerAuthorized } from './runnerAuth.js';
-import type { RunnerEvent } from './jobTypes.js';
+import type { RunJobDTO, RunnerEvent } from './jobTypes.js';
+import { sanitizeRunJobDTO } from './runJobValidator.js';
 
 const MAX_TIMEOUT_MS = Number(process.env.RUN_JOB_TIMEOUT_MS ?? 60000);
 
@@ -21,28 +22,21 @@ const clampTimeout = (input?: number) => {
 
 export const registerRunRoutes = async (fastify: FastifyInstance) => {
   fastify.post('/api/run', async (request, reply) => {
-    const body = request.body as {
-      language?: string;
-      code?: string;
-      stdin?: string;
-      timeout?: number;
-    };
-
-    if (!body || typeof body.code !== 'string' || !body.code.trim()) {
-      return reply.code(400).send({ message: 'code is required' });
-    }
-    if (body.language && body.language !== 'python') {
-      return reply.code(400).send({ message: 'Only python language is supported currently' });
+    const body = request.body as RunJobDTO;
+    let sanitized: RunJobDTO;
+    try {
+      sanitized = sanitizeRunJobDTO(body);
+    } catch (error) {
+      return reply.code(400).send({ message: (error as Error).message });
     }
 
     const jobId = randomUUID();
     const job = createJobRecord({
       id: jobId,
-      code: body.code,
       language: 'python',
-      stdin: typeof body.stdin === 'string' ? body.stdin : undefined,
-      timeoutMs: clampTimeout(body.timeout),
+      timeoutMs: clampTimeout(undefined),
       createdAt: Date.now(),
+      ...sanitized,
     });
 
     enqueueJobId(job.id);
@@ -82,11 +76,12 @@ export const registerRunRoutes = async (fastify: FastifyInstance) => {
     updateJobStatus(jobId, 'running');
     return {
       jobId: job.id,
-      code: job.code,
-      stdin: job.stdin,
       language: job.language,
       timeoutMs: job.timeoutMs,
       createdAt: job.createdAt,
+      protocolVersion: job.protocolVersion,
+      files: job.files,
+      entryPath: job.entryPath,
     };
   });
 

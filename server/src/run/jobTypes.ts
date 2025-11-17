@@ -2,11 +2,20 @@ export type RunJobLanguage = 'python';
 
 export type RunJobStatus = 'queued' | 'running' | 'succeeded' | 'failed' | 'cancelled';
 
-export interface RunJobRequest {
+export interface RunFileDTO {
+  path: string;
+  content: string;
+}
+
+export interface RunJobDTO {
+  protocolVersion: 1;
+  files: RunFileDTO[];
+  entryPath: string;
+}
+
+export interface RunJobRequest extends RunJobDTO {
   id: string;
   language: RunJobLanguage;
-  code: string;
-  stdin?: string;
   timeoutMs: number;
   createdAt: number;
 }

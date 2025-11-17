@@ -18,10 +18,29 @@ const sendSafeEvent = async (jobId: string, event: Parameters<typeof sendRunnerE
   }
 };
 
+const ensureSafePath = (path: string) => {
+  if (!path || path.includes('/') || path.includes('\\') || path.includes('..')) {
+    // 防止用户构造路径穿透到工作目录之外
+    throw new Error(`Invalid file path "${path}"`);
+  }
+  return path;
+};
+
 export async function executeJob(job: ClaimedJob) {
   const workDir = await mkdtemp(dirPrefix);
-  const scriptPath = join(workDir, 'main.py');
-  await writeFile(scriptPath, job.code, 'utf-8');
+  const entryPath = ensureSafePath(job.entryPath);
+  const sanitizedFiles = job.files.map(file => ({
+    path: ensureSafePath(file.path),
+    content: file.content ?? '',
+  }));
+  if (!sanitizedFiles.some(file => file.path === entryPath)) {
+    throw new Error('Entry file is missing from files payload');
+  }
+
+  await Promise.all(
+    sanitizedFiles.map(file => writeFile(join(workDir, file.path), file.content, 'utf-8')),
+  );
+
   const vizBridge = await createVisualizationBridge(workDir, frame =>
     sendSafeEvent(job.jobId, { type: 'visualization', frame }),
   );
@@ -29,11 +48,8 @@ export async function executeJob(job: ClaimedJob) {
   await sendSafeEvent(job.jobId, { type: 'started', startedAt: Date.now() });
 
   const childEnv: NodeJS.ProcessEnv = { ...process.env, ...vizBridge.env };
-  const existingPythonPath = childEnv.PYTHONPATH ?? '';
-  const sep = process.platform === 'win32' ? ';' : ':';
-  childEnv.PYTHONPATH = existingPythonPath ? `${workDir}${sep}${existingPythonPath}` : workDir;
 
-  const child = spawn(config.pythonBinary, ['-u', scriptPath], {
+  const child = spawn(config.pythonBinary, ['-u', entryPath], {
     cwd: workDir,
     stdio: ['pipe', 'pipe', 'pipe'],
     env: childEnv,
@@ -43,9 +59,6 @@ export async function executeJob(job: ClaimedJob) {
     throw err;
   });
 
-  if (job.stdin) {
-    child.stdin?.write(job.stdin);
-  }
   child.stdin?.end();
 
   const timeout = setTimeout(() => {

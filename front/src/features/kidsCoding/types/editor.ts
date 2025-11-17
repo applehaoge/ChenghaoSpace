@@ -7,6 +7,7 @@ export type CodeLineItem = {
 export interface FileEntry {
   id: string;
   name: string;
+  path: string;
   kind?: 'file' | 'folder';
   extension?: string;
   language?: string;
