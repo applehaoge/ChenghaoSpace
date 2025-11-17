@@ -662,3 +662,8 @@ sHelpers??ttachmentContext   ǰ?? iService   Ԫ
   - 前端：FileEntry 增加 path，新增 `buildRunJobPayload` 构建 RunJobDTO，`useRunJob`/API 全面改为提交 `files + entryPath`，CodeWorkspace/页层整合运行按钮；限制 20 个文件、单文件 100KB 并校验路径。
   - 服务端 & Runner：RunJobDTO 校验/存储、Runner 在临时目录写入所有 `.py` 并以 entryPath 执行，禁用旧 `code` 字段；新增 docs/run-multi-file.md 记录协议与限制。
   - Checks: pnpm --dir server test, pnpm --dir front build:client
+
+- **2025-11-17 KidsCoding 文件列表重命名与卡片层级**
+  - FileSidebar 引入 pending rename 机制，先等待新建条目写入列表再进入编辑，彻底修复偶发的默认改名失效。
+  - FileListPanel 去掉重叠描边，改用极窄间距 + 选中底色高亮，并抬升选中/编辑条目的 z-index，避免卡片互相遮挡。
+  - Checks: pnpm --dir server test; pnpm --dir front build:client

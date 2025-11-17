@@ -43,7 +43,7 @@ export function FileListPanel({
   }
 
   return (
-    <>
+    <div className="flex flex-col gap-1 px-2.5 py-1.5">
       {files.map(file => (
         <FileRow
           key={file.id}
@@ -60,7 +60,7 @@ export function FileListPanel({
           onSelectEntry={onSelectEntry}
         />
       ))}
-    </>
+    </div>
   );
 }
 
@@ -121,19 +121,17 @@ function FileRow({
       onClick={handleSelect}
       whileHover={{ x: 3 }}
       className={clsx(
-        'flex items-center justify-between px-2.5 py-1.5 transition-colors duration-300 cursor-pointer shadow-lg border rounded-2xl -mt-px first:mt-0',
-        isDark
-          ? 'bg-gradient-to-r from-blue-600/20 to-indigo-600/20 hover:from-blue-600/30 hover:to-indigo-600/30 border-blue-900/50'
-          : 'bg-gradient-to-r from-blue-100 to-indigo-50 hover:from-blue-200 hover:to-indigo-100 border-blue-200',
+        'relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0',
+        isDark ? 'bg-blue-950/40 text-blue-100 hover:bg-blue-900/50' : 'bg-white/80 text-blue-900 hover:bg-white',
         isEditing
           ? isDark
-            ? 'ring-2 ring-blue-500/60'
-            : 'ring-2 ring-blue-400'
+            ? 'border-blue-500/60 bg-blue-950/70 shadow-inner z-10'
+            : 'border-blue-300 bg-white shadow-inner z-10'
           : '',
         isSelected && !isEditing
           ? isDark
-            ? 'ring-2 ring-blue-500/60 bg-blue-900/20'
-            : 'ring-2 ring-blue-400 bg-white'
+            ? 'bg-blue-500/30 text-white shadow-md z-10'
+            : 'bg-amber-50 text-amber-800 shadow-sm z-10'
           : '',
       )}
     >

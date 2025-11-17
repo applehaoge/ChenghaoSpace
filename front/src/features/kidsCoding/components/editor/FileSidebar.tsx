@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { FILE_PANEL_COLLAPSED_WIDTH, FILE_PANEL_WIDTH } from '@/features/kidsCoding/constants/editorLayout';
@@ -42,6 +42,7 @@ export function FileSidebar({
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
   const [editingEntryId, setEditingEntryId] = useState<string | null>(null);
   const [editingValue, setEditingValue] = useState('');
+  const [pendingRenameId, setPendingRenameId] = useState<string | null>(null);
   const {
     lesson,
     lessonId,
@@ -71,6 +72,14 @@ export function FileSidebar({
     setEditingEntryId(entry.id);
     setEditingValue(entry.name);
   }, []);
+
+  useEffect(() => {
+    if (!pendingRenameId) return;
+    const pendingEntry = files.find(file => file.id === pendingRenameId);
+    if (!pendingEntry) return;
+    beginEditing(pendingEntry);
+    setPendingRenameId(null);
+  }, [beginEditing, files, pendingRenameId]);
 
   const handleCommitEditing = useCallback(() => {
     if (!editingEntryId) return;
@@ -111,18 +120,18 @@ export function FileSidebar({
       handleCommitEditing();
     }
     const entry = onCreatePythonFile();
-    beginEditing(entry);
+    setPendingRenameId(entry.id); // 等待文件列表落盘后再进入改名态，避免偶发失焦
     setActiveView('files');
-  }, [beginEditing, editingEntryId, handleCommitEditing, onCreatePythonFile]);
+  }, [editingEntryId, handleCommitEditing, onCreatePythonFile]);
 
   const handleCreateFolderEntry = useCallback(() => {
     if (editingEntryId) {
       handleCommitEditing();
     }
     const entry = onCreateFolder();
-    beginEditing(entry);
+    setPendingRenameId(entry.id); // 同上，保证新建文件夹必定进入改名状态
     setActiveView('files');
-  }, [beginEditing, editingEntryId, handleCommitEditing, onCreateFolder]);
+  }, [editingEntryId, handleCommitEditing, onCreateFolder]);
 
   const handleSelectEntry = useCallback(
     (entry: FileEntry) => {
