@@ -276,7 +276,7 @@ function WorkspaceTabs({
   });
 
   const cardClass = clsx(
-    'flex items-center space-x-2 border border-b-transparent px-3 py-1.5 shadow-md rounded-t-2xl',
+    'flex items-center space-x-2 border border-b-transparent px-3 py-1.5 shadow-md rounded-t-3xl',
     isDark ? 'bg-gray-900 border-gray-700 text-blue-200' : 'bg-white border-blue-200 text-blue-700',
   );
 

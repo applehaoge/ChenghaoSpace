@@ -633,3 +633,6 @@ sHelpers??ttachmentContext ��ǰ?? iService ��Ԫ����
 - **2025-11-16 KidsCoding 文件卡片贴合边界**
   - FileListPanel 去掉文件卡片之间的默认间距，改成首尾圆角+共享边框，让上下条目紧贴但仍有清晰分界线。
   - Checks: pnpm --dir server test, pnpm --dir front build:client
+- **2025-11-16 KidsCoding 标签圆角统一**
+  - CodeWorkspace 标签按钮的圆角改为 rounded-t-3xl，与标签栏的弧度一致，视觉过渡更自然。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
