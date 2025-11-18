@@ -20,6 +20,12 @@
 
 所有潜在危险点（例如路径校验、资源限制）要在代码里加简短注释（中文），标明为什么要这么做。
 
+- **2025-11-18 KidsCoding 文件栏树形交互**
+  - FileSidebar 维护 currentDirectoryPath、selectedEntryId 与 expandedFolderIds，点击空白区域可回到根目录；点击文件/文件夹会同步当前目录并自动展开对应父层，所有新建/上传都精确落在当前目录。
+  - FileListPanel 根据文件 path 构建多级树，行内缩进/高度/图标保持原样，空白区域使用容器 onClick 捕获，行组件负责 stopPropagation，支持展开/收起、内联重命名与删除。
+  - useProjectFiles 支持多级路径：创建/重命名/删除文件夹会同步子项 path，新建文件也会按目录生成唯一路径，为后续打包和运行提供准确目录结构。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
+
 - **2025-11-17 KidsCoding 编辑器高亮**
   - FileListPanel 左侧文件项 hover/active 使用浅蓝色背景与 3px 左色条，文字与图标加粗/变色，提升主次感且不改 DOM。
   - CodeWorkspace 顶部 tabs 应用透明上边框、hover 下边框与激活态蓝色上边条，文字/图标遵循新的颜色规范。

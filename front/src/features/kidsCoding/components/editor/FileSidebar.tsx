@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { FILE_PANEL_COLLAPSED_WIDTH, FILE_PANEL_WIDTH } from '@/features/kidsCoding/constants/editorLayout';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
+import type { CreateEntryOptions } from '@/features/kidsCoding/hooks/useProjectFiles';
 import { SidebarToolbar } from '@/features/kidsCoding/components/editor/sidebar/SidebarToolbar';
 import { FileListPanel } from '@/features/kidsCoding/components/editor/sidebar/FileListPanel';
 import { LessonTaskPanel } from '@/features/kidsCoding/components/editor/sidebar/lesson';
@@ -20,8 +21,8 @@ interface FileSidebarProps {
   files: FileEntry[];
   activeFileId?: string;
   onSelectFile: (entryId: string) => void;
-  onCreatePythonFile: (name?: string) => FileEntry;
-  onCreateFolder: (name?: string) => FileEntry;
+  onCreatePythonFile: (options?: CreateEntryOptions) => FileEntry;
+  onCreateFolder: (options?: CreateEntryOptions) => FileEntry;
   onRenameEntry: (entryId: string, name: string) => void;
   onRemoveEntry: (entryId: string) => void;
   onEarnTokens?: (amount: number) => void;
@@ -52,6 +53,100 @@ export function FileSidebar({
     commitEditing,
     cancelEditing,
   } = useRenameWorkflow({ files, onRename: onRenameEntry });
+  const [currentDirectoryPath, setCurrentDirectoryPath] = useState('');
+  const [currentDirectoryEntryId, setCurrentDirectoryEntryId] = useState<string | null>(null);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
+  const [expandedFolderIds, setExpandedFolderIds] = useState<Set<string>>(() => new Set());
+  const entryById = useMemo(() => {
+    const map = new Map<string, FileEntry>();
+    files.forEach(file => map.set(file.id, file));
+    return map;
+  }, [files]);
+  const folderIdByPath = useMemo(() => {
+    const map = new Map<string, string>();
+    files.forEach(file => {
+      if (file.kind === 'folder') {
+        const path = file.path ?? file.name ?? '';
+        map.set(path, file.id);
+      }
+    });
+    return map;
+  }, [files]);
+  const expandAncestors = useCallback(
+    (path: string) => {
+      if (!path) return;
+      const ancestors = collectAncestorPaths(path);
+      if (!ancestors.length) return;
+      setExpandedFolderIds(prev => {
+        let changed = false;
+        const next = new Set(prev);
+        ancestors.forEach(ancestorPath => {
+          const folderId = folderIdByPath.get(ancestorPath);
+          if (folderId && !next.has(folderId)) {
+            next.add(folderId);
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+    },
+    [folderIdByPath],
+  );
+  useEffect(() => {
+    if (selectedEntryId && !entryById.has(selectedEntryId)) {
+      setSelectedEntryId(null);
+    }
+  }, [selectedEntryId, entryById]);
+  useEffect(() => {
+    setExpandedFolderIds(prev => {
+      let changed = false;
+      const next = new Set<string>();
+      prev.forEach(id => {
+        if (entryById.has(id)) {
+          next.add(id);
+        } else {
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [entryById]);
+  useEffect(() => {
+    if (!currentDirectoryEntryId) {
+      return;
+    }
+    const entry = entryById.get(currentDirectoryEntryId);
+    if (!entry) {
+      setCurrentDirectoryEntryId(null);
+      setCurrentDirectoryPath('');
+      return;
+    }
+    const entryPath = getEntryPath(entry);
+    if (entryPath !== currentDirectoryPath) {
+      setCurrentDirectoryPath(entryPath);
+    }
+  }, [currentDirectoryEntryId, entryById, currentDirectoryPath]);
+  const previousActiveFileIdRef = useRef<string | undefined>();
+  useEffect(() => {
+    if (!activeFileId) {
+      previousActiveFileIdRef.current = activeFileId;
+      return;
+    }
+    if (previousActiveFileIdRef.current === activeFileId) {
+      return;
+    }
+    previousActiveFileIdRef.current = activeFileId;
+    const entry = entryById.get(activeFileId);
+    if (!entry || entry.kind === 'folder') {
+      return;
+    }
+    const entryPath = getEntryPath(entry);
+    setSelectedEntryId(entry.id);
+    const parentPath = getParentDirectoryPath(entryPath);
+    setCurrentDirectoryPath(parentPath);
+    setCurrentDirectoryEntryId(parentPath ? folderIdByPath.get(parentPath) ?? null : null);
+    expandAncestors(entryPath);
+  }, [activeFileId, entryById, folderIdByPath, expandAncestors]);
   useEffect(() => {
     const previousIds = knownEntryIdsRef.current;
     const newEntries = files.filter(file => !previousIds.has(file.id));
@@ -128,12 +223,16 @@ export function FileSidebar({
     }
     pendingAutoRenameRef.current += 1;
     try {
-      onCreatePythonFile();
+      const created = onCreatePythonFile({
+        parentPath: currentDirectoryPath || undefined,
+      });
+      setSelectedEntryId(created.id);
+      expandAncestors(getEntryPath(created));
     } catch (error) {
       console.error(error);
     }
     setActiveView('files');
-  }, [editingEntryId, handleCommitEditing, onCreatePythonFile]);
+  }, [editingEntryId, handleCommitEditing, onCreatePythonFile, currentDirectoryPath, expandAncestors]);
 
   const handleCreateFolderEntry = useCallback(() => {
     if (editingEntryId) {
@@ -141,23 +240,68 @@ export function FileSidebar({
     }
     pendingAutoRenameRef.current += 1;
     try {
-      onCreateFolder();
+      const created = onCreateFolder({
+        parentPath: currentDirectoryPath || undefined,
+      });
+      setSelectedEntryId(created.id);
+      expandAncestors(getEntryPath(created));
     } catch (error) {
       console.error(error);
     }
     setActiveView('files');
-  }, [editingEntryId, handleCommitEditing, onCreateFolder]);
+  }, [editingEntryId, handleCommitEditing, onCreateFolder, currentDirectoryPath, expandAncestors]);
 
-  const handleSelectEntry = useCallback(
+  const handleFolderClick = useCallback(
+    (entry: FileEntry) => {
+      if (editingEntryId && editingEntryId !== entry.id) {
+        handleCommitEditing();
+      }
+      const entryPath = getEntryPath(entry);
+      setSelectedEntryId(entry.id);
+      setCurrentDirectoryPath(entryPath);
+      setCurrentDirectoryEntryId(entry.id);
+      setExpandedFolderIds(prev => {
+        const next = new Set(prev);
+        if (next.has(entry.id)) {
+          next.delete(entry.id);
+        } else {
+          next.add(entry.id);
+        }
+        return next;
+      });
+    },
+    [editingEntryId, handleCommitEditing],
+  );
+
+  const handleFileClick = useCallback(
     (entry: FileEntry) => {
       if (entry.kind === 'folder') return;
       if (editingEntryId && editingEntryId !== entry.id) {
         handleCommitEditing();
       }
+      const entryPath = getEntryPath(entry);
+      const parentPath = getParentDirectoryPath(entryPath);
+      const parentFolderId = parentPath ? folderIdByPath.get(parentPath) ?? null : null;
+      setSelectedEntryId(entry.id);
+      setCurrentDirectoryPath(parentPath);
+      setCurrentDirectoryEntryId(parentFolderId);
+      expandAncestors(entryPath);
       onSelectFile(entry.id);
     },
-    [editingEntryId, handleCommitEditing, onSelectFile],
+    [editingEntryId, handleCommitEditing, folderIdByPath, expandAncestors, onSelectFile],
   );
+
+  const handleBlankAreaClick = useCallback(() => {
+    if (selectedEntryId) {
+      setSelectedEntryId(null);
+    }
+    if (currentDirectoryPath) {
+      setCurrentDirectoryPath('');
+    }
+    if (currentDirectoryEntryId) {
+      setCurrentDirectoryEntryId(null);
+    }
+  }, [selectedEntryId, currentDirectoryPath, currentDirectoryEntryId]);
 
   return (
     <>
@@ -221,8 +365,11 @@ export function FileSidebar({
                 onCancelEditing={handleCancelEditing}
                 onRequestRename={handleRequestRename}
                 onRemoveEntry={handleRemoveEntry}
-                activeEntryId={activeFileId}
-                onSelectEntry={handleSelectEntry}
+                selectedEntryId={selectedEntryId}
+                expandedFolderIds={expandedFolderIds}
+                onFolderClick={handleFolderClick}
+                onFileClick={handleFileClick}
+                onBlankAreaClick={handleBlankAreaClick}
               />
             )}
           </div>
@@ -278,4 +425,31 @@ function CollapseHandle({
       />
     </>
   );
+}
+
+function getEntryPath(entry: FileEntry) {
+  return (entry.path ?? entry.name ?? '').trim();
+}
+
+function getParentDirectoryPath(path: string) {
+  const trimmed = path.trim();
+  if (!trimmed) return '';
+  const slashIndex = trimmed.lastIndexOf('/');
+  if (slashIndex <= 0) {
+    return '';
+  }
+  return trimmed.slice(0, slashIndex);
+}
+
+function collectAncestorPaths(path: string) {
+  const trimmed = path.trim();
+  if (!trimmed.includes('/')) {
+    return [];
+  }
+  const segments = trimmed.split('/');
+  const ancestors: string[] = [];
+  for (let index = 0; index < segments.length - 1; index += 1) {
+    ancestors.push(segments.slice(0, index + 1).join('/'));
+  }
+  return ancestors;
 }

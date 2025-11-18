@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
+import type { MouseEvent } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { Clock, FileText, Folder, Trash2 } from 'lucide-react';
@@ -14,8 +15,11 @@ interface FileListPanelProps {
   onCancelEditing?: () => void;
   onRequestRename?: (entry: FileEntry) => void;
   onRemoveEntry?: (entry: FileEntry) => void;
-  activeEntryId?: string;
-  onSelectEntry?: (entry: FileEntry) => void;
+  selectedEntryId?: string | null;
+  expandedFolderIds: Set<string>;
+  onFolderClick?: (entry: FileEntry) => void;
+  onFileClick?: (entry: FileEntry) => void;
+  onBlankAreaClick?: () => void;
 }
 
 export function FileListPanel({
@@ -28,12 +32,21 @@ export function FileListPanel({
   onCancelEditing,
   onRequestRename,
   onRemoveEntry,
-  activeEntryId,
-  onSelectEntry,
+  selectedEntryId,
+  expandedFolderIds,
+  onFolderClick,
+  onFileClick,
+  onBlankAreaClick,
 }: FileListPanelProps) {
+  const treeRoots = useMemo(() => buildFileTree(files), [files]);
+  const flattenedNodes = useMemo(
+    () => flattenTree(treeRoots, expandedFolderIds),
+    [treeRoots, expandedFolderIds],
+  );
+
   if (!files.length) {
     return (
-      <div className="flex flex-col items-center justify-center mt-12 space-y-3">
+      <div className="flex h-full flex-col items-center justify-center space-y-3 px-2.5 py-1.5" onClick={onBlankAreaClick}>
         <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}>
           <Clock size={36} className={isDark ? 'text-gray-600' : 'text-blue-200'} />
         </motion.div>
@@ -43,21 +56,26 @@ export function FileListPanel({
   }
 
   return (
-    <div className="flex flex-col gap-0.5 px-2.5 py-1.5">
-      {files.map(file => (
+    <div
+      className="flex h-full min-h-0 flex-col gap-0.5 px-2.5 py-1.5 overflow-x-hidden overflow-y-auto"
+      onClick={onBlankAreaClick}
+    >
+      {flattenedNodes.map(({ entry, depth }) => (
         <FileRow
-          key={file.id}
-          file={file}
+          key={entry.id}
+          file={entry}
+          depth={depth}
           isDark={isDark}
-          isEditing={file.id === editingEntryId}
-          isSelected={file.id === activeEntryId}
+          isEditing={entry.id === editingEntryId}
+          isSelected={entry.id === selectedEntryId}
           editingValue={editingValue}
           onEditingValueChange={onEditingValueChange}
           onCommitEditing={onCommitEditing}
           onCancelEditing={onCancelEditing}
           onRequestRename={onRequestRename}
           onRemoveEntry={onRemoveEntry}
-          onSelectEntry={onSelectEntry}
+          onFolderClick={onFolderClick}
+          onFileClick={onFileClick}
         />
       ))}
     </div>
@@ -66,6 +84,7 @@ export function FileListPanel({
 
 function FileRow({
   file,
+  depth,
   isDark,
   isEditing,
   isSelected,
@@ -75,9 +94,11 @@ function FileRow({
   onCancelEditing,
   onRequestRename,
   onRemoveEntry,
-  onSelectEntry,
+  onFolderClick,
+  onFileClick,
 }: {
   file: FileEntry;
+  depth: number;
   isDark: boolean;
   isEditing: boolean;
   isSelected: boolean;
@@ -87,7 +108,8 @@ function FileRow({
   onCancelEditing?: () => void;
   onRequestRename?: (entry: FileEntry) => void;
   onRemoveEntry?: (entry: FileEntry) => void;
-  onSelectEntry?: (entry: FileEntry) => void;
+  onFolderClick?: (entry: FileEntry) => void;
+  onFileClick?: (entry: FileEntry) => void;
 }) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const extensionSuffix = file.extension ? `.${file.extension}` : '';
@@ -110,16 +132,21 @@ function FileRow({
     }
   }, [isEditing, extensionSuffix]);
 
-  const handleSelect = () => {
-    if (!isEditing && file.kind !== 'folder') {
-      onSelectEntry?.(file);
+  const handleRowClick = (event: MouseEvent<HTMLDivElement>) => {
+    event.stopPropagation();
+    if (isEditing) return;
+    if (file.kind === 'folder') {
+      onFolderClick?.(file);
+    } else {
+      onFileClick?.(file);
     }
   };
   const isActive = isSelected && !isEditing;
+  const indentStyle = depth ? { marginLeft: depth * 12 } : undefined;
 
   return (
     <motion.div
-      onClick={handleSelect}
+      onClick={handleRowClick}
       whileHover={{ x: 3 }}
       className={clsx(
         'group relative flex items-center justify-between rounded-xl px-3 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0 overflow-hidden',
@@ -138,7 +165,7 @@ function FileRow({
           : '',
       )}
     >
-      <div className="flex items-center space-x-2 flex-1 min-w-0">
+      <div className="flex items-center space-x-2 flex-1 min-w-0" style={indentStyle}>
         {file.kind === 'folder' ? (
           <Folder
             size={16}
@@ -174,7 +201,10 @@ function FileRow({
         ) : (
           <button
             type="button"
-            onDoubleClick={() => onRequestRename?.(file)}
+            onDoubleClick={event => {
+              event.stopPropagation();
+              onRequestRename?.(file);
+            }}
             className={clsx(
               'text-left truncate transition-colors duration-200',
               isActive ? 'font-semibold' : 'font-medium',
@@ -198,11 +228,75 @@ function FileRow({
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           className="p-0.5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-colors duration-300"
-          onClick={() => onRemoveEntry?.(file)}
+          onClick={event => {
+            event.stopPropagation();
+            onRemoveEntry?.(file);
+          }}
         >
           <Trash2 size={14} />
         </motion.button>
       ) : null}
     </motion.div>
   );
+}
+
+interface TreeNode {
+  entry: FileEntry;
+  children: TreeNode[];
+}
+
+interface FlattenedNode {
+  entry: FileEntry;
+  depth: number;
+}
+
+function buildFileTree(entries: FileEntry[]): TreeNode[] {
+  const nodes = new Map<string, TreeNode>();
+  entries.forEach(entry => {
+    nodes.set(entry.id, { entry, children: [] });
+  });
+  const folderByPath = new Map<string, TreeNode>();
+  entries.forEach(entry => {
+    if (entry.kind === 'folder') {
+      const path = getEntryPath(entry);
+      folderByPath.set(path, nodes.get(entry.id)!);
+    }
+  });
+  const roots: TreeNode[] = [];
+  entries.forEach(entry => {
+    const node = nodes.get(entry.id)!;
+    const entryPath = getEntryPath(entry);
+    const parentPath = getParentDirectoryPath(entryPath);
+    const parentNode = parentPath ? folderByPath.get(parentPath) : undefined;
+    if (parentNode) {
+      parentNode.children.push(node);
+    } else {
+      roots.push(node);
+    }
+  });
+  return roots;
+}
+
+function flattenTree(nodes: TreeNode[], expandedFolderIds: Set<string>, depth = 0, acc: FlattenedNode[] = []) {
+  nodes.forEach(node => {
+    acc.push({ entry: node.entry, depth });
+    if (node.entry.kind === 'folder' && expandedFolderIds.has(node.entry.id)) {
+      flattenTree(node.children, expandedFolderIds, depth + 1, acc);
+    }
+  });
+  return acc;
+}
+
+function getEntryPath(entry: FileEntry) {
+  return (entry.path ?? entry.name ?? '').trim();
+}
+
+function getParentDirectoryPath(path: string) {
+  const trimmed = path.trim();
+  if (!trimmed) return '';
+  const slashIndex = trimmed.lastIndexOf('/');
+  if (slashIndex <= 0) {
+    return '';
+  }
+  return trimmed.slice(0, slashIndex);
 }

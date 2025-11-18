@@ -14,14 +14,19 @@ const FALLBACK_FILES: FileEntry[] = [
   },
 ];
 
+export interface CreateEntryOptions {
+  name?: string;
+  parentPath?: string;
+}
+
 export interface ProjectFilesState {
   files: FileEntry[];
   activeFileId: string;
   activeFile?: FileEntry;
   selectFile: (entryId: string) => void;
   updateFileContent: (entryId: string, content: string) => void;
-  createPythonFile: (name?: string) => FileEntry;
-  createFolder: (name?: string) => FileEntry;
+  createPythonFile: (options?: CreateEntryOptions) => FileEntry;
+  createFolder: (options?: CreateEntryOptions) => FileEntry;
   renameEntry: (entryId: string, name: string) => void;
   removeEntry: (entryId: string) => void;
 }
@@ -54,17 +59,19 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     setFiles(prev => prev.map(file => (file.id === entryId ? { ...file, content } : file)));
   }, []);
 
-  const createPythonFile = useCallback((requestedName?: string): FileEntry => {
+  const createPythonFile = useCallback((options?: CreateEntryOptions): FileEntry => {
+    const { name: requestedName, parentPath } = options ?? {};
     const snapshot = filesSnapshotRef.current;
     const existingPaths = snapshot.map(file => file.path ?? file.name);
-    const nextName = buildUniqueName(
-      existingPaths,
-      buildCandidateName(requestedName, { extension: 'py', fallbackBase: '\u65b0\u7684\u4ee3\u7801' }),
-    );
+    const resolvedParent = normalizeDirectoryPath(parentPath);
+    const candidateName = buildCandidateName(requestedName, { extension: 'py', fallbackBase: '\u65b0\u7684\u4ee3\u7801' });
+    const targetPath = joinParentPath(resolvedParent, candidateName);
+    const nextPath = buildUniquePath(existingPaths, targetPath);
+    const nextName = getBaseName(nextPath);
     const created: FileEntry = {
       id: createEntryId(),
       name: nextName,
-      path: nextName,
+      path: nextPath,
       kind: 'file',
       extension: 'py',
       language: 'python',
@@ -78,17 +85,19 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     return created;
   }, []);
 
-  const createFolder = useCallback((requestedName?: string): FileEntry => {
+  const createFolder = useCallback((options?: CreateEntryOptions): FileEntry => {
+    const { name: requestedName, parentPath } = options ?? {};
     const snapshot = filesSnapshotRef.current;
     const existingPaths = snapshot.map(file => file.path ?? file.name);
-    const nextName = buildUniqueName(
-      existingPaths,
-      buildCandidateName(requestedName, { fallbackBase: '\u65b0\u5efa\u6587\u4ef6\u5939' }),
-    );
+    const resolvedParent = normalizeDirectoryPath(parentPath);
+    const candidateName = buildCandidateName(requestedName, { fallbackBase: '\u65b0\u5efa\u6587\u4ef6\u5939' });
+    const targetPath = joinParentPath(resolvedParent, candidateName);
+    const nextPath = buildUniquePath(existingPaths, targetPath);
+    const nextName = getBaseName(nextPath);
     const created: FileEntry = {
       id: createEntryId(),
       name: nextName,
-      path: nextName,
+      path: nextPath,
       kind: 'folder',
     };
     const nextFiles = [...snapshot, created];
@@ -103,30 +112,79 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
       if (!target) {
         return prev;
       }
-      const normalized = normalizeName(requestedName, target.extension);
-      if (!normalized) {
+      const normalizedName = normalizeSegmentName(requestedName, target.extension);
+      if (!normalizedName) {
         return prev;
       }
-      const otherNames = prev.filter(file => file.id !== entryId).map(file => file.path ?? file.name);
-      const nextName = buildUniqueName(otherNames, normalized);
-      return prev.map(file =>
-        file.id === entryId
-          ? {
+      const currentPath = target.path ?? target.name ?? '';
+      if (!currentPath) {
+        return prev;
+      }
+      const { dir: parentDir } = splitPath(currentPath);
+      const candidatePath = joinParentPath(parentDir, normalizedName);
+      const otherPaths = prev.filter(file => file.id !== entryId).map(file => file.path ?? file.name);
+      const nextPath = buildUniquePath(otherPaths, candidatePath);
+      const nextName = getBaseName(nextPath);
+      const updatedFiles = prev.map(file => {
+        if (file.id === entryId) {
+          const nextExtension =
+            file.kind === 'file' ? inferExtension(nextName) ?? file.extension : file.extension;
+          return {
+            ...file,
+            name: nextName,
+            path: nextPath,
+            extension: nextExtension,
+            language: nextExtension === 'py' ? 'python' : file.language,
+          };
+        }
+        if (target.kind === 'folder') {
+          const entryPath = file.path ?? file.name ?? '';
+          if (entryPath && isDescendantPath(entryPath, currentPath)) {
+            const relative = entryPath.slice(currentPath.length);
+            const safeRelative = relative.startsWith('/') ? relative.slice(1) : relative;
+            const recalculatedPath = nextPath ? `${nextPath}/${safeRelative}` : safeRelative;
+            return {
               ...file,
-              name: nextName,
-              path: nextName,
-              extension: file.kind === 'file' ? inferExtension(nextName) ?? file.extension : file.extension,
-            }
-          : file,
-      );
+              path: recalculatedPath,
+              name: getBaseName(recalculatedPath),
+            };
+          }
+        }
+        return file;
+      });
+      filesSnapshotRef.current = updatedFiles;
+      return updatedFiles;
     });
   }, []);
 
   const removeEntry = useCallback((entryId: string) => {
     setFiles(prev => {
-      const nextFiles = prev.filter(file => file.id !== entryId);
+      const target = prev.find(file => file.id === entryId);
+      if (!target) {
+        return prev;
+      }
+      const targetPath = target.path ?? target.name ?? '';
+      const removedIds = new Set<string>();
+      const nextFiles =
+        target.kind === 'folder'
+          ? prev.filter(file => {
+              const entryPath = file.path ?? file.name ?? '';
+              const shouldRemove = entryPath && isDescendantOrSelf(entryPath, targetPath);
+              if (shouldRemove) {
+                removedIds.add(file.id);
+              }
+              return !shouldRemove;
+            })
+          : prev.filter(file => {
+              if (file.id === entryId) {
+                removedIds.add(file.id);
+                return false;
+              }
+              return true;
+            });
+      filesSnapshotRef.current = nextFiles;
       setActiveFileId(currentActive => {
-        if (currentActive !== entryId) {
+        if (!currentActive || !removedIds.has(currentActive)) {
           return currentActive;
         }
         const nextActive = nextFiles.find(file => file.kind !== 'folder');
@@ -152,14 +210,14 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
 function normalizeInitialFiles(seed: FileEntry[]) {
   const base = seed.length ? seed : FALLBACK_FILES;
   const normalized = base.map(file => {
-    const resolvedPath = (file.path ?? file.name ?? '').trim();
-    const safePath = resolvedPath || `${file.name ?? 'file'}-${createEntryId()}`;
+    const resolvedPath = normalizePathInput(file.path ?? file.name ?? '');
+    const safePath = resolvedPath || `${sanitizePathSegment(file.name ?? 'file')}-${createEntryId()}`;
     const extension = file.extension ?? inferExtension(safePath);
     return {
       ...file,
       id: file.id ?? createEntryId(),
       kind: file.kind ?? 'file',
-      name: file.name ?? safePath,
+      name: file.name ?? getBaseName(safePath),
       path: safePath,
       extension,
       language: file.language ?? (extension === 'py' ? 'python' : undefined),
@@ -174,42 +232,26 @@ function normalizeInitialFiles(seed: FileEntry[]) {
   };
 }
 
-function buildCandidateName(
-  requestedName: string | undefined,
-  options: { extension?: string; fallbackBase: string },
-): string {
-  const normalized = normalizeName(requestedName ?? options.fallbackBase, options.extension);
+function buildCandidateName(requestedName: string | undefined, options: { extension?: string; fallbackBase: string }) {
+  const normalized = normalizeSegmentName(requestedName ?? options.fallbackBase, options.extension);
   if (normalized) {
     return normalized;
   }
   return options.extension ? `${options.fallbackBase}.${options.extension}` : options.fallbackBase;
 }
 
-function normalizeName(input: string, extension?: string) {
-  const trimmed = input.trim();
-  if (!trimmed) {
-    return '';
+function buildUniquePath(existingPaths: string[], candidatePath: string) {
+  if (!existingPaths.includes(candidatePath)) {
+    return candidatePath;
   }
-  if (!extension) {
-    return trimmed;
-  }
-  const dotIndex = trimmed.lastIndexOf('.');
-  if (dotIndex > 0) {
-    return trimmed;
-  }
-  return `${trimmed}.${extension}`;
-}
-
-function buildUniqueName(existingNames: string[], candidate: string) {
-  if (!existingNames.includes(candidate)) {
-    return candidate;
-  }
-  const { base, ext } = splitName(candidate);
+  const { dir, base } = splitPath(candidatePath);
+  const { base: segmentBase, ext } = splitName(base);
   let counter = 2;
   while (true) {
-    const next = `${base}-${counter}${ext}`;
-    if (!existingNames.includes(next)) {
-      return next;
+    const nextBase = `${segmentBase}-${counter}${ext}`;
+    const nextPath = dir ? `${dir}/${nextBase}` : nextBase;
+    if (!existingPaths.includes(nextPath)) {
+      return nextPath;
     }
     counter += 1;
   }
@@ -221,6 +263,68 @@ function splitName(input: string) {
     return { base: input.slice(0, dotIndex), ext: input.slice(dotIndex) };
   }
   return { base: input, ext: '' };
+}
+
+function splitPath(input: string) {
+  const slashIndex = input.lastIndexOf('/');
+  if (slashIndex >= 0) {
+    return { dir: input.slice(0, slashIndex), base: input.slice(slashIndex + 1) };
+  }
+  return { dir: '', base: input };
+}
+
+function getBaseName(path: string) {
+  return path.split('/').pop() ?? path;
+}
+
+function joinParentPath(parentPath: string, segment: string) {
+  if (!parentPath) {
+    return segment;
+  }
+  return segment ? `${parentPath}/${segment}` : parentPath;
+}
+
+function normalizeDirectoryPath(input?: string) {
+  const trimmed = normalizePathInput(input ?? '');
+  return trimmed;
+}
+
+function normalizePathInput(input: string) {
+  const cleaned = input.replace(/\\/g, '/').replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
+  return cleaned;
+}
+
+function sanitizePathSegment(value: string) {
+  return value.replace(/[\\/]+/g, '').trim();
+}
+
+function normalizeSegmentName(input: string, extension?: string) {
+  const sanitized = sanitizePathSegment(input);
+  if (!sanitized) {
+    return '';
+  }
+  if (!extension) {
+    return sanitized;
+  }
+  const dotIndex = sanitized.lastIndexOf('.');
+  if (dotIndex > 0) {
+    return sanitized;
+  }
+  return `${sanitized}.${extension}`;
+}
+
+function isDescendantPath(entryPath: string, folderPath: string) {
+  if (!folderPath) {
+    return false;
+  }
+  if (entryPath === folderPath) {
+    return false;
+  }
+  return entryPath.startsWith(`${folderPath}/`);
+}
+
+function isDescendantOrSelf(entryPath: string, folderPath: string) {
+  return entryPath === folderPath || entryPath.startsWith(`${folderPath}/`);
 }
 
 function inferExtension(name: string | undefined) {
