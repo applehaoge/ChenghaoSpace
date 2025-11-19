@@ -1,12 +1,14 @@
-import { useEffect, useRef } from 'react';
-import type { HTMLAttributes, MouseEvent } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import type { DragEvent, HTMLAttributes, MouseEvent, PointerEvent } from 'react';
 import clsx from 'clsx';
-import { motion } from 'framer-motion';
-import { ChevronRight, FileText, Folder, Trash2 } from 'lucide-react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronRight, FileText, Folder, MoreVertical } from 'lucide-react';
 import type { FlattenedFileTreeNode } from '@/features/kidsCoding/core/buildFileTree';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
+import type { FileRowAction } from '@/features/kidsCoding/components/editor/sidebar/types';
+import { FileTreeRowMenu } from '@/features/kidsCoding/components/editor/sidebar/FileTreeRowMenu';
+import { useFileRowMenu } from '@/features/kidsCoding/components/editor/sidebar/hooks/useFileRowMenu';
 
-const BASE_INDENT_PX = 8;
 const INDENT_STEP_PX = 12;
 const GLOBAL_SHIFT_PX = 4;
 
@@ -23,9 +25,9 @@ interface FileTreeRowProps {
   onCommitEditing?: () => void;
   onCancelEditing?: () => void;
   onRequestRename?: (entry: FileEntry) => void;
-  onRemoveEntry?: (entry: FileEntry) => void;
   onFolderClick?: (entry: FileEntry) => void;
   onFileClick?: (entry: FileEntry) => void;
+  onAction?: (entry: FileEntry, action: FileRowAction) => void;
   dragProps?: DragProps;
   dropProps?: DropProps;
   isDropTarget?: boolean;
@@ -41,9 +43,9 @@ export function FileTreeRow({
   onCommitEditing,
   onCancelEditing,
   onRequestRename,
-  onRemoveEntry,
   onFolderClick,
   onFileClick,
+  onAction,
   dragProps,
   dropProps,
   isDropTarget,
@@ -86,8 +88,43 @@ export function FileTreeRow({
 
   const isActive = isSelected && !isEditing;
   const indentPx = GLOBAL_SHIFT_PX + node.depth * INDENT_STEP_PX;
-  const resolvedDragProps = dragProps ?? {};
+  const { isOpen: isMenuOpen, toggleMenu, closeMenu, triggerRef, menuRef } = useFileRowMenu();
+  const resolvedDragProps: DragProps = dragProps
+    ? {
+        ...dragProps,
+        onDragStart: (event: DragEvent<HTMLDivElement>) => {
+          closeMenu();
+          dragProps.onDragStart?.(event);
+        },
+      }
+    : {};
   const resolvedDropProps = dropProps ?? {};
+
+  useEffect(() => {
+    if (isEditing && isMenuOpen) {
+      closeMenu();
+    }
+  }, [isEditing, isMenuOpen, closeMenu]);
+
+  const handleMenuAction = useCallback(
+    (action: FileRowAction) => {
+      onAction?.(node.entry, action);
+      closeMenu();
+    },
+    [closeMenu, onAction, node.entry],
+  );
+
+  const handleMenuButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    toggleMenu();
+  };
+
+  const handleMenuButtonPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    if (dragProps?.draggable) {
+      event.preventDefault();
+    }
+  };
 
   return (
     <motion.div
@@ -109,8 +146,9 @@ export function FileTreeRow({
             : 'bg-[#D8E6FF] text-[#45527A] font-semibold border-l-[2px] border-l-[#4C8DFF]'
           : '',
         isDropTarget ? 'ring-1 ring-blue-400/70' : '',
+        isMenuOpen ? 'z-20' : '',
       )}
-      style={{ paddingLeft: indentPx }}
+      style={{ paddingLeft: indentPx, overflow: isMenuOpen ? 'visible' : undefined }}
       {...resolvedDragProps}
       {...resolvedDropProps}
     >
@@ -186,17 +224,38 @@ export function FileTreeRow({
         )}
       </div>
       {!isEditing ? (
-        <motion.button
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          className="p-0.5 rounded-full hover:bg-red-500/20 hover:text-red-500 transition-colors duration-300"
-          onClick={event => {
-            event.stopPropagation();
-            onRemoveEntry?.(node.entry);
-          }}
+        <div
+          className={clsx(
+            'relative flex items-center transition-opacity duration-200',
+            isMenuOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
+          )}
         >
-          <Trash2 size={14} />
-        </motion.button>
+          <motion.button
+            ref={triggerRef}
+            type="button"
+            aria-haspopup="menu"
+            aria-expanded={isMenuOpen}
+            onClick={handleMenuButtonClick}
+            onPointerDown={handleMenuButtonPointerDown}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className={clsx(
+              'rounded-full p-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2',
+              isDark
+                ? 'text-blue-200 hover:text-blue-50 hover:bg-blue-900/70 focus-visible:ring-blue-400/60 focus-visible:ring-offset-0'
+                : 'text-[#60709A] hover:text-[#45527A] hover:bg-blue-50 focus-visible:ring-blue-300 focus-visible:ring-offset-0',
+            )}
+          >
+            <MoreVertical size={15} />
+          </motion.button>
+          <AnimatePresence>
+            {isMenuOpen ? (
+              <div className="absolute right-0 top-full mt-1 z-50">
+                <FileTreeRowMenu isDark={isDark} onSelect={handleMenuAction} menuRef={menuRef} />
+              </div>
+            ) : null}
+          </AnimatePresence>
+        </div>
       ) : null}
     </motion.div>
   );

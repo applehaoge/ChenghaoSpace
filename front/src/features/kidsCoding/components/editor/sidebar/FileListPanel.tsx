@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 import { buildFileTree, flattenFileTree } from '@/features/kidsCoding/core/buildFileTree';
 import { useFileDragAndDrop } from '@/features/kidsCoding/components/editor/sidebar/hooks/useFileDragAndDrop';
 import { FileTreeRow } from '@/features/kidsCoding/components/editor/sidebar/FileTreeRow';
+import type { FileRowAction } from '@/features/kidsCoding/components/editor/sidebar/types';
 
 interface FileListPanelProps {
   isDark: boolean;
@@ -23,6 +24,7 @@ interface FileListPanelProps {
   onBlankAreaClick?: () => void;
   onMoveEntry: (entryId: string, targetFolderId: string | null) => void;
   onEnsureFolderExpanded?: (folderId: string) => void;
+  onFileRowAction?: (entry: FileEntry, action: FileRowAction) => void;
 }
 
 export function FileListPanel({
@@ -42,6 +44,7 @@ export function FileListPanel({
   onBlankAreaClick,
   onMoveEntry,
   onEnsureFolderExpanded,
+  onFileRowAction,
 }: FileListPanelProps) {
   const treeRoots = useMemo(() => buildFileTree(files), [files]);
   const flattenedNodes = useMemo(() => flattenFileTree(treeRoots, expandedFolderIds), [treeRoots, expandedFolderIds]);
@@ -61,6 +64,23 @@ export function FileListPanel({
       </div>
     );
   }
+
+  const handleRowAction = useCallback(
+    (entry: FileEntry, action: FileRowAction) => {
+      if (onFileRowAction) {
+        onFileRowAction(entry, action);
+        return;
+      }
+      if (action === 'rename') {
+        onRequestRename?.(entry);
+        return;
+      }
+      if (action === 'delete') {
+        onRemoveEntry?.(entry);
+      }
+    },
+    [onFileRowAction, onRequestRename, onRemoveEntry],
+  );
 
   return (
     <div
@@ -84,9 +104,9 @@ export function FileListPanel({
             onCommitEditing={onCommitEditing}
             onCancelEditing={onCancelEditing}
             onRequestRename={onRequestRename}
-            onRemoveEntry={onRemoveEntry}
             onFolderClick={onFolderClick}
             onFileClick={onFileClick}
+            onAction={handleRowAction}
             dragProps={dragProps}
             dropProps={dropProps}
             isDropTarget={dropTargetId === node.id}

@@ -8,7 +8,7 @@ import { SidebarToolbar } from '@/features/kidsCoding/components/editor/sidebar/
 import { FileListPanel } from '@/features/kidsCoding/components/editor/sidebar/FileListPanel';
 import { LessonTaskPanel } from '@/features/kidsCoding/components/editor/sidebar/lesson';
 import { TaskVideoDialog } from '@/features/kidsCoding/components/editor/sidebar/TaskVideoDialog';
-import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
+import type { FileRowAction, SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
 import { useLessonSlides } from '@/features/kidsCoding/hooks/useLessonSlides';
 import { useRenameWorkflow } from '@/features/kidsCoding/hooks/useRenameWorkflow';
 import {
@@ -258,6 +258,82 @@ export function FileSidebar({
     setActiveView('files');
   }, [editingEntryId, handleCommitEditing, onCreateFolder, currentDirectoryPath, expandAncestors]);
 
+  const copyToClipboard = useCallback((value: string) => {
+    if (!value) return;
+    if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(value).catch(error => {
+        console.error('复制失败', error);
+      });
+      return;
+    }
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const textarea = document.createElement('textarea');
+    textarea.value = value;
+    textarea.setAttribute('readonly', '');
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.select();
+    try {
+      document.execCommand('copy');
+    } catch (error) {
+      console.error('复制失败', error);
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  }, []);
+
+  const exportEntry = useCallback((entry: FileEntry) => {
+    if (entry.kind === 'folder') {
+      console.info('暂不支持导出文件夹', entry);
+      return;
+    }
+    if (typeof document === 'undefined') {
+      return;
+    }
+    const payload = entry.content ?? '';
+    const blob = new Blob([payload], { type: 'text/plain;charset=utf-8' });
+    const href = URL.createObjectURL(blob);
+    const filename = entry.name || 'export.txt';
+    const link = document.createElement('a');
+    link.href = href;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+  }, []);
+
+  const handleFileRowAction = useCallback(
+    (entry: FileEntry, action: FileRowAction) => {
+      switch (action) {
+        case 'rename':
+          handleRequestRename(entry);
+          break;
+        case 'duplicate':
+          console.info('复制条目功能暂未实装', entry);
+          break;
+        case 'delete':
+          handleRemoveEntry(entry);
+          break;
+        case 'copyName':
+          copyToClipboard(entry.name ?? '');
+          break;
+        case 'copyRelativePath':
+          copyToClipboard(entry.path ?? entry.name ?? '');
+          break;
+        case 'export':
+          exportEntry(entry);
+          break;
+        default:
+          break;
+      }
+    },
+    [copyToClipboard, exportEntry, handleRemoveEntry, handleRequestRename],
+  );
+
   const handleFolderClick = useCallback(
     (entry: FileEntry) => {
       if (editingEntryId && editingEntryId !== entry.id) {
@@ -390,6 +466,7 @@ export function FileSidebar({
                 onBlankAreaClick={handleBlankAreaClick}
                 onMoveEntry={onMoveEntry}
                 onEnsureFolderExpanded={ensureFolderExpanded}
+                onFileRowAction={handleFileRowAction}
               />
             )}
           </div>
