@@ -1,17 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
-export function useFileRowMenu() {
-  const [isOpen, setIsOpen] = useState(false);
+export function useFileRowMenu(isOpen: boolean, onClose: () => void) {
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
-
-  const closeMenu = useCallback(() => {
-    setIsOpen(false);
-  }, []);
-
-  const toggleMenu = useCallback(() => {
-    setIsOpen(prev => !prev);
-  }, []);
 
   useEffect(() => {
     if (!isOpen) {
@@ -23,12 +14,12 @@ export function useFileRowMenu() {
         !menuRef.current?.contains(target) &&
         !triggerRef.current?.contains(target)
       ) {
-        setIsOpen(false);
+        onClose();
       }
     };
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setIsOpen(false);
+        onClose();
       }
     };
     document.addEventListener('mousedown', handlePointerDown);
@@ -39,12 +30,9 @@ export function useFileRowMenu() {
       document.removeEventListener('touchstart', handlePointerDown);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   return {
-    isOpen,
-    toggleMenu,
-    closeMenu,
     triggerRef,
     menuRef,
   };

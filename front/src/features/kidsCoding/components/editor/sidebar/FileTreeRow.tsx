@@ -35,6 +35,9 @@ interface FileTreeRowProps {
   dragProps?: DragProps;
   dropProps?: DropProps;
   isDropTarget?: boolean;
+  isMenuOpen: boolean;
+  onToggleMenu: (entryId: string) => void;
+  onCloseMenu: () => void;
 }
 
 export function FileTreeRow({
@@ -53,6 +56,9 @@ export function FileTreeRow({
   dragProps,
   dropProps,
   isDropTarget,
+  isMenuOpen,
+  onToggleMenu,
+  onCloseMenu,
 }: FileTreeRowProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const extensionSuffix = node.entry.extension ? `.${node.entry.extension}` : '';
@@ -92,13 +98,13 @@ export function FileTreeRow({
 
   const isActive = isSelected && !isEditing;
   const indentPx = GLOBAL_SHIFT_PX + node.depth * INDENT_STEP_PX;
-  const { isOpen: isMenuOpen, toggleMenu, closeMenu, triggerRef, menuRef } = useFileRowMenu();
+  const { triggerRef, menuRef } = useFileRowMenu(isMenuOpen, onCloseMenu);
   const [menuPlacement, setMenuPlacement] = useState<'bottom' | 'top'>('bottom');
   const resolvedDragProps: DragProps = dragProps
     ? {
         ...dragProps,
         onDragStart: (event: DragEvent<HTMLDivElement>) => {
-          closeMenu();
+          onCloseMenu();
           dragProps.onDragStart?.(event);
         },
       }
@@ -107,16 +113,16 @@ export function FileTreeRow({
 
   useEffect(() => {
     if (isEditing && isMenuOpen) {
-      closeMenu();
+      onCloseMenu();
     }
-  }, [isEditing, isMenuOpen, closeMenu]);
+  }, [isEditing, isMenuOpen, onCloseMenu]);
 
   const handleMenuAction = useCallback(
     (action: FileRowAction) => {
       onAction?.(node.entry, action);
-      closeMenu();
+      onCloseMenu();
     },
-    [closeMenu, onAction, node.entry],
+    [onCloseMenu, onAction, node.entry],
   );
 
   const handleMenuButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -137,7 +143,7 @@ export function FileTreeRow({
         setMenuPlacement('bottom');
       }
     }
-    toggleMenu();
+    onToggleMenu(node.id);
   };
 
   const handleMenuButtonPointerDown = (event: PointerEvent<HTMLButtonElement>) => {

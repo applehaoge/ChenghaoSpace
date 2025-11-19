@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Clock } from 'lucide-react';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
@@ -53,6 +53,15 @@ export function FileListPanel({
     onMoveEntry,
     onEnsureFolderExpanded,
   });
+  const [openMenuEntryId, setOpenMenuEntryId] = useState<string | null>(null);
+
+  const handleToggleRowMenu = useCallback((entryId: string) => {
+    setOpenMenuEntryId(prev => (prev === entryId ? null : entryId));
+  }, []);
+
+  const handleCloseRowMenu = useCallback(() => {
+    setOpenMenuEntryId(null);
+  }, []);
 
   if (!files.length) {
     return (
@@ -60,7 +69,10 @@ export function FileListPanel({
         <div
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2.5 py-1.5 flex flex-col items-center justify-center space-y-3"
           data-file-tree-scroll-container="true"
-          onClick={onBlankAreaClick}
+          onClick={() => {
+            handleCloseRowMenu();
+            onBlankAreaClick?.();
+          }}
           {...rootDropZoneProps}
         >
           <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}>
@@ -94,7 +106,10 @@ export function FileListPanel({
       <div
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1 py-1.5 flex flex-col gap-0.5"
         data-file-tree-scroll-container="true"
-        onClick={onBlankAreaClick}
+        onClick={() => {
+          handleCloseRowMenu();
+          onBlankAreaClick?.();
+        }}
         {...rootDropZoneProps}
       >
         {flattenedNodes.map(node => {
@@ -119,6 +134,9 @@ export function FileListPanel({
               dragProps={dragProps}
               dropProps={dropProps}
               isDropTarget={dropTargetId === node.id}
+              isMenuOpen={openMenuEntryId === node.id}
+              onToggleMenu={handleToggleRowMenu}
+              onCloseMenu={handleCloseRowMenu}
             />
           );
         })}
