@@ -11,6 +11,11 @@ import { TaskVideoDialog } from '@/features/kidsCoding/components/editor/sidebar
 import type { SidebarView } from '@/features/kidsCoding/components/editor/sidebar/types';
 import { useLessonSlides } from '@/features/kidsCoding/hooks/useLessonSlides';
 import { useRenameWorkflow } from '@/features/kidsCoding/hooks/useRenameWorkflow';
+import {
+  collectAncestorPaths,
+  getEntryPath,
+  getParentDirectoryPath,
+} from '@/features/kidsCoding/core/buildFileTree';
 
 export type { SidebarView };
 
@@ -25,6 +30,7 @@ interface FileSidebarProps {
   onCreateFolder: (options?: CreateEntryOptions) => FileEntry;
   onRenameEntry: (entryId: string, name: string) => void;
   onRemoveEntry: (entryId: string) => void;
+  onMoveEntry: (entryId: string, targetFolderId: string | null) => void;
   onEarnTokens?: (amount: number) => void;
 }
 
@@ -39,6 +45,7 @@ export function FileSidebar({
   onCreateFolder,
   onRenameEntry,
   onRemoveEntry,
+  onMoveEntry,
   onEarnTokens,
 }: FileSidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
@@ -303,6 +310,17 @@ export function FileSidebar({
     }
   }, [selectedEntryId, currentDirectoryPath, currentDirectoryEntryId]);
 
+  const ensureFolderExpanded = useCallback((folderId: string) => {
+    setExpandedFolderIds(prev => {
+      if (prev.has(folderId)) {
+        return prev;
+      }
+      const next = new Set(prev);
+      next.add(folderId);
+      return next;
+    });
+  }, []);
+
   return (
     <>
       <motion.div
@@ -370,6 +388,8 @@ export function FileSidebar({
                 onFolderClick={handleFolderClick}
                 onFileClick={handleFileClick}
                 onBlankAreaClick={handleBlankAreaClick}
+                onMoveEntry={onMoveEntry}
+                onEnsureFolderExpanded={ensureFolderExpanded}
               />
             )}
           </div>
@@ -427,29 +447,3 @@ function CollapseHandle({
   );
 }
 
-function getEntryPath(entry: FileEntry) {
-  return (entry.path ?? entry.name ?? '').trim();
-}
-
-function getParentDirectoryPath(path: string) {
-  const trimmed = path.trim();
-  if (!trimmed) return '';
-  const slashIndex = trimmed.lastIndexOf('/');
-  if (slashIndex <= 0) {
-    return '';
-  }
-  return trimmed.slice(0, slashIndex);
-}
-
-function collectAncestorPaths(path: string) {
-  const trimmed = path.trim();
-  if (!trimmed.includes('/')) {
-    return [];
-  }
-  const segments = trimmed.split('/');
-  const ancestors: string[] = [];
-  for (let index = 0; index < segments.length - 1; index += 1) {
-    ancestors.push(segments.slice(0, index + 1).join('/'));
-  }
-  return ancestors;
-}

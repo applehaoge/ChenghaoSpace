@@ -59,6 +59,7 @@ export function KidsCodingEditorPage() {
     createFolder,
     renameEntry,
     removeEntry,
+    moveEntry,
   } = useProjectFiles(initialProjectFiles);
 
   useEffect(() => {
@@ -148,6 +149,7 @@ export function KidsCodingEditorPage() {
           onCreateFolder={createFolder}
           onRenameEntry={renameEntry}
           onRemoveEntry={removeEntry}
+          onMoveEntry={moveEntry}
           onEarnTokens={handleEarnTokens}
         />
         <div className="flex flex-1 gap-3 xl:gap-4 min-w-0">

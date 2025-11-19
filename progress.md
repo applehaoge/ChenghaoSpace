@@ -20,7 +20,15 @@
 
 所有潜在危险点（例如路径校验、资源限制）要在代码里加简短注释（中文），标明为什么要这么做。
 
-- **2025-11-18 KidsCoding 文件栏树形交互**
+- **2025-11-19 KidsCoding 文件树拖拽 + 箭头**
+
+  - core/buildFileTree 抽象树节点 + flatten 结构，统一输出 depth、parentId、hasChildren，FileSidebar 也直接复用 getEntryPath/collectAncestorPaths，减少组件内计算。
+  - FileListPanel 重构为 FileTreeRow + useFileDragAndDrop，行内新增箭头槽位 + 图标对齐布局，折叠状态由 expandedFolderIds 控制，点击箭头或整行都能展开/收起。
+  - useProjectFiles 新增 moveEntry，拖拽完成后会重算路径并同步所有子节点，同时阻止把文件夹拖进自己子树的非法操作（中文注释说明原因）。
+  - FileTreeRow 负责渲染缩进、箭头、拖拽高亮和删除/重命名输入框，拖到目标文件夹会自动加入 expandedFolderIds，拖到空白区域则回到根层。
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
+
+- **2025-11-18 KidsCoding 文件栏树形交互**
   - FileSidebar 维护 currentDirectoryPath、selectedEntryId 与 expandedFolderIds，点击空白区域可回到根目录；点击文件/文件夹会同步当前目录并自动展开对应父层，所有新建/上传都精确落在当前目录。
   - FileListPanel 根据文件 path 构建多级树，行内缩进/高度/图标保持原样，空白区域使用容器 onClick 捕获，行组件负责 stopPropagation，支持展开/收起、内联重命名与删除。
   - useProjectFiles 支持多级路径：创建/重命名/删除文件夹会同步子项 path，新建文件也会按目录生成唯一路径，为后续打包和运行提供准确目录结构。

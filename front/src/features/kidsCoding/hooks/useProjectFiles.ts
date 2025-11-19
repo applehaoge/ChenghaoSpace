@@ -29,6 +29,7 @@ export interface ProjectFilesState {
   createFolder: (options?: CreateEntryOptions) => FileEntry;
   renameEntry: (entryId: string, name: string) => void;
   removeEntry: (entryId: string) => void;
+  moveEntry: (entryId: string, targetFolderId: string | null) => void;
 }
 
 export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): ProjectFilesState {
@@ -157,6 +158,59 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     });
   }, []);
 
+  const moveEntry = useCallback((entryId: string, targetFolderId: string | null) => {
+    setFiles(prev => {
+      const target = prev.find(file => file.id === entryId);
+      if (!target) {
+        return prev;
+      }
+      const sourcePath = getEntryPath(target);
+      if (!sourcePath) {
+        return prev;
+      }
+      const destinationFolder =
+        targetFolderId ? prev.find(file => file.id === targetFolderId && file.kind === 'folder') : undefined;
+      const destinationPath = destinationFolder ? getEntryPath(destinationFolder) : '';
+      if (destinationFolder && destinationPath && isDescendantOrSelf(destinationPath, sourcePath)) {
+        // 永远不允许把文件夹拖进自己的子节点，避免构成死循环
+        return prev;
+      }
+      const { base } = splitPath(sourcePath);
+      const otherPaths = prev
+        .filter(file => !isDescendantOrSelf(getEntryPath(file), sourcePath))
+        .map(file => getEntryPath(file));
+      const candidatePath = joinParentPath(destinationPath, base);
+      const nextPath = buildUniquePath(otherPaths, candidatePath);
+      if (nextPath === sourcePath) {
+        return prev;
+      }
+      const previousPrefix = `${sourcePath}/`;
+      const nextPrefix = `${nextPath}/`;
+      return prev.map(file => {
+        const filePath = getEntryPath(file);
+        if (!filePath) {
+          return file;
+        }
+        if (file.id === entryId) {
+          return {
+            ...file,
+            path: nextPath,
+            name: getBaseName(nextPath),
+          };
+        }
+        if (isDescendantPath(filePath, sourcePath)) {
+          const relative = filePath.slice(previousPrefix.length);
+          const updatedPath = `${nextPrefix}${relative}`;
+          return {
+            ...file,
+            path: updatedPath,
+          };
+        }
+        return file;
+      });
+    });
+  }, []);
+
   const removeEntry = useCallback((entryId: string) => {
     setFiles(prev => {
       const target = prev.find(file => file.id === entryId);
@@ -204,6 +258,7 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     createFolder,
     renameEntry,
     removeEntry,
+    moveEntry,
   };
 }
 
@@ -325,6 +380,10 @@ function isDescendantPath(entryPath: string, folderPath: string) {
 
 function isDescendantOrSelf(entryPath: string, folderPath: string) {
   return entryPath === folderPath || entryPath.startsWith(`${folderPath}/`);
+}
+
+function getEntryPath(entry: FileEntry) {
+  return (entry.path ?? entry.name ?? '').trim();
 }
 
 function inferExtension(name: string | undefined) {
