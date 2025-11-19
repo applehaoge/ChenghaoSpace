@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { DragEvent, HTMLAttributes, MouseEvent, PointerEvent } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -11,6 +11,10 @@ import { useFileRowMenu } from '@/features/kidsCoding/components/editor/sidebar/
 
 const INDENT_STEP_PX = 12;
 const GLOBAL_SHIFT_PX = 4;
+const MENU_ITEM_COUNT = 6;
+const MENU_ITEM_HEIGHT = 40;
+const MENU_VERTICAL_PADDING = 16;
+const ESTIMATED_MENU_HEIGHT = MENU_ITEM_COUNT * MENU_ITEM_HEIGHT + MENU_VERTICAL_PADDING;
 
 type DragProps = Pick<HTMLAttributes<HTMLDivElement>, 'draggable' | 'onDragStart' | 'onDragEnd'>;
 type DropProps = Pick<HTMLAttributes<HTMLDivElement>, 'onDragEnter' | 'onDragLeave' | 'onDragOver' | 'onDrop'>;
@@ -89,6 +93,7 @@ export function FileTreeRow({
   const isActive = isSelected && !isEditing;
   const indentPx = GLOBAL_SHIFT_PX + node.depth * INDENT_STEP_PX;
   const { isOpen: isMenuOpen, toggleMenu, closeMenu, triggerRef, menuRef } = useFileRowMenu();
+  const [menuPlacement, setMenuPlacement] = useState<'bottom' | 'top'>('bottom');
   const resolvedDragProps: DragProps = dragProps
     ? {
         ...dragProps,
@@ -116,6 +121,22 @@ export function FileTreeRow({
 
   const handleMenuButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
+    const willOpen = !isMenuOpen;
+    if (willOpen && triggerRef.current) {
+      const triggerRect = triggerRef.current.getBoundingClientRect();
+      const scrollContainer = triggerRef.current.closest('[data-file-tree-scroll-container="true"]') as
+        | HTMLElement
+        | null;
+      const containerRect = scrollContainer?.getBoundingClientRect();
+      if (containerRect) {
+        const spaceBelow = containerRect.bottom - triggerRect.bottom;
+        const spaceAbove = triggerRect.top - containerRect.top;
+        const shouldOpenUpward = spaceBelow < ESTIMATED_MENU_HEIGHT && spaceAbove > spaceBelow;
+        setMenuPlacement(shouldOpenUpward ? 'top' : 'bottom');
+      } else {
+        setMenuPlacement('bottom');
+      }
+    }
     toggleMenu();
   };
 
@@ -250,7 +271,12 @@ export function FileTreeRow({
           </motion.button>
           <AnimatePresence>
             {isMenuOpen ? (
-              <div className="absolute right-0 top-full mt-1 z-50">
+              <div
+                className={clsx(
+                  'absolute right-0 z-50',
+                  menuPlacement === 'bottom' ? 'top-full mt-1' : 'bottom-full mb-1',
+                )}
+              >
                 <FileTreeRowMenu isDark={isDark} onSelect={handleMenuAction} menuRef={menuRef} />
               </div>
             ) : null}

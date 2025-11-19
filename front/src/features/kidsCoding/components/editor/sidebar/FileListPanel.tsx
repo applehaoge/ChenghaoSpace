@@ -59,6 +59,7 @@ export function FileListPanel({
       <div className="flex h-full flex-col">
         <div
           className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2.5 py-1.5 flex flex-col items-center justify-center space-y-3"
+          data-file-tree-scroll-container="true"
           onClick={onBlankAreaClick}
           {...rootDropZoneProps}
         >
@@ -92,6 +93,7 @@ export function FileListPanel({
     <div className="flex h-full flex-col">
       <div
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1 py-1.5 flex flex-col gap-0.5"
+        data-file-tree-scroll-container="true"
         onClick={onBlankAreaClick}
         {...rootDropZoneProps}
       >
