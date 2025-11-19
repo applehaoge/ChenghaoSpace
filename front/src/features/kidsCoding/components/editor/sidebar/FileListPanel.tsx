@@ -64,7 +64,7 @@ export function FileListPanel({
 
   return (
     <div
-      className="flex h-full min-h-0 flex-col gap-0.5 px-2.5 py-1.5 overflow-x-hidden overflow-y-auto"
+      className="flex h-full min-h-0 flex-col gap-0.5 px-1 py-1.5 overflow-x-hidden overflow-y-auto"
       onClick={onBlankAreaClick}
       {...rootDropZoneProps}
     >
