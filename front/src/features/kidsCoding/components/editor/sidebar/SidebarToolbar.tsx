@@ -27,6 +27,14 @@ export function SidebarToolbar({
   onCreateFolder,
 }: SidebarToolbarProps) {
   const isTaskView = activeView === 'tasks';
+  const toggleButton = (
+    <SidebarViewToggleButton
+      isDark={isDark}
+      onClick={onToggleView}
+      icon={isTaskView ? <Folder size={14} /> : <ClipboardList size={15} />}
+      title={isTaskView ? '回到文件' : '查看任务'}
+    />
+  );
 
   return (
     <div
@@ -43,16 +51,11 @@ export function SidebarToolbar({
             onLessonChange={onLessonChange}
           />
         ) : (
-          <>
-            <SidebarIconButton isDark={isDark} icon={<FileText size={16} />} title="main.py" />
-            <IconToggleButton isDark={isDark} onClick={onToggleView} icon={<ClipboardList size={15} />} title="查看任务" />
-          </>
+          <SidebarIconButton isDark={isDark} icon={<FileText size={16} />} title="main.py" />
         )}
       </div>
       <div className="flex items-center space-x-2">
-        {isTaskView ? (
-          <SidebarReturnButton isDark={isDark} onClick={onToggleView} />
-        ) : (
+        {!isTaskView ? (
           <>
             <SidebarIconButton
               isDark={isDark}
@@ -70,7 +73,8 @@ export function SidebarToolbar({
             />
             <SidebarIconButton isDark={isDark} icon={<Upload size={16} />} motionButton title="上传" />
           </>
-        )}
+        ) : null}
+        {toggleButton}
       </div>
     </div>
   );
@@ -107,26 +111,7 @@ function LessonSelector({
   );
 }
 
-function SidebarReturnButton({ isDark, onClick }: { isDark: boolean; onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={clsx(
-        'flex h-8 w-8 items-center justify-center rounded-full transition-colors border',
-        isDark
-          ? 'border-blue-600 text-blue-200 hover:bg-blue-900/40'
-          : 'border-blue-200 text-blue-600 hover:bg-blue-50',
-      )}
-      title="回到文件"
-      aria-label="回到文件"
-    >
-      <Folder size={14} />
-    </button>
-  );
-}
-
-function IconToggleButton({
+function SidebarViewToggleButton({
   isDark,
   onClick,
   icon,
@@ -143,7 +128,9 @@ function IconToggleButton({
       onClick={onClick}
       className={clsx(
         'flex h-8 w-8 items-center justify-center rounded-full transition-colors border',
-        isDark ? 'border-blue-700 text-blue-200 hover:bg-blue-900/40' : 'border-blue-200 text-blue-700 hover:bg-blue-50',
+        isDark
+          ? 'border-blue-600 text-blue-200 hover:bg-blue-900/40'
+          : 'border-blue-200 text-blue-600 hover:bg-blue-50',
       )}
       title={title}
       aria-label={title}
