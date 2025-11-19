@@ -56,11 +56,17 @@ export function FileListPanel({
 
   if (!files.length) {
     return (
-      <div className="flex h-full flex-col items-center justify-center space-y-3 px-2.5 py-1.5" onClick={onBlankAreaClick}>
-        <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}>
-          <Clock size={36} className={isDark ? 'text-gray-600' : 'text-blue-200'} />
-        </motion.div>
-        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-blue-300'}`}>点击上方 “+” 按钮创建新条目</p>
+      <div className="flex h-full flex-col">
+        <div
+          className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-2.5 py-1.5 flex flex-col items-center justify-center space-y-3"
+          onClick={onBlankAreaClick}
+          {...rootDropZoneProps}
+        >
+          <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}>
+            <Clock size={36} className={isDark ? 'text-gray-600' : 'text-blue-200'} />
+          </motion.div>
+          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-blue-300'}`}>点击上方 “+” 按钮创建新条目</p>
+        </div>
       </div>
     );
   }
@@ -83,36 +89,38 @@ export function FileListPanel({
   );
 
   return (
-    <div
-      className="flex h-full min-h-0 flex-col gap-0.5 px-1 py-1.5 overflow-x-hidden overflow-y-auto"
-      onClick={onBlankAreaClick}
-      {...rootDropZoneProps}
-    >
-      {flattenedNodes.map(node => {
-        const isEditing = node.id === editingEntryId;
-        const dragProps = !isEditing ? getRowDragProps(node) : undefined;
-        const dropProps = node.type === 'folder' ? getFolderDropProps(node) : undefined;
-        return (
-          <FileTreeRow
-            key={node.id}
-            node={node}
-            isDark={isDark}
-            isEditing={isEditing}
-            isSelected={node.id === selectedEntryId}
-            editingValue={editingValue}
-            onEditingValueChange={onEditingValueChange}
-            onCommitEditing={onCommitEditing}
-            onCancelEditing={onCancelEditing}
-            onRequestRename={onRequestRename}
-            onFolderClick={onFolderClick}
-            onFileClick={onFileClick}
-            onAction={handleRowAction}
-            dragProps={dragProps}
-            dropProps={dropProps}
-            isDropTarget={dropTargetId === node.id}
-          />
-        );
-      })}
+    <div className="flex h-full flex-col">
+      <div
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden px-1 py-1.5 flex flex-col gap-0.5"
+        onClick={onBlankAreaClick}
+        {...rootDropZoneProps}
+      >
+        {flattenedNodes.map(node => {
+          const isEditing = node.id === editingEntryId;
+          const dragProps = !isEditing ? getRowDragProps(node) : undefined;
+          const dropProps = node.type === 'folder' ? getFolderDropProps(node) : undefined;
+          return (
+            <FileTreeRow
+              key={node.id}
+              node={node}
+              isDark={isDark}
+              isEditing={isEditing}
+              isSelected={node.id === selectedEntryId}
+              editingValue={editingValue}
+              onEditingValueChange={onEditingValueChange}
+              onCommitEditing={onCommitEditing}
+              onCancelEditing={onCancelEditing}
+              onRequestRename={onRequestRename}
+              onFolderClick={onFolderClick}
+              onFileClick={onFileClick}
+              onAction={handleRowAction}
+              dragProps={dragProps}
+              dropProps={dropProps}
+              isDropTarget={dropTargetId === node.id}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }

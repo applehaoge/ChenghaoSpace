@@ -130,8 +130,8 @@ export function FileTreeRow({
     <motion.div
       onClick={handleRowClick}
       whileHover={{ x: 3 }}
-      className={clsx(
-        'group relative flex items-center justify-between rounded-xl px-2 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0 overflow-hidden',
+    className={clsx(
+      'group relative flex shrink-0 items-center justify-between rounded-xl px-2 py-1.5 text-sm transition-colors duration-200 cursor-pointer border border-transparent z-0 overflow-hidden',
         isDark ? 'bg-blue-950/40 text-blue-100' : 'bg-white text-[#60709A]',
         !isEditing &&
           (isDark ? 'hover:bg-blue-900/60 hover:text-blue-50' : 'hover:bg-[#EBF3FF] hover:text-[#45527A]'),
