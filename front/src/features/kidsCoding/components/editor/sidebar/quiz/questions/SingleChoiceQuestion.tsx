@@ -22,7 +22,6 @@ export function SingleChoiceQuestion({
       <ul className="space-y-2">
         {question.options.map(option => {
           const isCorrect = questionState === 'correct' && option.id === question.answerId;
-          const isWrong = questionState === 'incorrect' && option.id !== question.answerId;
           return (
             <li key={option.id}>
               <button
@@ -32,15 +31,15 @@ export function SingleChoiceQuestion({
                 }
                 disabled={disabled}
                 className={clsx(
-                  'flex w-full items-center gap-3 rounded-xl border px-3 py-2 text-left text-sm transition',
-                  isDark ? 'border-indigo-800 bg-indigo-900/40 text-indigo-50' : 'border-indigo-100 bg-indigo-50/70 text-indigo-900',
-                  isCorrect && 'border-emerald-300 bg-emerald-500/20 text-emerald-50',
-                  questionState === 'incorrect' && option.id === question.answerId && 'border-emerald-300',
+                  'flex w-full items-center gap-3 px-1 py-2 text-left text-sm transition',
+                  isDark ? 'text-indigo-50' : 'text-indigo-900',
+                  isCorrect && (isDark ? 'text-emerald-200' : 'text-emerald-600'),
+                  questionState === 'incorrect' && option.id === question.answerId && (isDark ? 'text-emerald-200' : 'text-emerald-600'),
                   !isCorrect && questionState === 'incorrect' && 'opacity-70',
                   disabled && !isCorrect && 'cursor-not-allowed',
                 )}
               >
-                <span className="rounded-full bg-indigo-500/20 px-2 py-0.5 text-xs font-semibold">{option.label}</span>
+                <span className={clsx('text-xs font-semibold', isDark ? 'text-indigo-200' : 'text-indigo-500')}>{option.label}</span>
                 <span>{option.text}</span>
               </button>
             </li>

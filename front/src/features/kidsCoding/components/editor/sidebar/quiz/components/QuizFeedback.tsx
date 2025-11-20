@@ -20,10 +20,8 @@ export function QuizFeedback({ questionState, reward = 0, isDark }: QuizFeedback
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
             className={clsx(
-              'inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold',
-              isDark
-                ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-100'
-                : 'border-emerald-200 bg-emerald-50 text-emerald-600',
+              'inline-flex items-center gap-2 text-xs font-semibold',
+              isDark ? 'text-emerald-100' : 'text-emerald-600',
             )}
           >
             <Medal size={14} />

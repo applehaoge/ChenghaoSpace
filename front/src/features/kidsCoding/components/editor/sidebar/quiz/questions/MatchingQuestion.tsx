@@ -38,15 +38,15 @@ export function MatchingQuestion({
       <div className="space-y-2">
         {question.pairs.map(pair => (
           <div key={pair.id} className="flex items-center gap-3">
-            <span className={clsx('flex-1 rounded-xl px-3 py-2', isDark ? 'bg-slate-800 text-indigo-50' : 'bg-indigo-50 text-indigo-900')}>
+            <span className={clsx('flex-1 px-1 py-2', isDark ? 'text-indigo-50' : 'text-indigo-900')}>
               {pair.left}
             </span>
             <select
               value={selection[pair.id] ?? ''}
               onChange={event => handleSelect(pair.id, event.target.value)}
               className={clsx(
-                'w-40 rounded-xl border px-2 py-1',
-                isDark ? 'border-indigo-700 bg-slate-900 text-indigo-100' : 'border-indigo-200 bg-white text-slate-700',
+                'w-40 border-b px-1 py-1 bg-transparent',
+                isDark ? 'border-indigo-700 text-indigo-100' : 'border-indigo-300 text-slate-700',
               )}
             >
               <option value="">选择策略</option>
@@ -63,7 +63,7 @@ export function MatchingQuestion({
         type="button"
         onClick={handleSubmit}
         className={clsx(
-          'self-end rounded-full px-4 py-1 text-xs font-semibold',
+          'self-end px-4 py-1 text-xs font-semibold',
           isDark ? 'bg-indigo-600 text白' : 'bg-indigo-500 text-white',
         )}
       >

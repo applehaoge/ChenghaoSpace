@@ -35,8 +35,8 @@ export function ShortAnswerQuestion({
       <textarea
         rows={3}
         className={clsx(
-          'w-full rounded-2xl border px-3 py-2 text-sm',
-          isDark ? 'border-indigo-800 bg-slate-900 text-indigo-100' : 'border-indigo-200 bg-white text-slate-800',
+          'w-full border-b px-1 py-2 text-sm bg-transparent focus:outline-none',
+          isDark ? 'border-indigo-700 text-indigo-100' : 'border-indigo-300 text-slate-800',
         )}
         placeholder="写下你的想法……"
       />
@@ -51,14 +51,7 @@ export function ShortAnswerQuestion({
         {showReference ? '隐藏参考答案' : '查看参考答案'}
       </button>
       {showReference && (
-        <div
-          className={clsx(
-            'rounded-xl border px-3 py-2 text-sm',
-            isDark ? 'border-emerald-500/40 text-emerald-100' : 'border-emerald-200 text-emerald-700',
-          )}
-        >
-          {question.referenceAnswer}
-        </div>
+        <p className={clsx('text-sm', isDark ? 'text-emerald-100' : 'text-emerald-700')}>{question.referenceAnswer}</p>
       )}
       {questionState === 'correct' && <p className={clsx('text-xs', isDark ? 'text-emerald-200' : 'text-emerald-600')}>已记录答案</p>}
     </div>

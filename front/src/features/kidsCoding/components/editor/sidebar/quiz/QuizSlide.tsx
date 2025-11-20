@@ -32,8 +32,8 @@ export function QuizSlide({
     return (
       <div
         className={clsx(
-          'flex h-full items-center justify-center rounded-2xl border px-4 py-4 text-sm',
-          isDark ? 'border-indigo-800/60 bg-slate-900/70 text-indigo-100' : 'border-indigo-100 bg-white text-slate-600',
+          'flex h-full items-center justify-center text-sm',
+          isDark ? 'text-indigo-100' : 'text-slate-600',
         )}
       >
         暂无测试题，快去完成任务吧！
@@ -48,10 +48,7 @@ export function QuizSlide({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
-      className={clsx(
-        'rounded-2xl border px-4 py-4 shadow-inner space-y-4 relative',
-        isDark ? 'border-indigo-800/60 bg-slate-900/70' : 'border-indigo-100 bg-white',
-      )}
+      className="relative w-full space-y-4"
     >
       <QuestionHeader
         quizTitle={quiz.title ?? '测验'}

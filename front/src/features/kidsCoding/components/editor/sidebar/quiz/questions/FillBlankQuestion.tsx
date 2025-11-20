@@ -38,15 +38,15 @@ export function FillBlankQuestion({
           onChange={event => setInputValue(event.target.value)}
           placeholder={question.placeholder ?? '输入答案'}
           className={clsx(
-            'flex-1 rounded-xl border px-3 py-2 text-sm',
-            isDark ? 'border-indigo-800 bg-slate-900 text-indigo-100' : 'border-indigo-200 bg-white text-slate-800',
+            'flex-1 border-b px-1 py-2 text-sm focus:outline-none',
+            isDark ? 'border-indigo-700 text-indigo-100 bg-transparent' : 'border-indigo-300 text-slate-800 bg-transparent',
           )}
         />
         <button
           type="button"
           onClick={handleCheck}
           className={clsx(
-            'rounded-xl px-3 py-2 text-sm font-semibold',
+            'px-3 py-2 text-sm font-semibold',
             isDark ? 'bg-indigo-700 text-white' : 'bg-indigo-500 text-white',
           )}
         >
