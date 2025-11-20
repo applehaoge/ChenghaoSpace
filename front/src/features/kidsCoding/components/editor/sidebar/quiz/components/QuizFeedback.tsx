@@ -1,42 +1,59 @@
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Medal } from 'lucide-react';
+import { AlertTriangle, Info, Medal } from 'lucide-react';
 import type { QuizState } from '@/features/kidsCoding/hooks/useLessonSlides';
 
 interface QuizFeedbackProps {
   questionState: QuizState;
   reward?: number;
-  isDark: boolean;
 }
 
-export function QuizFeedback({ questionState, reward = 0, isDark }: QuizFeedbackProps) {
+export function QuizFeedback({ questionState, reward = 0 }: QuizFeedbackProps) {
+  const getFeedback = () => {
+    if (questionState === 'correct') {
+      return {
+        key: 'correct',
+        icon: <Medal size={16} />,
+        className: 'bg-green-500/20 text-green-300',
+        message: (
+          <>
+            做得好！{reward > 0 && <span>+{reward} T币</span>}
+          </>
+        ),
+      };
+    }
+    if (questionState === 'incorrect') {
+      return {
+        key: 'incorrect',
+        icon: <AlertTriangle size={16} />,
+        className: 'bg-orange-500/20 text-orange-300',
+        message: '再试试，仔细看提示~',
+      };
+    }
+    return {
+      key: 'idle',
+      icon: <Info size={16} />,
+      className: 'bg-blue-500/20 text-blue-300',
+      message: '准备好了吗？认真观察题目再作答哦！',
+    };
+  };
+
+  const feedback = getFeedback();
+
   return (
-    <div className="flex justify-end">
-      <AnimatePresence>
-        {questionState === 'correct' ? (
+    <div className="min-h-[64px]">
+      <AnimatePresence mode="wait">
+        {feedback ? (
           <motion.div
-            key="reward"
+            key={feedback.key}
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 6 }}
-            className={clsx(
-              'inline-flex items-center gap-2 text-xs font-semibold',
-              isDark ? 'text-emerald-100' : 'text-emerald-600',
-            )}
+            className={clsx('flex items-center gap-2 rounded-lg p-3 text-sm font-semibold', feedback.className)}
           >
-            <Medal size={14} />
-            做得好！{reward > 0 && <span>+{reward} T币</span>}
+            {feedback.icon}
+            <span>{feedback.message}</span>
           </motion.div>
-        ) : questionState === 'incorrect' ? (
-          <motion.span
-            key="retry"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={clsx('text-xs', isDark ? 'text-amber-200' : 'text-amber-600')}
-          >
-            再试试，仔细看提示~
-          </motion.span>
         ) : null}
       </AnimatePresence>
     </div>

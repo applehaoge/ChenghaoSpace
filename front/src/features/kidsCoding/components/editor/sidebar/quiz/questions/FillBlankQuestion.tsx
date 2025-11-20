@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import type { FillBlankQuestion as FillBlankQuestionType } from '@/features/kidsCoding/data/lessons';
 import type { QuizState } from '@/features/kidsCoding/hooks/useLessonSlides';
+import { QuizFeedback } from '../components/QuizFeedback';
 
 interface FillBlankQuestionProps {
   question: FillBlankQuestionType;
@@ -13,7 +14,7 @@ interface FillBlankQuestionProps {
 export function FillBlankQuestion({
   question,
   questionState,
-  isDark,
+  isDark: _isDark,
   onQuestionResult,
 }: FillBlankQuestionProps) {
   const [inputValue, setInputValue] = useState('');
@@ -29,31 +30,29 @@ export function FillBlankQuestion({
   };
 
   return (
-    <div className="space-y-3">
-      <p className={clsx('text-sm font-medium', isDark ? 'text-indigo-50' : 'text-slate-700')}>{question.prompt}</p>
-      <div className="flex gap-2">
+    <div className="space-y-4 w-full">
+      <div className="question-body">
+        <p className="text-base font-semibold text-slate-100">{question.prompt}</p>
+      </div>
+      <div className="answer-area space-y-3">
         <input
           type="text"
           value={inputValue}
           onChange={event => setInputValue(event.target.value)}
           placeholder={question.placeholder ?? '输入答案'}
           className={clsx(
-            'flex-1 border-b px-1 py-2 text-sm focus:outline-none',
-            isDark ? 'border-indigo-700 text-indigo-100 bg-transparent' : 'border-indigo-300 text-slate-800 bg-transparent',
+            'w-full rounded-lg border border-slate-700 bg-slate-900/50 p-3 text-sm text-slate-200 placeholder:text-slate-500 transition focus:border-blue-500 focus:outline-none',
           )}
         />
         <button
           type="button"
           onClick={handleCheck}
-          className={clsx(
-            'px-3 py-2 text-sm font-semibold',
-            isDark ? 'bg-indigo-700 text-white' : 'bg-indigo-500 text-white',
-          )}
+          className="w-fit rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-500 active:scale-95"
         >
-          检查
+          检查答案
         </button>
       </div>
-      {questionState === 'correct' && <p className={clsx('text-xs', isDark ? 'text-emerald-200' : 'text-emerald-600')}>回答正确！</p>}
+      <QuizFeedback questionState={questionState} reward={question.reward} />
     </div>
   );
 }

@@ -3,7 +3,6 @@ import { motion } from 'framer-motion';
 import type { QuizContent, QuizQuestion } from '@/features/kidsCoding/data/lessons';
 import type { QuizState } from '@/features/kidsCoding/hooks/useLessonSlides';
 import { QuestionHeader } from './components/QuestionHeader';
-import { QuizFeedback } from './components/QuizFeedback';
 import { SingleChoiceQuestion } from './questions/SingleChoiceQuestion';
 import { FillBlankQuestion } from './questions/FillBlankQuestion';
 import { ShortAnswerQuestion } from './questions/ShortAnswerQuestion';
@@ -48,7 +47,7 @@ export function QuizSlide({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
-      className="relative w-full space-y-4"
+      className="relative w-full space-y-4 px-2 py-2"
     >
       <QuestionHeader
         quizTitle={quiz.title ?? '测验'}
@@ -64,8 +63,6 @@ export function QuizSlide({
         isDark={isDark}
         onQuestionResult={onQuestionResult}
       />
-
-      <QuizFeedback questionState={questionState} reward={question.reward} isDark={isDark} />
     </motion.section>
   );
 }
