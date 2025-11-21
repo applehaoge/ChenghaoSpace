@@ -8,6 +8,7 @@ import { config } from './config.js';
 import type { ClaimedJob, RunFileDTO } from './types.js';
 import { sendRunnerEvent } from './apiClient.js';
 import { createVisualizationBridge } from './viz/visualizationBridge.js';
+import { startAudioBridge } from './audio/audioBridge.js';
 
 const dirPrefix = join(tmpdir(), 'python-runner-');
 const DRIVE_PREFIX = /^[a-zA-Z]:/;
@@ -151,15 +152,21 @@ export async function executeJob(job: ClaimedJob) {
   }
 
   let vizBridge: Awaited<ReturnType<typeof createVisualizationBridge>> | null = null;
+  let audioBridge: Awaited<ReturnType<typeof startAudioBridge>> | null = null;
   try {
     await materializeRunFiles(workDir, job.files);
 
-    vizBridge = await createVisualizationBridge(workDir, frame =>
-      sendSafeEvent(job.jobId, { type: 'visualization', frame }),
-    );
+    const forwardEvent = (event: unknown) => sendSafeEvent(job.jobId, event as any);
 
-    await runPythonProcess(job, workDir, entryPath, vizBridge.env);
+    vizBridge = await createVisualizationBridge(workDir, frame =>
+      forwardEvent({ type: 'visualization', frame }),
+    );
+    audioBridge = await startAudioBridge(workDir, job.jobId, event => forwardEvent(event));
+
+    const mergedEnv = { ...vizBridge.env, ...audioBridge.env };
+    await runPythonProcess(job, workDir, entryPath, mergedEnv);
   } finally {
+    await audioBridge?.dispose();
     await vizBridge?.dispose();
     await rm(workDir, { recursive: true, force: true });
   }
