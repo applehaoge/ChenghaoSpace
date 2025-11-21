@@ -1,5 +1,6 @@
 import type { RunJobDTO } from '@/features/kidsCoding/types/run';
 import type { VisualizationSnapshot } from '@/features/kidsCoding/types/visualization';
+import type { JobStreamEvent, JobStreamMessage } from '@/features/kidsCoding/types/jobStream';
 
 const API_BASE = import.meta.env.VITE_RUNNER_API_BASE || 'http://localhost:8000';
 
@@ -53,6 +54,7 @@ export const openRunJobStream = (
   jobId: string,
   handlers: {
     onMessage?: (job: RunJobResponse) => void;
+    onEvent?: (event: JobStreamEvent) => void;
     onError?: (event: Event) => void;
     onClose?: () => void;
   },
@@ -61,10 +63,9 @@ export const openRunJobStream = (
 
   ws.onmessage = event => {
     try {
-      const parsed = JSON.parse(event.data as string) as { job?: RunJobResponse };
-      if (parsed.job) {
-        handlers.onMessage?.({ ...parsed.job, jobId: parsed.job.jobId ?? jobId });
-      }
+      const parsed = JSON.parse(event.data as string) as JobStreamMessage;
+      if (parsed.event) handlers.onEvent?.(parsed.event);
+      if (parsed.job) handlers.onMessage?.({ ...parsed.job, jobId: parsed.job.jobId ?? jobId });
     } catch (error) {
       console.error('解析任务流数据失败', error);
     }
