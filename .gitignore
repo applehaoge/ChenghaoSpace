@@ -32,3 +32,6 @@ server_backup_*/
 *.zip
 server_data/
 server/server_data/
+
+
+commit_list.tmp
