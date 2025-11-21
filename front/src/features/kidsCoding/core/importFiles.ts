@@ -18,6 +18,33 @@ const MAX_FILE_SIZE = 200 * 1024;
 const TEXT_EXTENSIONS = ['.py', '.txt', '.json', '.csv'];
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.svg'];
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg'];
+const BINARY_EXTENSIONS = [
+  '.zip',
+  '.rar',
+  '.7z',
+  '.tar',
+  '.gz',
+  '.tgz',
+  '.npy',
+  '.npz',
+  '.bin',
+  '.dat',
+  '.pkl',
+  '.pt',
+  '.pth',
+  '.onnx',
+  '.tflite',
+  '.pb',
+  '.ckpt',
+  '.h5',
+  '.glb',
+  '.gltf',
+  '.obj',
+  '.stl',
+  '.dae',
+  '.ply',
+  '.fbx',
+];
 
 const normalizeDirectoryPath = (input?: string) => {
   if (!input) return '';
@@ -58,6 +85,11 @@ const isAudioFile = (name: string) => {
   return AUDIO_EXTENSIONS.includes(ext);
 };
 
+const isBinaryFile = (name: string) => {
+  const ext = pickExtension(name);
+  return BINARY_EXTENSIONS.includes(ext);
+};
+
 const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -85,7 +117,8 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
     const isText = isTextFile(file.name);
     const isImage = isImageFile(file.name);
     const isAudio = isAudioFile(file.name);
-    if (!isText && !isImage && !isAudio) {
+    const isBinary = isBinaryFile(file.name);
+    if (!isText && !isImage && !isAudio && !isBinary) {
       toast.error(`${file.name} 类型不支持`);
       continue;
     }
