@@ -101,6 +101,7 @@ export function SidebarToolbar({
               ref={fileInputRef}
               type="file"
               multiple
+              webkitdirectory="true"
               className="hidden"
               onChange={handleFileChange}
               aria-hidden

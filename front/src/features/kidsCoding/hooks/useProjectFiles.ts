@@ -97,6 +97,21 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     [],
   );
 
+  const createFolderAtPath = useCallback((path: string): FileEntry | null => {
+    const targetPath = normalizePathInput(path);
+    if (!targetPath) return null;
+    const entry: FileEntry = {
+      id: createEntryId(),
+      name: getBaseName(targetPath),
+      path: targetPath,
+      kind: 'folder',
+    };
+    const nextFiles = [...filesSnapshotRef.current, entry];
+    filesSnapshotRef.current = nextFiles;
+    setFiles(nextFiles);
+    return entry;
+  }, []);
+
   const createPythonFile = useCallback((options?: CreateEntryOptions): FileEntry => {
     const { name: requestedName, parentPath } = options ?? {};
     const snapshot = filesSnapshotRef.current;
@@ -303,6 +318,7 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
         importTextFiles(filesToImport, {
           parentPath,
           createFile,
+          createFolder: createFolderAtPath,
           buildUniquePath: candidatePath => {
             const nextPath = buildUniquePath(existingPaths, candidatePath);
             existingPaths.push(nextPath);
@@ -311,7 +327,7 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
           setActiveFile: setActiveFileId,
         });
       },
-      [createFile],
+      [createFile, createFolderAtPath],
     ),
   };
 }

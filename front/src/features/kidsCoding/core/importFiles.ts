@@ -10,6 +10,7 @@ type ImportOptions = {
     mime?: string;
     size?: number;
   }) => { id: string } | null;
+  createFolder: (path: string) => { id: string } | null;
   buildUniquePath: (candidatePath: string) => string;
   setActiveFile: (fileId: string) => void;
 };
@@ -51,13 +52,23 @@ const normalizeDirectoryPath = (input?: string) => {
   return input.replace(/\\/g, '/').replace(/\/+/g, '/').replace(/^\/|\/$/g, '');
 };
 
+const normalizeRelativePath = (input: string) => {
+  const cleaned = input.replace(/\\/g, '/').replace(/\/+/g, '/').trim();
+  const trimmed = cleaned.replace(/^\/+|\/+$/g, '');
+  if (!trimmed) return '';
+  if (/^[a-zA-Z]:/.test(trimmed) || trimmed.startsWith('/')) return '';
+  if (trimmed.includes('..')) return '';
+  const segments = trimmed
+    .split('/')
+    .map(segment => segment.trim())
+    .filter(Boolean);
+  if (!segments.length) return '';
+  return segments.join('/');
+};
+
 const isValidName = (name: string) => {
   if (!name || !name.trim()) return false;
   return !(name.includes('/') || name.includes('\\') || name.includes('..'));
-};
-
-const joinPath = (parentPath: string, name: string) => {
-  return parentPath ? `${parentPath}/${name}` : name;
 };
 
 const detectLanguage = (name: string) => {
@@ -101,15 +112,60 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
 
 export async function importTextFiles(files: File[], options: ImportOptions) {
   if (!files?.length) return;
-  const { parentPath, createFile, buildUniquePath, setActiveFile } = options;
+  const { parentPath, createFile, createFolder, buildUniquePath, setActiveFile } = options;
   const safeParent = normalizeDirectoryPath(parentPath);
   const createdIds: string[] = [];
+  const folderPathCache = new Map<string, string>();
+  const baseExistingPath = safeParent ? `${safeParent}/` : '';
+
+  const ensureFolderPath = (segments: string[]): string => {
+    if (!segments.length) return '';
+    const original = segments.join('/');
+    const cached = folderPathCache.get(original);
+    if (cached !== undefined) return cached;
+    const parentSegments = segments.slice(0, -1);
+    const parentPathResolved = ensureFolderPath(parentSegments);
+    const dirName = segments[segments.length - 1];
+    const candidatePath = parentPathResolved ? `${parentPathResolved}/${dirName}` : dirName;
+    const pathWithBase = parentPathResolved
+      ? candidatePath
+      : baseExistingPath
+        ? `${baseExistingPath}${candidatePath}`
+        : candidatePath;
+    const uniquePath = buildUniquePath(pathWithBase);
+    const folderEntry = createFolder(uniquePath);
+    if (!folderEntry?.id) {
+      toast.error(`${candidatePath} 文件夹创建失败`);
+      folderPathCache.set(original, '');
+      return '';
+    }
+    folderPathCache.set(original, uniquePath);
+    return uniquePath;
+  };
 
   for (const file of files) {
-    if (!isValidName(file.name)) {
-      toast.error(`${file.name || '文件'} 名称不合法`);
+    const relativeRaw = file.webkitRelativePath || file.name;
+    const normalized = normalizeRelativePath(relativeRaw);
+    if (!normalized) {
+      toast.error(`${relativeRaw || '文件'} 路径不合法`);
       continue;
     }
+    const segments = normalized.split('/');
+    const fileName = segments.pop();
+    if (!fileName || !isValidName(fileName)) {
+      toast.error(`${relativeRaw || '文件'} 名称不合法`);
+      continue;
+    }
+    const folderSegments = segments.filter(Boolean);
+    const parentPathResolved = ensureFolderPath(folderSegments);
+    if (folderSegments.length && !parentPathResolved) {
+      continue;
+    }
+    const candidatePath = parentPathResolved
+      ? `${parentPathResolved}/${fileName}`
+      : baseExistingPath
+        ? `${baseExistingPath}${fileName}`
+        : fileName;
     if (file.size > MAX_FILE_SIZE) {
       toast.error(`${file.name} 超过大小限制（最多 200KB）`);
       continue;
@@ -123,7 +179,6 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
       continue;
     }
 
-    const candidatePath = joinPath(safeParent, file.name.trim());
     const uniquePath = buildUniquePath(candidatePath);
 
     if (isText) {
