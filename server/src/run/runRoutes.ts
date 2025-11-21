@@ -10,8 +10,9 @@ import {
 } from './jobStore.js';
 import { enqueueJobId, claimNextJobId } from './jobQueue.js';
 import { assertRunnerAuthorized } from './runnerAuth.js';
-import type { RunJobDTO, RunnerEvent } from './jobTypes.js';
+import type { RunJobDTO, RunnerEvent, RunnerEventAudio } from './jobTypes.js';
 import { RunJobValidationError, sanitizeRunJobDTO } from './runJobValidator.js';
+import { publishJobEvent } from './jobEvents.js';
 
 const MAX_TIMEOUT_MS = Number(process.env.RUN_JOB_TIMEOUT_MS ?? 60000);
 
@@ -126,6 +127,11 @@ export const registerRunRoutes = async (fastify: FastifyInstance) => {
       case 'visualization':
         setJobVisualizationFrame(jobId, event.frame);
         break;
+      case 'audio': {
+        const audioEvent: RunnerEventAudio = { ...event, jobId };
+        publishJobEvent(jobId, { type: 'audio', chunk: audioEvent });
+        break;
+      }
       default:
         return reply.code(400).send({ message: 'Unknown event type' });
     }
