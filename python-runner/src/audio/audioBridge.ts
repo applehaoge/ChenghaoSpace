@@ -5,7 +5,19 @@ import { setTimeout as delay } from 'node:timers/promises';
 import type { AudioChunkPayload } from './types.js';
 import { KIDS_AUDIO_HELPER } from '../pythonHelpers/kidsAudioHelper.js';
 
-type AudioHandler = (chunk: AudioChunkPayload) => void | Promise<void>;
+type SendEvent = (event: RunnerEventAudio) => void | Promise<void>;
+
+interface RunnerEventAudio {
+  type: 'audio';
+  jobId: string;
+  sampleRate: number;
+  channels: number;
+  format: string;
+  seq?: number;
+  timestamp?: number;
+  durationMs?: number;
+  data: string;
+}
 
 const FILE_SUFFIX = '.json';
 
@@ -14,7 +26,11 @@ export interface AudioBridge {
   dispose: () => Promise<void>;
 }
 
-export async function createAudioBridge(workDir: string, onAudio: AudioHandler): Promise<AudioBridge> {
+export async function startAudioBridge(
+  workDir: string,
+  jobId: string,
+  sendEvent: SendEvent,
+): Promise<AudioBridge> {
   const audioDir = join(workDir, 'audio');
   await mkdir(audioDir, { recursive: true });
   await writeKidsAudioHelper(workDir);
@@ -22,14 +38,30 @@ export async function createAudioBridge(workDir: string, onAudio: AudioHandler):
   let disposed = false;
   const pending = new Set<string>();
 
+  const toRunnerEvent = (payload: AudioChunkPayload): RunnerEventAudio | null => {
+    if (payload?.type !== 'audio') return null;
+    return {
+      type: 'audio',
+      jobId,
+      sampleRate: payload.sampleRate,
+      channels: payload.channels,
+      format: payload.format,
+      seq: payload.seq,
+      timestamp: payload.timestamp,
+      durationMs: payload.durationMs,
+      data: payload.data,
+    };
+  };
+
   const processFile = async (fileName: string) => {
     if (disposed) return;
     const filePath = join(audioDir, fileName);
     try {
       const buffer = await readFile(filePath, 'utf-8');
       const payload = JSON.parse(buffer) as AudioChunkPayload;
-      if (payload?.type === 'audio') {
-        await onAudio(payload);
+      const event = toRunnerEvent(payload);
+      if (event) {
+        await sendEvent(event);
       }
     } catch (error) {
       console.warn('[AudioBridge] Failed to read audio chunk', error);
