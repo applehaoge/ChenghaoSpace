@@ -17,7 +17,7 @@ export async function createInputBridge(workDir: string): Promise<InputBridge> {
   await mkdir(inputDir, { recursive: true });
 
   const writeEvent = async (event: InputEventDTO) => {
-    const payload = JSON.stringify({ type: 'input', ...event });
+    const payload = JSON.stringify({ type: 'input', input: event });
     const tmpPath = join(inputDir, `${Date.now()}-${randomUUID()}.json.tmp`);
     const finalPath = tmpPath.slice(0, -4);
     await writeFile(tmpPath, payload, 'utf-8');
