@@ -26,7 +26,7 @@ export interface ProjectFilesState {
   activeFile?: FileEntry;
   selectFile: (entryId: string) => void;
   updateFileContent: (entryId: string, content: string) => void;
-  createFile: (options: { path: string; content: string; language?: string }) => FileEntry | null;
+  createFile: (options: { path: string; content: string; language?: string; encoding?: FileEntry['encoding']; mime?: string; size?: number }) => FileEntry | null;
   createPythonFile: (options?: CreateEntryOptions) => FileEntry;
   createFolder: (options?: CreateEntryOptions) => FileEntry;
   renameEntry: (entryId: string, name: string) => void;
@@ -63,27 +63,39 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     setFiles(prev => prev.map(file => (file.id === entryId ? { ...file, content } : file)));
   }, []);
 
-  const createFile = useCallback((options: { path: string; content: string; language?: string }): FileEntry | null => {
-    const targetPath = normalizePathInput(options.path);
-    if (!targetPath) return null;
-    const name = getBaseName(targetPath);
-    const extension = inferExtension(name);
-    const entry: FileEntry = {
-      id: createEntryId(),
-      name,
-      path: targetPath,
-      kind: 'file',
-      extension,
-      language: options.language ?? (extension === 'py' ? 'python' : undefined),
-      content: options.content ?? '',
-      encoding: 'utf8',
-    };
-    const nextFiles = [...filesSnapshotRef.current, entry];
-    filesSnapshotRef.current = nextFiles;
-    setFiles(nextFiles);
-    setActiveFileId(entry.id);
-    return entry;
-  }, []);
+  const createFile = useCallback(
+    (options: {
+      path: string;
+      content: string;
+      language?: string;
+      encoding?: FileEntry['encoding'];
+      mime?: string;
+      size?: number;
+    }): FileEntry | null => {
+      const targetPath = normalizePathInput(options.path);
+      if (!targetPath) return null;
+      const name = getBaseName(targetPath);
+      const extension = inferExtension(name);
+      const entry: FileEntry = {
+        id: createEntryId(),
+        name,
+        path: targetPath,
+        kind: 'file',
+        extension,
+        language: options.language ?? (extension === 'py' ? 'python' : undefined),
+        content: options.content ?? '',
+        encoding: options.encoding ?? 'utf8',
+        mime: options.mime,
+        size: options.size,
+      };
+      const nextFiles = [...filesSnapshotRef.current, entry];
+      filesSnapshotRef.current = nextFiles;
+      setFiles(nextFiles);
+      setActiveFileId(entry.id);
+      return entry;
+    },
+    [],
+  );
 
   const createPythonFile = useCallback((options?: CreateEntryOptions): FileEntry => {
     const { name: requestedName, parentPath } = options ?? {};
