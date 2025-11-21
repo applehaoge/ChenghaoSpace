@@ -46,6 +46,17 @@ export interface VisualizationSnapshot {
   latestFrame?: VisualizationFramePayload;
 }
 
+export interface AudioChunkDTO {
+  jobId: string;
+  seq?: number;
+  timestamp?: number;
+  sampleRate: number;
+  channels: number;
+  format: string;
+  durationMs?: number;
+  data: string;
+}
+
 export interface RunJobRecord extends RunJobRequest {
   status: RunJobStatus;
   stdout: string;
@@ -93,9 +104,14 @@ export interface RunnerEventVisualization {
   frame: VisualizationFramePayload;
 }
 
+export interface RunnerEventAudio extends AudioChunkDTO {
+  type: 'audio';
+}
+
 export type RunnerEvent =
   | RunnerEventStarted
   | RunnerEventChunk
   | RunnerEventCompleted
   | RunnerEventFailed
-  | RunnerEventVisualization;
+  | RunnerEventVisualization
+  | RunnerEventAudio;
