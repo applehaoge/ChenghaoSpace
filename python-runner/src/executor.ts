@@ -49,11 +49,13 @@ export const materializeRunFiles = async (workDir: string, files: RunFileDTO[]):
       const safePath = ensureSafeRelativePath(file.path);
       const targetPath = join(workDir, safePath);
       await mkdir(dirname(targetPath), { recursive: true });
-      const data =
-        file.encoding === 'base64'
-          ? Buffer.from(file.content ?? '', 'base64')
-          : Buffer.from(file.content ?? '', 'utf8');
-      await writeFile(targetPath, data);
+      if (file.encoding === 'base64') {
+        // base64 资产必须按二进制落盘，确保 Python 库（pygame/numpy等）可正常读取
+        const buffer = Buffer.from(file.content ?? '', 'base64');
+        await writeFile(targetPath, buffer);
+        return;
+      }
+      await writeFile(targetPath, file.content ?? '', 'utf8'); // 文本保持 UTF-8 写入
     }),
   );
 };

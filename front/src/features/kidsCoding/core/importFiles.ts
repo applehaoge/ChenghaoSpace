@@ -15,7 +15,11 @@ type ImportOptions = {
   setActiveFile: (fileId: string) => void;
 };
 
-const MAX_FILE_SIZE = 200 * 1024;
+const TEXT_MAX = 2 * 1024 * 1024;
+const IMAGE_MAX = 5 * 1024 * 1024;
+const AUDIO_MAX = 10 * 1024 * 1024;
+const BINARY_MAX = 20 * 1024 * 1024;
+const DIRECTORY_TOTAL_MAX = 50 * 1024 * 1024;
 const TEXT_EXTENSIONS = ['.py', '.txt', '.json', '.csv'];
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.svg'];
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg'];
@@ -117,6 +121,11 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
   const createdIds: string[] = [];
   const folderPathCache = new Map<string, string>();
   const baseExistingPath = safeParent ? `${safeParent}/` : '';
+  const totalSize = files.reduce((acc, file) => acc + (file.size || 0), 0);
+  if (totalSize > DIRECTORY_TOTAL_MAX) {
+    toast.error('上传的目录或文件总大小超过 50MB');
+    return;
+  }
 
   const ensureFolderPath = (segments: string[]): string => {
     if (!segments.length) return '';
@@ -166,14 +175,24 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
       : baseExistingPath
         ? `${baseExistingPath}${fileName}`
         : fileName;
-    if (file.size > MAX_FILE_SIZE) {
-      toast.error(`${file.name} 超过大小限制（最多 200KB）`);
-      continue;
-    }
+    // 类型判定必须先声明，避免 TDZ（Temporal Dead Zone）
     const isText = isTextFile(file.name);
     const isImage = isImageFile(file.name);
     const isAudio = isAudioFile(file.name);
     const isBinary = isBinaryFile(file.name);
+    // 先有类型，再根据类型选对应大小限制
+    const sizeLimit = isText
+      ? TEXT_MAX
+      : isImage
+        ? IMAGE_MAX
+        : isAudio
+          ? AUDIO_MAX
+          : BINARY_MAX;
+    if (file.size > sizeLimit) {
+      const limitMb = Math.floor(sizeLimit / 1024 / 1024);
+      toast.error(`${file.name} 超过大小限制（最多 ${limitMb}MB）`);
+      continue;
+    }
     if (!isText && !isImage && !isAudio && !isBinary) {
       toast.error(`${file.name} 类型不支持`);
       continue;
