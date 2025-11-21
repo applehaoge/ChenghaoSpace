@@ -17,6 +17,7 @@ type ImportOptions = {
 const MAX_FILE_SIZE = 200 * 1024;
 const TEXT_EXTENSIONS = ['.py', '.txt', '.json', '.csv'];
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.svg'];
+const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg'];
 
 const normalizeDirectoryPath = (input?: string) => {
   if (!input) return '';
@@ -52,6 +53,11 @@ const isImageFile = (name: string) => {
   return IMAGE_EXTENSIONS.includes(ext);
 };
 
+const isAudioFile = (name: string) => {
+  const ext = pickExtension(name);
+  return AUDIO_EXTENSIONS.includes(ext);
+};
+
 const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   const bytes = new Uint8Array(buffer);
   let binary = '';
@@ -78,7 +84,8 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
     }
     const isText = isTextFile(file.name);
     const isImage = isImageFile(file.name);
-    if (!isText && !isImage) {
+    const isAudio = isAudioFile(file.name);
+    if (!isText && !isImage && !isAudio) {
       toast.error(`${file.name} 类型不支持`);
       continue;
     }
