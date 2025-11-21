@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { importTextFiles } from '@/features/kidsCoding/core/importFiles';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
 const FALLBACK_FILES: FileEntry[] = [
@@ -25,11 +26,13 @@ export interface ProjectFilesState {
   activeFile?: FileEntry;
   selectFile: (entryId: string) => void;
   updateFileContent: (entryId: string, content: string) => void;
+  createFile: (options: { path: string; content: string; language?: string }) => FileEntry | null;
   createPythonFile: (options?: CreateEntryOptions) => FileEntry;
   createFolder: (options?: CreateEntryOptions) => FileEntry;
   renameEntry: (entryId: string, name: string) => void;
   removeEntry: (entryId: string) => void;
   moveEntry: (entryId: string, targetFolderId: string | null) => void;
+  importFiles: (files: File[], parentPath?: string) => void;
 }
 
 export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): ProjectFilesState {
@@ -58,6 +61,28 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
 
   const updateFileContent = useCallback((entryId: string, content: string) => {
     setFiles(prev => prev.map(file => (file.id === entryId ? { ...file, content } : file)));
+  }, []);
+
+  const createFile = useCallback((options: { path: string; content: string; language?: string }): FileEntry | null => {
+    const targetPath = normalizePathInput(options.path);
+    if (!targetPath) return null;
+    const name = getBaseName(targetPath);
+    const extension = inferExtension(name);
+    const entry: FileEntry = {
+      id: createEntryId(),
+      name,
+      path: targetPath,
+      kind: 'file',
+      extension,
+      language: options.language ?? (extension === 'py' ? 'python' : undefined),
+      content: options.content ?? '',
+      encoding: 'utf8',
+    };
+    const nextFiles = [...filesSnapshotRef.current, entry];
+    filesSnapshotRef.current = nextFiles;
+    setFiles(nextFiles);
+    setActiveFileId(entry.id);
+    return entry;
   }, []);
 
   const createPythonFile = useCallback((options?: CreateEntryOptions): FileEntry => {
@@ -254,11 +279,28 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     activeFile,
     selectFile,
     updateFileContent,
+    createFile,
     createPythonFile,
     createFolder,
     renameEntry,
     removeEntry,
     moveEntry,
+    importFiles: useCallback(
+      (filesToImport: File[], parentPath?: string) => {
+        const existingPaths = filesSnapshotRef.current.map(file => getEntryPath(file));
+        importTextFiles(filesToImport, {
+          parentPath,
+          createFile,
+          buildUniquePath: candidatePath => {
+            const nextPath = buildUniquePath(existingPaths, candidatePath);
+            existingPaths.push(nextPath);
+            return nextPath;
+          },
+          setActiveFile: setActiveFileId,
+        });
+      },
+      [createFile],
+    ),
   };
 }
 

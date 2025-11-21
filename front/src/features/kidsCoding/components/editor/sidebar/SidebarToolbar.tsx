@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useRef } from 'react';
+import type { ChangeEvent, ReactNode } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { Upload, ClipboardList, Folder, FileText, FilePlus2, FolderPlus } from 'lucide-react';
@@ -14,6 +15,8 @@ interface SidebarToolbarProps {
   onLessonChange: (lessonId: string) => void;
   onCreatePythonFile: () => void;
   onCreateFolder: () => void;
+  onImportFiles: (files: File[], parentPath?: string) => void;
+  currentDirectoryPath?: string;
 }
 
 export function SidebarToolbar({
@@ -25,8 +28,24 @@ export function SidebarToolbar({
   onLessonChange,
   onCreatePythonFile,
   onCreateFolder,
+  onImportFiles,
+  currentDirectoryPath,
 }: SidebarToolbarProps) {
   const isTaskView = activeView === 'tasks';
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  const handleUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files ? Array.from(event.target.files) : [];
+    if (selectedFiles.length) {
+      onImportFiles(selectedFiles, currentDirectoryPath);
+    }
+    event.target.value = '';
+  };
+
   const toggleButton = (
     <SidebarViewToggleButton
       isDark={isDark}
@@ -71,7 +90,21 @@ export function SidebarToolbar({
               title="新建文件夹"
               onClick={onCreateFolder}
             />
-            <SidebarIconButton isDark={isDark} icon={<Upload size={16} />} motionButton title="上传" />
+            <SidebarIconButton
+              isDark={isDark}
+              icon={<Upload size={16} />}
+              motionButton
+              title="上传"
+              onClick={handleUpload}
+            />
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={handleFileChange}
+              aria-hidden
+            />
           </>
         ) : null}
         {toggleButton}

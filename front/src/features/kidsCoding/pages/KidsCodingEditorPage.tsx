@@ -55,6 +55,7 @@ export function KidsCodingEditorPage() {
     activeFileId,
     selectFile,
     updateFileContent,
+    importFiles,
     createPythonFile,
     createFolder,
     renameEntry,
@@ -150,6 +151,7 @@ export function KidsCodingEditorPage() {
           onRenameEntry={renameEntry}
           onRemoveEntry={removeEntry}
           onMoveEntry={moveEntry}
+          onImportFiles={importFiles}
           onEarnTokens={handleEarnTokens}
         />
         <div className="flex flex-1 gap-3 xl:gap-4 min-w-0">

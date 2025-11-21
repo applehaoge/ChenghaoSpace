@@ -31,6 +31,7 @@ interface FileSidebarProps {
   onRenameEntry: (entryId: string, name: string) => void;
   onRemoveEntry: (entryId: string) => void;
   onMoveEntry: (entryId: string, targetFolderId: string | null) => void;
+  onImportFiles: (files: File[], parentPath?: string) => void;
   onEarnTokens?: (amount: number) => void;
 }
 
@@ -46,6 +47,7 @@ export function FileSidebar({
   onRenameEntry,
   onRemoveEntry,
   onMoveEntry,
+  onImportFiles,
   onEarnTokens,
 }: FileSidebarProps) {
   const [activeView, setActiveView] = useState<SidebarView>('tasks');
@@ -429,6 +431,8 @@ export function FileSidebar({
             onLessonChange={changeLesson}
             onCreatePythonFile={handleCreatePythonEntry}
             onCreateFolder={handleCreateFolderEntry}
+            onImportFiles={filesToImport => onImportFiles(filesToImport, currentDirectoryPath)}
+            currentDirectoryPath={currentDirectoryPath}
           />
 
           <div className="flex-1 min-h-0">
