@@ -15,6 +15,7 @@ type ImportOptions = {
   setActiveFile: (fileId: string) => void;
 };
 
+const MAX_CONCURRENCY = 3;
 const TEXT_MAX = 2 * 1024 * 1024;
 const IMAGE_MAX = 5 * 1024 * 1024;
 const AUDIO_MAX = 10 * 1024 * 1024;
@@ -152,6 +153,19 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
     return uniquePath;
   };
 
+  // 预扫描：标准化路径、判定类型与大小，收集目录
+  const preparedFiles: Array<{
+    file: File;
+    normalizedPath: string;
+    fileName: string;
+    folderSegments: string[];
+    isText: boolean;
+    isImage: boolean;
+    isAudio: boolean;
+    isBinary: boolean;
+  }> = [];
+  const folderSet = new Set<string>();
+
   for (const file of files) {
     const relativeRaw = file.webkitRelativePath || file.name;
     const normalized = normalizeRelativePath(relativeRaw);
@@ -166,21 +180,14 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
       continue;
     }
     const folderSegments = segments.filter(Boolean);
-    const parentPathResolved = ensureFolderPath(folderSegments);
-    if (folderSegments.length && !parentPathResolved) {
-      continue;
-    }
-    const candidatePath = parentPathResolved
-      ? `${parentPathResolved}/${fileName}`
-      : baseExistingPath
-        ? `${baseExistingPath}${fileName}`
-        : fileName;
-    // 类型判定必须先声明，避免 TDZ（Temporal Dead Zone）
     const isText = isTextFile(file.name);
     const isImage = isImageFile(file.name);
     const isAudio = isAudioFile(file.name);
     const isBinary = isBinaryFile(file.name);
-    // 先有类型，再根据类型选对应大小限制
+    if (!isText && !isImage && !isAudio && !isBinary) {
+      toast.error(`${file.name} 类型不支持`);
+      continue;
+    }
     const sizeLimit = isText
       ? TEXT_MAX
       : isImage
@@ -193,33 +200,96 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
       toast.error(`${file.name} 超过大小限制（最多 ${limitMb}MB）`);
       continue;
     }
-    if (!isText && !isImage && !isAudio && !isBinary) {
-      toast.error(`${file.name} 类型不支持`);
+    folderSegments.forEach((_, idx) => {
+      const folderPath = folderSegments.slice(0, idx + 1).join('/');
+      folderSet.add(folderPath);
+    });
+    preparedFiles.push({
+      file,
+      normalizedPath: normalized,
+      fileName,
+      folderSegments,
+      isText,
+      isImage,
+      isAudio,
+      isBinary,
+    });
+  }
+
+  // 先创建目录（按层级排序，避免重复递归）
+  const sortedFolders = Array.from(folderSet).sort((a, b) => a.split('/').length - b.split('/').length);
+  for (const folderPath of sortedFolders) {
+    const resolved = ensureFolderPath(folderPath.split('/'));
+    if (!resolved) {
+      // 已提示 toast，继续尝试其他目录
       continue;
     }
+  }
 
+  // 简易并发池，限制读取/写入同时进行的任务数
+  const pendingTasks: Array<() => Promise<void>> = [];
+
+  for (const prepared of preparedFiles) {
+    const { file, fileName, folderSegments, isText, isImage, isAudio, isBinary } = prepared;
+    const parentPathResolved = folderSegments.length ? ensureFolderPath(folderSegments) : '';
+    const candidatePath = parentPathResolved
+      ? `${parentPathResolved}/${fileName}`
+      : baseExistingPath
+        ? `${baseExistingPath}${fileName}`
+        : fileName;
     const uniquePath = buildUniquePath(candidatePath);
 
-    if (isText) {
-      let text = '';
-      try {
-        text = await file.text();
-      } catch (error) {
-        toast.error(`${file.name} 读取失败`);
-        continue;
+    pendingTasks.push(async () => {
+      if (isText) {
+        let text = '';
+        try {
+          text = await file.text();
+        } catch (error) {
+          toast.error(`${file.name} 读取失败`);
+          return;
+        }
+
+        if (!text.length) {
+          toast.error(`${file.name} 为空，无法导入`);
+          return;
+        }
+
+        const entry = createFile({
+          path: uniquePath,
+          content: text,
+          language: detectLanguage(file.name),
+          encoding: 'utf8',
+          mime: file.type || 'text/plain',
+          size: file.size,
+        });
+
+        if (entry?.id) {
+          createdIds.push(entry.id);
+        } else {
+          toast.error(`${file.name} 导入失败`);
+        }
+        return;
       }
 
-      if (!text.length) {
+      let base64 = '';
+      try {
+        const buffer = await file.arrayBuffer();
+        base64 = arrayBufferToBase64(buffer);
+      } catch (error) {
+        toast.error(`${file.name} 读取失败`);
+        return;
+      }
+
+      if (!base64.length) {
         toast.error(`${file.name} 为空，无法导入`);
-        continue;
+        return;
       }
 
       const entry = createFile({
         path: uniquePath,
-        content: text,
-        language: detectLanguage(file.name),
-        encoding: 'utf8',
-        mime: file.type || 'text/plain',
+        content: base64,
+        encoding: 'base64',
+        mime: file.type || 'application/octet-stream',
         size: file.size,
       });
 
@@ -228,37 +298,25 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
       } else {
         toast.error(`${file.name} 导入失败`);
       }
-      continue;
-    }
-
-    let base64 = '';
-    try {
-      const buffer = await file.arrayBuffer();
-      base64 = arrayBufferToBase64(buffer);
-    } catch (error) {
-      toast.error(`${file.name} 读取失败`);
-      continue;
-    }
-
-    if (!base64.length) {
-      toast.error(`${file.name} 为空，无法导入`);
-      continue;
-    }
-
-    const entry = createFile({
-      path: uniquePath,
-      content: base64,
-      encoding: 'base64',
-      mime: file.type || 'application/octet-stream',
-      size: file.size,
     });
-
-    if (entry?.id) {
-      createdIds.push(entry.id);
-    } else {
-      toast.error(`${file.name} 导入失败`);
-    }
   }
+
+  const workerPool = async (tasks: Array<() => Promise<void>>, concurrency: number) => {
+    const queue = [...tasks];
+    const runners: Promise<void>[] = [];
+    const runNext = async (): Promise<void> => {
+      const task = queue.shift();
+      if (!task) return;
+      await task();
+      return runNext();
+    };
+    for (let i = 0; i < concurrency; i += 1) {
+      runners.push(runNext());
+    }
+    await Promise.all(runners);
+  };
+
+  await workerPool(pendingTasks, MAX_CONCURRENCY);
 
   if (createdIds.length) {
     setActiveFile(createdIds[0]);
