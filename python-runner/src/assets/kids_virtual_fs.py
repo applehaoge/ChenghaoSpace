@@ -2,7 +2,7 @@
 """
 轻量虚拟文件系统注入：
 - 从 stdin 读取一行 JSON，包含 base64 文件内容
-- 覆盖 open / pygame.image.load / pygame.mixer.Sound / numpy.load 以优先读取内存数据
+- 覆盖 open / pygame.image.load / pygame.mixer.Sound / numpy.load / PIL.Image.open 以优先读取内存数据
 - 未命中时回退到原生实现
 """
 import base64

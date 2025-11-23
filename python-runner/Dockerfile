@@ -23,6 +23,7 @@ RUN apt-get update \
     python3-pip \
     python3-pygame \
   && rm -rf /var/lib/apt/lists/*
+RUN python3 -m pip install --no-cache-dir pillow numpy matplotlib
 ENV NODE_ENV=production
 ENV RUNNER_PYTHON_BIN=python3
 WORKDIR /runner

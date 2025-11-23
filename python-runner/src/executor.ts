@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join, posix as pathPosix } from 'node:path';
@@ -10,7 +11,12 @@ import { sendRunnerEvent } from './apiClient.js';
 import { createVisualizationBridge } from './viz/visualizationBridge.js';
 import { startAudioBridge } from './audio/audioBridge.js';
 import { VirtualFS } from './virtualFs.js';
-import kidsVirtualFsPy from './assets/kids_virtual_fs.py?raw';
+import { fileURLToPath } from 'node:url';
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const kidsVirtualFsPy = readFileSync(join(__dirname, 'assets', 'kids_virtual_fs.py'), 'utf-8');
 
 const dirPrefix = join(tmpdir(), 'python-runner-');
 const DRIVE_PREFIX = /^[a-zA-Z]:/;
