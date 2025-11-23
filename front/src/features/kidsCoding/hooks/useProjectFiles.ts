@@ -32,7 +32,7 @@ export interface ProjectFilesState {
   renameEntry: (entryId: string, name: string) => void;
   removeEntry: (entryId: string) => void;
   moveEntry: (entryId: string, targetFolderId: string | null) => void;
-  importFiles: (files: File[], parentPath?: string) => void;
+  importFiles: (files: File[], parentPath?: string) => Promise<void>;
 }
 
 export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): ProjectFilesState {
@@ -63,7 +63,7 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     setFiles(prev => prev.map(file => (file.id === entryId ? { ...file, content } : file)));
   }, []);
 
-  const createFile = useCallback(
+  const createFileEntryOnly = useCallback(
     (options: {
       path: string;
       content: string;
@@ -76,7 +76,7 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
       if (!targetPath) return null;
       const name = getBaseName(targetPath);
       const extension = inferExtension(name);
-      const entry: FileEntry = {
+      return {
         id: createEntryId(),
         name,
         path: targetPath,
@@ -88,29 +88,57 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
         mime: options.mime,
         size: options.size,
       };
-      const nextFiles = [...filesSnapshotRef.current, entry];
-      filesSnapshotRef.current = nextFiles;
-      setFiles(nextFiles);
-      setActiveFileId(entry.id);
-      return entry;
     },
     [],
   );
 
-  const createFolderAtPath = useCallback((path: string): FileEntry | null => {
+  const createFolderEntryOnly = useCallback((path: string): FileEntry | null => {
     const targetPath = normalizePathInput(path);
     if (!targetPath) return null;
-    const entry: FileEntry = {
+    return {
       id: createEntryId(),
       name: getBaseName(targetPath),
       path: targetPath,
       kind: 'folder',
     };
-    const nextFiles = [...filesSnapshotRef.current, entry];
-    filesSnapshotRef.current = nextFiles;
-    setFiles(nextFiles);
-    return entry;
   }, []);
+
+  const batchApply = useCallback(
+    (entries: FileEntry[], nextActiveId?: string) => {
+      if (!entries.length) return;
+      const merged = [...filesSnapshotRef.current, ...entries];
+      filesSnapshotRef.current = merged;
+      setFiles(merged);
+      if (nextActiveId) {
+        setActiveFileId(nextActiveId);
+      }
+    },
+    [],
+  );
+
+  const createFile = useCallback(
+    (options: {
+      path: string;
+      content: string;
+      language?: string;
+      encoding?: FileEntry['encoding'];
+      mime?: string;
+      size?: number;
+    }): FileEntry | null => {
+      const entry = createFileEntryOnly(options);
+      if (!entry) return null;
+      batchApply([entry], entry.id);
+      return entry;
+    },
+    [batchApply, createFileEntryOnly],
+  );
+
+  const createFolderAtPath = useCallback((path: string): FileEntry | null => {
+    const entry = createFolderEntryOnly(path);
+    if (!entry) return null;
+    batchApply([entry]);
+    return entry;
+  }, [batchApply, createFolderEntryOnly]);
 
   const createPythonFile = useCallback((options?: CreateEntryOptions): FileEntry => {
     const { name: requestedName, parentPath } = options ?? {};
@@ -131,12 +159,9 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
       content: '',
       encoding: 'utf8',
     };
-    const nextFiles = [...snapshot, created];
-    filesSnapshotRef.current = nextFiles; // 先同步快照，避免连续创建时仍读到旧命名
-    setFiles(nextFiles);
-    setActiveFileId(created.id);
+    batchApply([created], created.id);
     return created;
-  }, []);
+  }, [batchApply]);
 
   const createFolder = useCallback((options?: CreateEntryOptions): FileEntry => {
     const { name: requestedName, parentPath } = options ?? {};
@@ -153,11 +178,9 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
       path: nextPath,
       kind: 'folder',
     };
-    const nextFiles = [...snapshot, created];
-    filesSnapshotRef.current = nextFiles; // 文件夹也需同步快照，避免连续创建导致命名冲突
-    setFiles(nextFiles);
+    batchApply([created]);
     return created;
-  }, []);
+  }, [batchApply]);
 
   const renameEntry = useCallback((entryId: string, requestedName: string) => {
     setFiles(prev => {
@@ -313,21 +336,23 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
     removeEntry,
     moveEntry,
     importFiles: useCallback(
-      (filesToImport: File[], parentPath?: string) => {
-        const existingPaths = filesSnapshotRef.current.map(file => getEntryPath(file));
-        importTextFiles(filesToImport, {
+      async (filesToImport: File[], parentPath?: string) => {
+        const existingPaths = new Set(filesSnapshotRef.current.map(file => getEntryPath(file)));
+        const result = await importTextFiles(filesToImport, {
           parentPath,
-          createFile,
-          createFolder: createFolderAtPath,
+          createFileEntry: createFileEntryOnly,
+          createFolderEntry: createFolderEntryOnly,
           buildUniquePath: candidatePath => {
-            const nextPath = buildUniquePath(existingPaths, candidatePath);
-            existingPaths.push(nextPath);
+            const nextPath = buildUniquePathWithSet(existingPaths, candidatePath);
+            existingPaths.add(nextPath);
             return nextPath;
           },
-          setActiveFile: setActiveFileId,
         });
+        if (result?.entries?.length) {
+          batchApply(result.entries, result.firstFileId);
+        }
       },
-      [createFile, createFolderAtPath],
+      [batchApply, createFileEntryOnly, createFolderEntryOnly],
     ),
   };
 }
@@ -376,6 +401,23 @@ function buildUniquePath(existingPaths: string[], candidatePath: string) {
     const nextBase = `${segmentBase}-${counter}${ext}`;
     const nextPath = dir ? `${dir}/${nextBase}` : nextBase;
     if (!existingPaths.includes(nextPath)) {
+      return nextPath;
+    }
+    counter += 1;
+  }
+}
+
+function buildUniquePathWithSet(existingPaths: Set<string>, candidatePath: string) {
+  if (!existingPaths.has(candidatePath)) {
+    return candidatePath;
+  }
+  const { dir, base } = splitPath(candidatePath);
+  const { base: segmentBase, ext } = splitName(base);
+  let counter = 2;
+  while (true) {
+    const nextBase = `${segmentBase}-${counter}${ext}`;
+    const nextPath = dir ? `${dir}/${nextBase}` : nextBase;
+    if (!existingPaths.has(nextPath)) {
       return nextPath;
     }
     counter += 1;

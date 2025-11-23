@@ -1,18 +1,18 @@
 import { toast } from 'sonner';
+import type { FileEntry } from '@/features/kidsCoding/types/editor';
 
 type ImportOptions = {
   parentPath?: string;
-  createFile: (options: {
+  createFileEntry: (options: {
     path: string;
     content: string;
     language?: string;
     encoding?: 'utf8' | 'base64';
     mime?: string;
     size?: number;
-  }) => { id: string } | null;
-  createFolder: (path: string) => { id: string } | null;
+  }) => FileEntry | null;
+  createFolderEntry: (path: string) => FileEntry | null;
   buildUniquePath: (candidatePath: string) => string;
-  setActiveFile: (fileId: string) => void;
 };
 
 const MAX_CONCURRENCY = 3;
@@ -115,11 +115,15 @@ const arrayBufferToBase64 = (buffer: ArrayBuffer) => {
   return btoa(binary);
 };
 
-export async function importTextFiles(files: File[], options: ImportOptions) {
+export async function importTextFiles(
+  files: File[],
+  options: ImportOptions,
+): Promise<{ entries: FileEntry[]; firstFileId?: string }> {
   if (!files?.length) return;
-  const { parentPath, createFile, createFolder, buildUniquePath, setActiveFile } = options;
+  const { parentPath, createFileEntry, createFolderEntry, buildUniquePath } = options;
   const safeParent = normalizeDirectoryPath(parentPath);
-  const createdIds: string[] = [];
+  const createdFileIds: string[] = [];
+  const createdEntries: FileEntry[] = [];
   const folderPathCache = new Map<string, string>();
   const baseExistingPath = safeParent ? `${safeParent}/` : '';
   const totalSize = files.reduce((acc, file) => acc + (file.size || 0), 0);
@@ -143,12 +147,13 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
         ? `${baseExistingPath}${candidatePath}`
         : candidatePath;
     const uniquePath = buildUniquePath(pathWithBase);
-    const folderEntry = createFolder(uniquePath);
+    const folderEntry = createFolderEntry(uniquePath);
     if (!folderEntry?.id) {
       toast.error(`${candidatePath} 文件夹创建失败`);
       folderPathCache.set(original, '');
       return '';
     }
+    createdEntries.push(folderEntry);
     folderPathCache.set(original, uniquePath);
     return uniquePath;
   };
@@ -254,7 +259,7 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
           return;
         }
 
-        const entry = createFile({
+        const entry = createFileEntry({
           path: uniquePath,
           content: text,
           language: detectLanguage(file.name),
@@ -264,7 +269,8 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
         });
 
         if (entry?.id) {
-          createdIds.push(entry.id);
+          createdFileIds.push(entry.id);
+          createdEntries.push(entry);
         } else {
           toast.error(`${file.name} 导入失败`);
         }
@@ -285,7 +291,7 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
         return;
       }
 
-      const entry = createFile({
+      const entry = createFileEntry({
         path: uniquePath,
         content: base64,
         encoding: 'base64',
@@ -294,7 +300,8 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
       });
 
       if (entry?.id) {
-        createdIds.push(entry.id);
+        createdFileIds.push(entry.id);
+        createdEntries.push(entry);
       } else {
         toast.error(`${file.name} 导入失败`);
       }
@@ -318,8 +325,10 @@ export async function importTextFiles(files: File[], options: ImportOptions) {
 
   await workerPool(pendingTasks, MAX_CONCURRENCY);
 
-  if (createdIds.length) {
-    setActiveFile(createdIds[0]);
-    toast.success(`成功导入 ${createdIds.length} 个文件`);
-  }
+  await workerPool(pendingTasks, MAX_CONCURRENCY);
+
+  return {
+    entries: createdEntries,
+    firstFileId: createdFileIds[0],
+  };
 }
