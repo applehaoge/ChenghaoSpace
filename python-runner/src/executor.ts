@@ -9,6 +9,8 @@ import type { ClaimedJob, RunFileDTO } from './types.js';
 import { sendRunnerEvent } from './apiClient.js';
 import { createVisualizationBridge } from './viz/visualizationBridge.js';
 import { startAudioBridge } from './audio/audioBridge.js';
+import { VirtualFS } from './virtualFs.js';
+import kidsVirtualFsPy from './assets/kids_virtual_fs.py?raw';
 
 const dirPrefix = join(tmpdir(), 'python-runner-');
 const DRIVE_PREFIX = /^[a-zA-Z]:/;
@@ -43,19 +45,25 @@ export const ensureSafeRelativePath = (path: string) => {
   return normalized;
 };
 
-export const materializeRunFiles = async (workDir: string, files: RunFileDTO[]): Promise<void> => {
+export const materializeRunFiles = async (
+  workDir: string,
+  files: RunFileDTO[],
+  vfs: VirtualFS,
+): Promise<void> => {
   await Promise.all(
     files.map(async file => {
       const safePath = ensureSafeRelativePath(file.path);
       const targetPath = join(workDir, safePath);
       await mkdir(dirname(targetPath), { recursive: true });
       if (file.encoding === 'base64') {
-        // base64 资产必须按二进制落盘，确保 Python 库（pygame/numpy等）可正常读取
         const buffer = Buffer.from(file.content ?? '', 'base64');
+        vfs.setFile(safePath, buffer);
         await writeFile(targetPath, buffer);
         return;
       }
-      await writeFile(targetPath, file.content ?? '', 'utf8'); // 文本保持 UTF-8 写入
+      const textBuffer = Buffer.from(file.content ?? '', 'utf8');
+      vfs.setFile(safePath, textBuffer);
+      await writeFile(targetPath, textBuffer);
     }),
   );
 };
@@ -123,6 +131,7 @@ const runPythonProcess = async (
   workDir: string,
   entryPath: string,
   extraEnv: NodeJS.ProcessEnv,
+  stdinPayload?: string,
 ) => {
   await sendSafeEvent(job.jobId, { type: 'started', startedAt: Date.now() });
   const childEnv: NodeJS.ProcessEnv = { ...process.env, ...extraEnv };
@@ -136,7 +145,12 @@ const runPythonProcess = async (
     throw err;
   });
 
-  child.stdin?.end();
+  if (stdinPayload && child.stdin) {
+    child.stdin.write(`${stdinPayload}\n`);
+    child.stdin.end();
+  } else {
+    child.stdin?.end();
+  }
 
   const clearTimer = setupTimeoutKill(job, child);
   attachStreamForwarders(job.jobId, child);
@@ -147,6 +161,7 @@ const runPythonProcess = async (
 
 export async function executeJob(job: ClaimedJob) {
   const workDir = await mkdtemp(dirPrefix);
+  const vfs = new VirtualFS();
   const entryPath = ensureSafeRelativePath(job.entryPath);
   const normalizedPaths = new Set(job.files.map(file => ensureSafeRelativePath(file.path)));
   if (!normalizedPaths.has(entryPath)) {
@@ -156,7 +171,16 @@ export async function executeJob(job: ClaimedJob) {
   let vizBridge: Awaited<ReturnType<typeof createVisualizationBridge>> | null = null;
   let audioBridge: Awaited<ReturnType<typeof startAudioBridge>> | null = null;
   try {
-    await materializeRunFiles(workDir, job.files);
+    await materializeRunFiles(workDir, job.files, vfs);
+    const helperPath = join(workDir, '__kids_virtual_fs.py');
+    await writeFile(helperPath, kidsVirtualFsPy, 'utf-8');
+    const bootstrapPath = join(workDir, '__runner_entry.py');
+    const bootstrapSource = `
+import __kids_virtual_fs  # noqa: F401
+import runpy
+runpy.run_path(${JSON.stringify(entryPath)}, run_name="__main__")
+`.trimStart();
+    await writeFile(bootstrapPath, bootstrapSource, 'utf-8');
 
     const forwardEvent = (event: unknown) => sendSafeEvent(job.jobId, event as any);
 
@@ -166,7 +190,8 @@ export async function executeJob(job: ClaimedJob) {
     audioBridge = await startAudioBridge(workDir, job.jobId, event => forwardEvent(event));
 
     const mergedEnv = { ...vizBridge.env, ...audioBridge.env };
-    await runPythonProcess(job, workDir, entryPath, mergedEnv);
+    const vfsPayload = JSON.stringify({ vfs: { files: vfs.toBase64Object() } });
+    await runPythonProcess(job, workDir, bootstrapPath, mergedEnv, vfsPayload);
   } finally {
     await audioBridge?.dispose();
     await vizBridge?.dispose();
