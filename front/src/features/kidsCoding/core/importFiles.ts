@@ -325,8 +325,6 @@ export async function importTextFiles(
 
   await workerPool(pendingTasks, MAX_CONCURRENCY);
 
-  await workerPool(pendingTasks, MAX_CONCURRENCY);
-
   return {
     entries: createdEntries,
     firstFileId: createdFileIds[0],

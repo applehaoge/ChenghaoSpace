@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { ChangeEvent, ReactNode } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
@@ -32,19 +32,6 @@ export function SidebarToolbar({
   currentDirectoryPath,
 }: SidebarToolbarProps) {
   const isTaskView = activeView === 'tasks';
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const handleUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = event.target.files ? Array.from(event.target.files) : [];
-    if (selectedFiles.length) {
-      onImportFiles(selectedFiles, currentDirectoryPath);
-    }
-    event.target.value = '';
-  };
 
   const toggleButton = (
     <SidebarViewToggleButton
@@ -90,21 +77,10 @@ export function SidebarToolbar({
               title="新建文件夹"
               onClick={onCreateFolder}
             />
-            <SidebarIconButton
+            <UploadDropdown
               isDark={isDark}
-              icon={<Upload size={16} />}
-              motionButton
-              title="上传"
-              onClick={handleUpload}
-            />
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              webkitdirectory="true"
-              className="hidden"
-              onChange={handleFileChange}
-              aria-hidden
+              onImportFiles={onImportFiles}
+              currentDirectoryPath={currentDirectoryPath}
             />
           </>
         ) : null}
@@ -206,5 +182,96 @@ function SidebarIconButton({ isDark, icon, motionButton = false, title, onClick 
     <button className={baseClasses} title={title} onClick={onClick} type="button">
       {icon}
     </button>
+  );
+}
+
+interface UploadDropdownProps {
+  isDark: boolean;
+  onImportFiles: (files: File[], parentPath?: string) => void;
+  currentDirectoryPath?: string;
+}
+
+function UploadDropdown({ isDark, onImportFiles, currentDirectoryPath }: UploadDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const folderInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = event.target.files ? Array.from(event.target.files) : [];
+    if (selectedFiles.length) {
+      onImportFiles(selectedFiles, currentDirectoryPath);
+    }
+    event.target.value = '';
+    setIsOpen(false);
+  };
+
+  const handleUploadFiles = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleUploadFolder = () => {
+    // webkitdirectory 可能一次返回大量文件，单独 input 避免重复触发
+    folderInputRef.current?.click();
+  };
+
+  const menuClasses = clsx(
+    'absolute right-0 mt-2 w-32 rounded-xl border shadow-lg py-1 text-sm z-10',
+    isDark ? 'bg-gray-800 border-gray-700 text-blue-100' : 'bg-white border-blue-200 text-blue-900',
+  );
+
+  const menuItemClasses = clsx(
+    'w-full text-left px-3 py-2 flex items-center gap-2 rounded-lg transition-colors',
+    isDark ? 'hover:bg-gray-700' : 'hover:bg-blue-50',
+  );
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <SidebarIconButton
+        isDark={isDark}
+        icon={<Upload size={16} />}
+        motionButton
+        title="上传"
+        onClick={() => setIsOpen(prev => !prev)}
+      />
+      {isOpen ? (
+        <div className={menuClasses} role="menu">
+          <button type="button" className={menuItemClasses} onClick={handleUploadFiles} role="menuitem">
+            上传文件
+          </button>
+          <button type="button" className={menuItemClasses} onClick={handleUploadFolder} role="menuitem">
+            上传文件夹
+          </button>
+        </div>
+      ) : null}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        className="hidden"
+        onChange={handleFileChange}
+        aria-hidden
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        multiple
+        webkitdirectory="true"
+        className="hidden"
+        onChange={handleFileChange}
+        aria-hidden
+      />
+    </div>
   );
 }
