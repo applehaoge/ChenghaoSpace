@@ -1,5 +1,6 @@
 import { toast } from 'sonner';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
+import { MAX_BINARY_FILE_SIZE_BYTES, MAX_TEXT_FILE_SIZE_BYTES } from '@/features/kidsCoding/core/fileSizeLimits';
 
 type ImportOptions = {
   parentPath?: string;
@@ -21,7 +22,52 @@ const IMAGE_MAX = 5 * 1024 * 1024;
 const AUDIO_MAX = 10 * 1024 * 1024;
 const BINARY_MAX = 20 * 1024 * 1024;
 const DIRECTORY_TOTAL_MAX = 50 * 1024 * 1024;
-const TEXT_EXTENSIONS = ['.py', '.txt', '.json', '.csv'];
+const TEXT_EXTENSIONS = [
+  '.md',
+  '.yaml',
+  '.yml',
+  '.xml',
+  '.html',
+  '.css',
+  '.scss',
+  '.sass',
+  '.less',
+  '.js',
+  '.jsx',
+  '.ts',
+  '.tsx',
+  '.py',
+  '.java',
+  '.c',
+  '.cpp',
+  '.h',
+  '.hpp',
+  '.cs',
+  '.json',
+  '.jsonc',
+  '.csv',
+  '.tsv',
+  '.ini',
+  '.conf',
+  '.config',
+  '.properties',
+  '.toml',
+  '.vue',
+  '.svelte',
+  '.sh',
+  '.bash',
+  '.zsh',
+  '.fish',
+  '.r',
+  '.go',
+  '.php',
+  '.rb',
+  '.swift',
+  '.kt',
+  '.rs',
+  '.txt',
+  '.log',
+];
 const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.webp', '.bmp', '.gif', '.svg'];
 const AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg'];
 const BINARY_EXTENSIONS = [
@@ -76,8 +122,54 @@ const isValidName = (name: string) => {
   return !(name.includes('/') || name.includes('\\') || name.includes('..'));
 };
 
+const LANGUAGE_BY_EXTENSION: Record<string, string> = {
+  '.md': 'markdown',
+  '.yaml': 'yaml',
+  '.yml': 'yaml',
+  '.xml': 'xml',
+  '.html': 'html',
+  '.css': 'css',
+  '.scss': 'css',
+  '.sass': 'css',
+  '.less': 'css',
+  '.js': 'javascript',
+  '.jsx': 'javascriptreact',
+  '.ts': 'typescript',
+  '.tsx': 'typescriptreact',
+  '.json': 'json',
+  '.jsonc': 'json',
+  '.ini': 'ini',
+  '.conf': 'ini',
+  '.config': 'ini',
+  '.properties': 'ini',
+  '.toml': 'toml',
+  '.vue': 'vue',
+  '.svelte': 'svelte',
+  '.sh': 'shell',
+  '.bash': 'shell',
+  '.zsh': 'shell',
+  '.fish': 'shell',
+  '.c': 'c',
+  '.cpp': 'cpp',
+  '.h': 'c',
+  '.hpp': 'cpp',
+  '.cs': 'csharp',
+  '.java': 'java',
+  '.py': 'python',
+  '.php': 'php',
+  '.rb': 'ruby',
+  '.swift': 'swift',
+  '.kt': 'kotlin',
+  '.rs': 'rust',
+  '.go': 'go',
+  '.r': 'r',
+  '.txt': 'plaintext',
+  '.log': 'plaintext',
+};
+
 const detectLanguage = (name: string) => {
-  return name.toLowerCase().endsWith('.py') ? 'python' : undefined;
+  const ext = pickExtension(name);
+  return LANGUAGE_BY_EXTENSION[ext];
 };
 
 const pickExtension = (name: string) => {
@@ -191,6 +283,11 @@ export async function importTextFiles(
     const isBinary = isBinaryFile(file.name);
     if (!isText && !isImage && !isAudio && !isBinary) {
       toast.error(`${file.name} 类型不支持`);
+      continue;
+    }
+    const uploadLimit = isText ? MAX_TEXT_FILE_SIZE_BYTES : MAX_BINARY_FILE_SIZE_BYTES;
+    if ((file.size || 0) > uploadLimit) {
+      toast.error(`${file.name} 超过大小限制（最大 ${uploadLimit} 字节）`);
       continue;
     }
     const sizeLimit = isText

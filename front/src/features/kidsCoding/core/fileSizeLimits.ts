@@ -1,0 +1,2 @@
+export const MAX_TEXT_FILE_SIZE_BYTES = 200 * 1024;
+export const MAX_BINARY_FILE_SIZE_BYTES = 2 * 1024 * 1024;

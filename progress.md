@@ -20,6 +20,19 @@
 
 所有潜在危险点（例如路径校验、资源限制）要在代码里加简短注释（中文），标明为什么要这么做。
 
+- **2025-11-24 KidsCoding 上传下拉 + 导入去重**
+  - SidebarToolbar “上传”改为按钮+二级菜单，分开文件/文件夹两个隐藏 input，复用现有导入链路；core/importFiles 去掉重复执行的 worker，避免同批文件被导入两次。
+  - Checks: 未跑（逻辑改动，未执行前端构建/测试）
+
+- **2025-11-24 KidsCoding 标签打开逻辑与渲染分流**
+  - useProjectFiles 维护 openFileIds，仅对用户主动打开的文件生成标签，关闭标签时按最近打开顺序切换；导入不再切换 activeFileId。
+  - CodeWorkspace 按 FileEntry 类型分流：utf8 文本继续用 CodeEditor，base64 图片显示预览，其他二进制显示信息提示面板。
+  - Checks: 未跑（仅前端逻辑调整）
+
+- **2025-11-24 KidsCoding 导入类型扩展**
+  - core/importFiles 文本白名单扩充常见编辑器格式（md/yaml/jsonc/js/ts/tsx/css/html/vue/svelte/sh 等）并增加语言映射，Markdown 不再被判为不支持。
+  - Checks: 未跑（仅类型/映射扩展）
+
 - **2025-11-19 KidsCoding 文件树拖拽 + 箭头**
 
   - core/buildFileTree 抽象树节点 + flatten 结构，统一输出 depth、parentId、hasChildren，FileSidebar 也直接复用 getEntryPath/collectAncestorPaths，减少组件内计算。
@@ -29,11 +42,16 @@
   - Checks: pnpm --dir server test, pnpm --dir front build:client
 
 - **2025-11-18 KidsCoding 文件栏树形交互**
-  - FileSidebar 维护 currentDirectoryPath、selectedEntryId 与 expandedFolderIds，点击空白区域可回到根目录；点击文件/文件夹会同步当前目录并自动展开对应父层，所有新建/上传都精确落在当前目录。
-  - FileListPanel 根据文件 path 构建多级树，行内缩进/高度/图标保持原样，空白区域使用容器 onClick 捕获，行组件负责 stopPropagation，支持展开/收起、内联重命名与删除。
-  - useProjectFiles 支持多级路径：创建/重命名/删除文件夹会同步子项 path，新建文件也会按目录生成唯一路径，为后续打包和运行提供准确目录结构。
-  - Checks: pnpm --dir server test, pnpm --dir front build:client
-
+  - FileSidebar 维护 currentDirectoryPath、selectedEntryId 与 expandedFolderIds，点击空白区域可回到根目录；点击文件/文件夹会同步当前目录并自动展开对应父层，所有新建/上传都精确落在当前目录。
+
+  - FileListPanel 根据文件 path 构建多级树，行内缩进/高度/图标保持原样，空白区域使用容器 onClick 捕获，行组件负责 stopPropagation，支持展开/收起、内联重命名与删除。
+
+  - useProjectFiles 支持多级路径：创建/重命名/删除文件夹会同步子项 path，新建文件也会按目录生成唯一路径，为后续打包和运行提供准确目录结构。
+
+  - Checks: pnpm --dir server test, pnpm --dir front build:client
+
+
+
 - **2025-11-17 KidsCoding 编辑器高亮**
   - FileListPanel 左侧文件项 hover/active 使用浅蓝色背景与 3px 左色条，文字与图标加粗/变色，提升主次感且不改 DOM。
   - CodeWorkspace 顶部 tabs 应用透明上边框、hover 下边框与激活态蓝色上边条，文字/图标遵循新的颜色规范。

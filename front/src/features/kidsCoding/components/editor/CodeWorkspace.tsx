@@ -6,6 +6,8 @@ import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
 import { ResizableConsole } from '@/features/kidsCoding/components/editor/ResizableConsole';
 import type { RunConsoleState } from '@/features/kidsCoding/hooks/useRunJob';
 import type { FileEntry } from '@/features/kidsCoding/types/editor';
+import { ImagePreviewPane } from '@/features/kidsCoding/components/editor/preview/ImagePreviewPane';
+import { BinaryInfoPane } from '@/features/kidsCoding/components/editor/preview/BinaryInfoPane';
 
 interface CodeWorkspaceProps {
   isDark: boolean;
@@ -64,6 +66,7 @@ export function CodeWorkspace({
     }
     return fileTabs[fileTabs.length - 1] ?? fileTabs[0];
   }, [fileTabs, activeFileId]);
+  const editorValue = activeTab?.content ?? codeValue;
   const displayName = activeTab?.name ?? fileName;
   const displayLanguage = activeTab?.language ?? language;
 
@@ -112,6 +115,49 @@ export function CodeWorkspace({
     [onAskAssistant],
   );
 
+  const renderActiveFilePane = () => {
+    if (isImageEntry(activeTab)) {
+      return (
+        <div
+          className={clsx('flex-1 h-full overflow-hidden shadow-inner border border-t-0', {
+            'border-gray-800/70 bg-gray-900': isDark,
+            'border-blue-100 bg-white': !isDark,
+          })}
+        >
+          <ImagePreviewPane entry={activeTab} />
+        </div>
+      );
+    }
+    if (activeTab?.encoding === 'base64') {
+      return (
+        <div
+          className={clsx('flex-1 h-full overflow-hidden shadow-inner border border-t-0', {
+            'border-gray-800/70 bg-gray-900': isDark,
+            'border-blue-100 bg-white': !isDark,
+          })}
+        >
+          <BinaryInfoPane entry={activeTab} />
+        </div>
+      );
+    }
+    return (
+      <div
+        className={clsx('flex-1 h-full overflow-hidden shadow-inner border border-t-0', {
+          'border-gray-800/70 bg-gray-900': isDark,
+          'border-blue-100 bg-white': !isDark,
+        })}
+      >
+        <CodeEditor
+          value={editorValue}
+          onChange={onCodeChange}
+          language={displayLanguage}
+          theme={editorTheme}
+          fontSize={editorFontSize}
+        />
+      </div>
+    );
+  };
+
   const toggleConsole = () => setIsConsoleOpen(prev => !prev);
   const runBusy = Boolean(isRunBusy);
   const toolbarActions = [
@@ -144,22 +190,7 @@ export function CodeWorkspace({
       />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        <div className="flex-1 flex overflow-hidden relative">
-          <div
-            className={clsx('flex-1 h-full overflow-hidden shadow-inner border border-t-0', {
-              'border-gray-800/70 bg-gray-900': isDark,
-              'border-blue-100 bg-white': !isDark,
-            })}
-          >
-            <CodeEditor
-              value={codeValue}
-              onChange={onCodeChange}
-              language={displayLanguage}
-              theme={editorTheme}
-              fontSize={editorFontSize}
-            />
-          </div>
-        </div>
+        <div className="flex-1 flex overflow-hidden relative">{renderActiveFilePane()}</div>
 
         <ResizableConsole
           isDark={isDark}
@@ -393,4 +424,19 @@ function WorkspaceTabs({
       </div>
     </div>
   );
+}
+
+const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.svg']);
+
+function normalizeExtension(entry?: FileEntry) {
+  const ext = entry?.extension ?? '';
+  if (!ext) return '';
+  return ext.startsWith('.') ? ext.toLowerCase() : `.${ext.toLowerCase()}`;
+}
+
+function isImageEntry(entry?: FileEntry) {
+  if (!entry || entry.encoding !== 'base64') return false;
+  if (entry.mime?.startsWith('image/')) return true;
+  const normalized = normalizeExtension(entry);
+  return normalized ? IMAGE_EXTENSIONS.has(normalized) : false;
 }
