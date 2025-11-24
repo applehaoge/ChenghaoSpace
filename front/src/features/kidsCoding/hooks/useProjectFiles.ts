@@ -24,6 +24,7 @@ export interface ProjectFilesState {
   files: FileEntry[];
   activeFileId: string;
   activeFile?: FileEntry;
+  openFileIds: string[];
   selectFile: (entryId: string) => void;
   updateFileContent: (entryId: string, content: string) => void;
   createFile: (options: { path: string; content: string; language?: string; encoding?: FileEntry['encoding']; mime?: string; size?: number }) => FileEntry | null;
@@ -33,6 +34,7 @@ export interface ProjectFilesState {
   removeEntry: (entryId: string) => void;
   moveEntry: (entryId: string, targetFolderId: string | null) => void;
   importFiles: (files: File[], parentPath?: string) => Promise<void>;
+  closeFileTab: (entryId: string) => void;
 }
 
 export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): ProjectFilesState {
@@ -40,10 +42,27 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
   const [files, setFiles] = useState<FileEntry[]>(prepared.current.files);
   const filesSnapshotRef = useRef<FileEntry[]>(prepared.current.files);
   const [activeFileId, setActiveFileId] = useState<string>(prepared.current.activeId);
+  const [openFileIds, setOpenFileIds] = useState<string[]>(() =>
+    prepared.current.activeId ? [prepared.current.activeId] : [],
+  );
 
   useEffect(() => {
     filesSnapshotRef.current = files;
   }, [files]);
+
+  const addOpenFile = useCallback((entryId: string) => {
+    if (!entryId) return;
+    setOpenFileIds(prev => (prev.includes(entryId) ? prev : [...prev, entryId]));
+  }, []);
+
+  const activateFile = useCallback(
+    (entryId: string) => {
+      if (!entryId) return;
+      addOpenFile(entryId);
+      setActiveFileId(entryId);
+    },
+    [addOpenFile],
+  );
 
   const activeFile = useMemo(
     () => files.find(file => file.id === activeFileId && file.kind !== 'folder'),
@@ -53,10 +72,10 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
   const selectFile = useCallback(
     (entryId: string) => {
       if (files.some(file => file.id === entryId && file.kind !== 'folder')) {
-        setActiveFileId(entryId);
+        activateFile(entryId);
       }
     },
-    [files],
+    [files, activateFile],
   );
 
   const updateFileContent = useCallback((entryId: string, content: string) => {
@@ -110,10 +129,10 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
       filesSnapshotRef.current = merged;
       setFiles(merged);
       if (nextActiveId) {
-        setActiveFileId(nextActiveId);
+        activateFile(nextActiveId);
       }
     },
-    [],
+    [activateFile],
   );
 
   const createFile = useCallback(
@@ -287,46 +306,76 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
   }, []);
 
   const removeEntry = useCallback((entryId: string) => {
-    setFiles(prev => {
-      const target = prev.find(file => file.id === entryId);
-      if (!target) {
-        return prev;
-      }
-      const targetPath = target.path ?? target.name ?? '';
-      const removedIds = new Set<string>();
-      const nextFiles =
-        target.kind === 'folder'
-          ? prev.filter(file => {
-              const entryPath = file.path ?? file.name ?? '';
-              const shouldRemove = entryPath && isDescendantOrSelf(entryPath, targetPath);
-              if (shouldRemove) {
-                removedIds.add(file.id);
-              }
-              return !shouldRemove;
-            })
-          : prev.filter(file => {
-              if (file.id === entryId) {
-                removedIds.add(file.id);
-                return false;
-              }
-              return true;
-            });
-      filesSnapshotRef.current = nextFiles;
-      setActiveFileId(currentActive => {
-        if (!currentActive || !removedIds.has(currentActive)) {
-          return currentActive;
+    const prevFiles = filesSnapshotRef.current;
+    const target = prevFiles.find(file => file.id === entryId);
+    if (!target) {
+      return;
+    }
+    const targetPath = target.path ?? target.name ?? '';
+    const removedIds = new Set<string>();
+    const nextFiles =
+      target.kind === 'folder'
+        ? prevFiles.filter(file => {
+            const entryPath = file.path ?? file.name ?? '';
+            const shouldRemove = entryPath && isDescendantOrSelf(entryPath, targetPath);
+            if (shouldRemove) {
+              removedIds.add(file.id);
+            }
+            return !shouldRemove;
+          })
+        : prevFiles.filter(file => {
+            if (file.id === entryId) {
+              removedIds.add(file.id);
+              return false;
+            }
+            return true;
+          });
+    filesSnapshotRef.current = nextFiles;
+    setFiles(nextFiles);
+    const filteredOpen = openFileIds.filter(id => !removedIds.has(id));
+    const nextActiveId = (() => {
+      if (!activeFileId || removedIds.has(activeFileId)) {
+        if (filteredOpen.length) {
+          return filteredOpen[filteredOpen.length - 1];
         }
         const nextActive = nextFiles.find(file => file.kind !== 'folder');
         return nextActive?.id ?? '';
+      }
+      return activeFileId;
+    })();
+    const nextOpenList =
+      nextActiveId && !filteredOpen.includes(nextActiveId) ? [...filteredOpen, nextActiveId] : filteredOpen;
+    setOpenFileIds(nextOpenList);
+    setActiveFileId(nextActiveId);
+  }, [activeFileId, openFileIds]);
+
+  const closeFileTab = useCallback(
+    (entryId: string) => {
+      setOpenFileIds(prev => {
+        if (!prev.includes(entryId)) {
+          return prev;
+        }
+        const nextOpen = prev.filter(id => id !== entryId);
+        setActiveFileId(currentActive => {
+          if (currentActive !== entryId) {
+            return currentActive;
+          }
+          if (nextOpen.length) {
+            return nextOpen[nextOpen.length - 1];
+          }
+          return '';
+        });
+        return nextOpen;
       });
-      return nextFiles;
-    });
-  }, []);
+    },
+    [],
+  );
 
   return {
     files,
     activeFileId,
     activeFile,
+    openFileIds,
     selectFile,
     updateFileContent,
     createFile,
@@ -349,11 +398,13 @@ export function useProjectFiles(initialFiles: FileEntry[] = FALLBACK_FILES): Pro
           },
         });
         if (result?.entries?.length) {
-          batchApply(result.entries, result.firstFileId);
+          // 导入完成后不主动切换 activeFileId，保持用户当前选中
+          batchApply(result.entries);
         }
       },
       [batchApply, createFileEntryOnly, createFolderEntryOnly],
     ),
+    closeFileTab,
   };
 }
 

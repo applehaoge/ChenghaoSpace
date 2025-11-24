@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
-import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal } from 'lucide-react';
+import { FileText, Minus, Palette, Play, Plus as PlusIcon, Search, Terminal, X } from 'lucide-react';
 import { CodeEditor } from '@/features/kidsCoding/components/editor/CodeEditor';
 import { ResizableConsole } from '@/features/kidsCoding/components/editor/ResizableConsole';
 import type { RunConsoleState } from '@/features/kidsCoding/hooks/useRunJob';
@@ -24,6 +24,8 @@ interface CodeWorkspaceProps {
   files?: FileEntry[];
   activeFileId?: string;
   onSelectFile?: (entryId: string) => void;
+  openFileIds?: string[];
+  onCloseFile?: (entryId: string) => void;
 }
 
 const DEFAULT_CONSOLE_HEIGHT = 220;
@@ -45,12 +47,23 @@ export function CodeWorkspace({
   files = [],
   activeFileId,
   onSelectFile,
+  openFileIds = [],
+  onCloseFile,
 }: CodeWorkspaceProps) {
-  const fileTabs = useMemo(() => files.filter(file => file.kind !== 'folder'), [files]);
-  const activeTab = useMemo(
-    () => fileTabs.find(file => file.id === activeFileId) ?? fileTabs[0],
-    [fileTabs, activeFileId],
+  const fileTabs = useMemo(
+    () =>
+      openFileIds
+        .map(id => files.find(file => file.id === id && file.kind !== 'folder'))
+        .filter((entry): entry is FileEntry => Boolean(entry)),
+    [files, openFileIds],
   );
+  const activeTab = useMemo(() => {
+    if (activeFileId) {
+      const hit = fileTabs.find(file => file.id === activeFileId);
+      if (hit) return hit;
+    }
+    return fileTabs[fileTabs.length - 1] ?? fileTabs[0];
+  }, [fileTabs, activeFileId]);
   const displayName = activeTab?.name ?? fileName;
   const displayLanguage = activeTab?.language ?? language;
 
@@ -122,7 +135,13 @@ export function CodeWorkspace({
         'bg-white': !isDark,
       })}
     >
-      <WorkspaceTabs isDark={isDark} tabs={fileTabs} activeId={activeTab?.id} onSelect={onSelectFile} />
+      <WorkspaceTabs
+        isDark={isDark}
+        tabs={fileTabs}
+        activeId={activeTab?.id}
+        onSelect={onSelectFile}
+        onClose={onCloseFile}
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         <div className="flex-1 flex overflow-hidden relative">
@@ -264,11 +283,13 @@ function WorkspaceTabs({
   tabs,
   activeId,
   onSelect,
+  onClose,
 }: {
   isDark: boolean;
   tabs: FileEntry[];
   activeId?: string;
   onSelect?: (entryId: string) => void;
+  onClose?: (entryId: string) => void;
 }) {
   const containerClass = clsx('flex items-center px-4 rounded-t-3xl h-12 border-b', {
     'bg-gray-800 border-gray-700': isDark,
@@ -352,6 +373,20 @@ function WorkspaceTabs({
               >
                 {tab.name}
               </span>
+              {onClose ? (
+                <button
+                  type="button"
+                  className="opacity-70 hover:opacity-100 transition-opacity"
+                  onClick={event => {
+                    event.stopPropagation();
+                    onClose(tab.id);
+                  }}
+                  aria-label="关闭标签"
+                  title="关闭标签"
+                >
+                  <X size={14} />
+                </button>
+              ) : null}
             </motion.button>
           );
         })}

@@ -53,6 +53,7 @@ export function KidsCodingEditorPage() {
     files,
     activeFile,
     activeFileId,
+    openFileIds,
     selectFile,
     updateFileContent,
     importFiles,
@@ -61,6 +62,7 @@ export function KidsCodingEditorPage() {
     renameEntry,
     removeEntry,
     moveEntry,
+    closeFileTab,
   } = useProjectFiles(initialProjectFiles);
 
   useEffect(() => {
@@ -171,7 +173,9 @@ export function KidsCodingEditorPage() {
             language={activeFile?.language ?? 'python'}
             files={files}
             activeFileId={activeFileId}
+            openFileIds={openFileIds}
             onSelectFile={selectFile}
+            onCloseFile={closeFileTab}
           />
           <InsightsSidebar
             isDark={isDark}
