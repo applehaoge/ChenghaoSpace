@@ -3,6 +3,7 @@ import { MAX_BINARY_FILE_SIZE_BYTES, MAX_TEXT_FILE_SIZE_BYTES } from '@/features
 import type { RunFileDTO, RunJobDTO } from '@/features/kidsCoding/types/run';
 
 const MAX_FILE_COUNT = 30;
+const MAX_TOTAL_PAYLOAD_BYTES = 8 * 1024 * 1024;
 const textEncoder = new TextEncoder();
 const DRIVE_PREFIX = /^[a-zA-Z]:/;
 
@@ -55,6 +56,7 @@ export function buildRunJobPayload(files: FileEntry[], activeFileId?: string | n
   const sanitizedFiles: RunFileDTO[] = [];
   const seenPaths = new Set<string>();
   const pathByEntryId = new Map<string, string>();
+  let totalBytes = 0;
 
   fileEntries.forEach(file => {
     const rawPath = file.path ?? file.name;
@@ -74,6 +76,10 @@ export function buildRunJobPayload(files: FileEntry[], activeFileId?: string | n
     const limit = encoding === 'utf8' ? MAX_TEXT_FILE_SIZE_BYTES : MAX_BINARY_FILE_SIZE_BYTES;
     if (byteLength > limit) {
       throw new Error(`文件 ${safePath} 超过大小限制（最大 ${limit} 字节）`);
+    }
+    totalBytes += byteLength;
+    if (totalBytes > MAX_TOTAL_PAYLOAD_BYTES) {
+      throw new Error(`�������е���Ŀ�ܴ�С�����ޣ���� ${MAX_TOTAL_PAYLOAD_BYTES} �ֽڣ�`);
     }
     sanitizedFiles.push({ path: safePath, content, encoding });
     seenPaths.add(safePath);

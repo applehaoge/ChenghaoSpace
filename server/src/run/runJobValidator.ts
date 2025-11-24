@@ -2,7 +2,8 @@ import { posix as pathPosix } from 'node:path';
 import type { RunFileDTO, RunFileEncoding, RunJobDTO } from './jobTypes.js';
 
 const MAX_FILE_COUNT = 30;
-const MAX_FILE_SIZE_BYTES = 200 * 1024;
+const MAX_TEXT_FILE_SIZE_BYTES = 200 * 1024;
+const MAX_BINARY_FILE_SIZE_BYTES = 2 * 1024 * 1024;
 const DRIVE_PREFIX = /^[a-zA-Z]:/;
 
 export class RunJobValidationError extends Error {
@@ -70,10 +71,11 @@ const ensureContent = (rawContent: any, encoding: RunFileEncoding, path: string)
       ? decodeBase64(content, path).length
       : Buffer.byteLength(content, 'utf8');
 
-  if (byteLength > MAX_FILE_SIZE_BYTES) {
+  const limit = encoding === 'utf8' ? MAX_TEXT_FILE_SIZE_BYTES : MAX_BINARY_FILE_SIZE_BYTES;
+  if (byteLength > limit) {
     throwValidationError(
       'FILE_TOO_LARGE',
-      `文件 ${path} 超过大小限制（最大 ${MAX_FILE_SIZE_BYTES} 字节）`,
+      `文件 ${path} 超过大小限制（最大 ${limit} 字节）`,
     );
   }
 
