@@ -1,6 +1,7 @@
 import { posix as pathPosix } from 'node:path';
 const MAX_FILE_COUNT = 30;
-const MAX_FILE_SIZE_BYTES = 200 * 1024;
+const MAX_TEXT_FILE_SIZE_BYTES = 200 * 1024;
+const MAX_BINARY_FILE_SIZE_BYTES = 2 * 1024 * 1024;
 const DRIVE_PREFIX = /^[a-zA-Z]:/;
 export class RunJobValidationError extends Error {
     constructor(errorCode, message) {
@@ -59,8 +60,9 @@ const ensureContent = (rawContent, encoding, path) => {
     const byteLength = encoding === 'base64'
         ? decodeBase64(content, path).length
         : Buffer.byteLength(content, 'utf8');
-    if (byteLength > MAX_FILE_SIZE_BYTES) {
-        throwValidationError('FILE_TOO_LARGE', `文件 ${path} 超过大小限制（最大 ${MAX_FILE_SIZE_BYTES} 字节）`);
+    const limit = encoding === 'utf8' ? MAX_TEXT_FILE_SIZE_BYTES : MAX_BINARY_FILE_SIZE_BYTES;
+    if (byteLength > limit) {
+        throwValidationError('FILE_TOO_LARGE', `文件 ${path} 超过大小限制（最大 ${limit} 字节）`);
     }
     return content;
 };

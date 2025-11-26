@@ -11,7 +11,11 @@ import { registerRunRoutes } from './run/runRoutes.js';
 import { registerJobStreamRoute } from './run/jobStream.js';
 import { buildAttachmentContext, } from './services/attachmentContext.js';
 dotenv.config();
-const fastify = Fastify({ logger: true });
+const fastify = Fastify({
+    logger: true,
+    // 允许前端一次性提交多文件运行任务，10MB 足够学生项目使用，避免频繁 413
+    bodyLimit: 10 * 1024 * 1024,
+});
 const uploadLimitMb = Number(process.env.UPLOAD_MAX_SIZE_MB ?? '25');
 const maxUploadBytes = Number.isFinite(uploadLimitMb) && uploadLimitMb > 0 ? uploadLimitMb * 1024 * 1024 : 25 * 1024 * 1024;
 fastify.register(multipart, {

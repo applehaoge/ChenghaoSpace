@@ -3,6 +3,7 @@ import { createJobRecord, getJobRecord, updateJobStatus, appendJobOutput, setJob
 import { enqueueJobId, claimNextJobId } from './jobQueue.js';
 import { assertRunnerAuthorized } from './runnerAuth.js';
 import { RunJobValidationError, sanitizeRunJobDTO } from './runJobValidator.js';
+import { publishJobEvent } from './jobEvents.js';
 const MAX_TIMEOUT_MS = Number(process.env.RUN_JOB_TIMEOUT_MS ?? 60000);
 const clampTimeout = (input) => {
     if (!input || Number.isNaN(input))
@@ -109,6 +110,11 @@ export const registerRunRoutes = async (fastify) => {
             case 'visualization':
                 setJobVisualizationFrame(jobId, event.frame);
                 break;
+            case 'audio': {
+                const audioEvent = { ...event, jobId };
+                publishJobEvent(jobId, { type: 'audio', chunk: audioEvent });
+                break;
+            }
             default:
                 return reply.code(400).send({ message: 'Unknown event type' });
         }
